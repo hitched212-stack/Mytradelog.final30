@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../my-trade-log-website-build/MYTRADELOG.FINAL"
+		},
+		{
+			"path": "../my-trade-log-website-build"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}
