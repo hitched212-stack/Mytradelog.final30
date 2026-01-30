@@ -2,3 +2,5 @@ node_modules
 .DS_Store
 .env
 .env.*
+supabase/.temp
+focus-trade-app-main/supabase/.temp
