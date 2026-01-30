@@ -12,16 +12,20 @@ export default function Paywall() {
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
   const [isLoading, setIsLoading] = useState(false);
+  const checkoutLinks: Record<PlanType, string> = {
+    monthly: 'https://buy.stripe.com/bJedR96IEgPcbnu9weeQM01',
+    annual: 'https://buy.stripe.com/9B66oHgjegPcbnu5fYeQM00',
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
   };
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (plan?: PlanType) => {
     setIsLoading(true);
-    toast.info('Stripe integration required for checkout');
-    setIsLoading(false);
+    const checkoutUrl = checkoutLinks[plan ?? selectedPlan];
+    window.location.href = checkoutUrl;
   };
 
   return (
@@ -250,7 +254,7 @@ export default function Paywall() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedPlan('annual');
-                    handleSubscribe();
+                    handleSubscribe('annual');
                   }}
                   disabled={isLoading}
                   className="w-full h-12 rounded-xl font-semibold text-base mt-4 border-0"
@@ -313,7 +317,7 @@ export default function Paywall() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedPlan('monthly');
-                    handleSubscribe();
+                    handleSubscribe('monthly');
                   }}
                   disabled={isLoading}
                   variant="secondary"
