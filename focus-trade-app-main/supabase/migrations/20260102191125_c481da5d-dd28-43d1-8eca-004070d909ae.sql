@@ -87,7 +87,8 @@ EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Create storage bucket for backtest and playbook images
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('trading-media', 'trading-media', true);
+VALUES ('trading-media', 'trading-media', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- Storage policies
 CREATE POLICY "Users can view trading media" 
