@@ -375,7 +375,7 @@ export default function CalendarPage() {
     return dayOfWeekStats.reduce((worst, day) => day.pnl < worst.pnl ? day : worst, dayOfWeekStats[0]);
   }, [dayOfWeekStats]);
     return <div className="min-h-screen pb-24">
-      <div className="px-4 pt-2 md:px-6 md:pt-0 lg:px-8">
+      <div className="px-4 pt-2 md:px-6 md:pt-6 lg:px-8">
         <div className="flex flex-col gap-4">
           {/* Main Calendar Section - Full width on desktop */}
           <div className="w-full space-y-3">
@@ -734,7 +734,7 @@ export default function CalendarPage() {
                                 </div>
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="text-[11px] font-semibold w-full text-center px-0.5 truncate"
+                                    <div className="text-[10px] font-semibold w-full text-center px-0.5 truncate tracking-tight"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
@@ -752,7 +752,7 @@ export default function CalendarPage() {
                             <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
                               Wk {weekIndex + 1}
                             </div>
-                            <div className="text-[10px] font-bold font-display mb-0.5 w-full text-center truncate tabular-nums leading-none"
+                            <div className="text-[9px] font-bold font-display mb-0.5 w-full text-center truncate tabular-nums leading-none tracking-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>

@@ -210,6 +210,7 @@ const App = () => {
     (window.navigator as any).standalone === true ||
     document.referrer.includes('android-app://')
   );
+  const shouldRedirectToApp = !isAppRoute && isStandalone;
   const [showSplash, setShowSplash] = useState(() => isMobileDevice());
   const [splashComplete, setSplashComplete] = useState(!isMobileDevice());
   const [isDataReady, setIsDataReady] = useState(false);
@@ -224,10 +225,19 @@ const App = () => {
     setIsDataReady(true);
   };
 
-  if (!isAppRoute) {
-    if (isStandalone) {
+  useEffect(() => {
+    if (shouldRedirectToApp) {
       window.location.replace('/app/dashboard');
-      return null;
+    }
+  }, [shouldRedirectToApp]);
+
+  if (!isAppRoute) {
+    if (shouldRedirectToApp) {
+      return (
+        <div className="min-h-screen w-full bg-black flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
     }
     return isTermsRoute ? <LandingTerms /> : <LandingHome />;
   }

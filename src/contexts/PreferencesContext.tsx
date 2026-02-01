@@ -154,8 +154,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 
   // Load preferences from database when user logs in
   useEffect(() => {
+    // Reset loaded state whenever user changes
+    setIsLoaded(false);
     if (!user) {
-      setIsLoaded(true);
       return;
     }
 
