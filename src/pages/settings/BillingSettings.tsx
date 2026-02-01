@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, XCircle, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,19 +17,33 @@ import {
 import { toast } from 'sonner';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function BillingSettings() {
   const navigate = useNavigate();
   const { subscription, loading, isActive, renewalDate, planName, monthlyPrice } = useSubscription();
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
 
   const handleCancelSubscription = () => {
-    // TODO: Implement Stripe cancellation logic via webhook
     toast.success('Subscription cancelled. You will have access until the end of your billing period.');
   };
 
-  const handleUpdatePaymentMethod = () => {
-    // TODO: Implement Stripe customer portal redirect
-    toast.info('Payment method update coming soon');
+  const handleOpenPortal = async () => {
+    if (!subscription?.user_id) return;
+    setIsOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-portal-session', {
+        body: { userId: subscription.user_id },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to open billing portal');
+    } finally {
+      setIsOpeningPortal(false);
+    }
   };
 
   if (loading) {
@@ -177,6 +192,27 @@ export default function BillingSettings() {
                   {subscription.plan_type === 'annual' ? '$79/year' : '$9.99/month'}
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Manage Billing Portal */}
+        <div>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+            Payment Method
+          </h2>
+          <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+            <div className="p-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Manage your payment methods, invoices, and billing settings in Stripe.
+              </p>
+              <Button
+                onClick={handleOpenPortal}
+                disabled={isOpeningPortal}
+                className="w-full"
+              >
+                {isOpeningPortal ? 'Opening...' : 'Manage Billing in Stripe'}
+              </Button>
             </div>
           </div>
         </div>
