@@ -1,11 +1,17 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 
 const STRIPE_WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
+const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!;
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16',
+  httpClient: Stripe.createFetchHttpClient(),
+});
 
 serve(async (req) => {
   if (req.method !== 'POST') {
@@ -72,7 +78,21 @@ serve(async (req) => {
     case 'checkout.session.completed': {
       const session = event.data.object;
       let userId = session.metadata?.user_id;
-      const customerEmail = session.customer_details?.email || session.customer_email;
+      
+      // Get customer email from session, or fetch from Stripe if needed
+      let customerEmail = session.customer_details?.email || session.customer_email;
+      
+      // If still no email, fetch customer from Stripe
+      if (!customerEmail && session.customer) {
+        try {
+          const customer = await stripe.customers.retrieve(session.customer as string);
+          if (customer && !customer.deleted) {
+            customerEmail = customer.email;
+          }
+        } catch (err) {
+          console.error('Error fetching customer:', err);
+        }
+      }
       
       // If no user_id in metadata, try to find user by email
       if (!userId && customerEmail) {
@@ -85,7 +105,10 @@ serve(async (req) => {
         const user = userData.users.find(u => u.email === customerEmail);
         if (!user) {
           console.error('No user found with email:', customerEmail);
-          return new Response('User not found', { status: 404 });
+          return new Response(JSON.stringify({ error: 'User not found', email: customerEmail }), { 
+            status: 404,
+            headers: { 'Content-Type': 'application/json' }
+          });
         }
         userId = user.id;
       }
@@ -93,6 +116,17 @@ serve(async (req) => {
       if (!userId) {
         console.error('No user_id in session metadata and no email');
         return new Response('No user_id', { status: 400 });
+      }
+
+      // Fetch subscription to get accurate period end
+      let currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      if (session.subscription) {
+        try {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+        } catch (err) {
+          console.error('Error fetching subscription:', err);
+        }
       }
 
       // Calculate the amount from the checkout session
@@ -107,7 +141,7 @@ serve(async (req) => {
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           amount: amountInCents,
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          current_period_end: currentPeriodEnd,
         }, { onConflict: 'user_id' });
 
       if (error) {
