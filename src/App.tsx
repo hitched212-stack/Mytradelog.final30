@@ -205,6 +205,11 @@ const AppRoutes = ({ onDataReady }: { onDataReady?: () => void }) => {
 const App = () => {
   const isAppRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/app");
   const isTermsRoute = typeof window !== "undefined" && window.location.pathname === "/terms";
+  const isStandalone = typeof window !== "undefined" && (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true ||
+    document.referrer.includes('android-app://')
+  );
   const [showSplash, setShowSplash] = useState(() => isMobileDevice());
   const [splashComplete, setSplashComplete] = useState(!isMobileDevice());
   const [isDataReady, setIsDataReady] = useState(false);
@@ -220,6 +225,10 @@ const App = () => {
   };
 
   if (!isAppRoute) {
+    if (isStandalone) {
+      window.location.replace('/app/dashboard');
+      return null;
+    }
     return isTermsRoute ? <LandingTerms /> : <LandingHome />;
   }
 
