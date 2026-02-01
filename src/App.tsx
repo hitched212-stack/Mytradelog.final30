@@ -212,8 +212,8 @@ const App = () => {
     document.referrer.includes('android-app://')
   );
   const shouldRedirectToApp = !isAppRoute && isStandalone;
-  const [showSplash, setShowSplash] = useState(() => isMobileDevice());
-  const [splashComplete, setSplashComplete] = useState(!isMobileDevice());
+  const [showSplash, setShowSplash] = useState(() => isMobileDevice() && !isStandalone);
+  const [splashComplete, setSplashComplete] = useState(!isMobileDevice() || isStandalone);
   const [isDataReady, setIsDataReady] = useState(false);
 
   // Mark splash as complete when it finishes
