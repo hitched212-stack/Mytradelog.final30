@@ -193,20 +193,25 @@ export function useSettings() {
   const setUsername = useCallback(async (username: string) => {
     if (!user) return;
 
-    setSettings({ ...settings, username });
-
     try {
+      // Update database first
       const { error } = await supabase
         .from('profiles')
         .update({ username })
         .eq('user_id', user.id);
 
       if (error) throw error;
+      
+      // Update local state after successful DB update
+      const currentSettings = useDataStore.getState().settings;
+      setSettings({ ...currentSettings, username });
+      
+      console.log('Username saved successfully:', username);
     } catch (error) {
       console.error('Error updating username:', error);
       toast.error('Failed to save username');
     }
-  }, [user, settings, setSettings]);
+  }, [user, setSettings]);
 
   // Update balance hidden preference
   const setBalanceHidden = useCallback(async (balanceHidden: boolean) => {

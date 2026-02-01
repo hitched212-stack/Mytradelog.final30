@@ -2,7 +2,7 @@
   "name": "MyTradeLog - Trading Journal",
   "short_name": "TradeLog",
   "description": "Professional Trading Journal - Track trades, analyze performance, improve discipline",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "scope": "/",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone", "minimal-ui"],

@@ -1,6 +1,18 @@
 html, body {
-  background: #000 !important;
+  background: hsl(var(--background)) !important;
   scroll-behavior: smooth;
+  min-height: 100%;
+  overscroll-behavior-y: none;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+  background-color: hsl(var(--background));
+}
+
+#root {
+  min-height: 100vh;
+  background-color: hsl(var(--background));
 }
 @import "@fontsource/geist-mono/400.css";
 @import "@fontsource/geist-mono/500.css";

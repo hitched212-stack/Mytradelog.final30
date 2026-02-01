@@ -6,6 +6,7 @@ import { format, parseISO } from 'date-fns';
 import { SymbolIcon } from '@/components/ui/SymbolIcon';
 import { Badge } from '@/components/ui/badge';
 import { usePreferences } from '@/hooks/usePreferences';
+import { useAccount } from '@/hooks/useAccount';
 
 interface DashboardTradeCardProps {
   trade: Trade;
@@ -23,6 +24,7 @@ export const DashboardTradeCard = memo(function DashboardTradeCard({
   onClick
 }: DashboardTradeCardProps) {
   const { preferences } = usePreferences();
+  const { activeAccount } = useAccount();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
 
   const formatPnl = (value: number) => {
@@ -33,9 +35,11 @@ export const DashboardTradeCard = memo(function DashboardTradeCard({
     })}`;
   };
 
-  const formatPnlPercentage = (value: number) => {
-    const sign = value >= 0 ? '+' : '';
-    return `${sign}${value.toFixed(2)}%`;
+  const formatPnlPercentage = (pnlAmount: number) => {
+    const accountBalance = activeAccount?.starting_balance || 0;
+    const percentage = accountBalance > 0 ? (pnlAmount / accountBalance * 100) : 0;
+    const sign = percentage >= 0 ? '+' : '';
+    return `${sign}${percentage.toFixed(2)}%`;
   };
 
   const isPaper = trade.isPaperTrade;
@@ -122,12 +126,6 @@ export const DashboardTradeCard = memo(function DashboardTradeCard({
                 {formatPnl(trade.pnlAmount)}
               </span>
             </div>
-            <p className={cn(
-              "text-sm font-display tabular-nums",
-              trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
-            )}>
-              {formatPnlPercentage(trade.pnlPercentage)}
-            </p>
           </div>
         )}
         {(isPaper || isNoTrade) && (

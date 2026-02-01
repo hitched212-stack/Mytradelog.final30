@@ -682,9 +682,6 @@ export default function CalendarPage() {
                                     <div className="text-[8px] text-muted-foreground">
                                       {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
                                     </div>
-                                    <div className="text-[8px] text-muted-foreground/70">
-                                      {dayPnl >= 0 ? '+' : ''}{pnlPercent}%
-                                    </div>
                                   </div>
                                 )}
                               </button>
@@ -707,7 +704,7 @@ export default function CalendarPage() {
                         </div>
                         
                         {/* Mobile - Weekdays only (Mon-Fri) */}
-                        <div key={`${weekIndex}-mobile`} className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5">
+                        <div key={`${weekIndex}-mobile`} className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 auto-rows-[4rem] items-stretch">
                           {weekdaysOnly.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
                             const dayPnl = getDailyPnl(dateStr);
@@ -741,15 +738,12 @@ export default function CalendarPage() {
                                 </div>
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="text-xs font-semibold w-full text-center px-0.5 truncate"
+                                    <div className="text-[11px] font-semibold w-full text-center px-0.5 truncate"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
                                     <div className="text-[8px] text-muted-foreground">
                                       {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
-                                    </div>
-                                    <div className="text-[8px] text-muted-foreground/70">
-                                      {dayPnl >= 0 ? '+' : ''}{pnlPercent}%
                                     </div>
                                   </div>
                                 )}
