@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { Currency, PnlGoals } from '@/types/trade';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 export function useSettings() {
   const { user } = useAuth();
   const { settings, settingsLoaded, setSettings, setSettingsLoaded } = useDataStore();
+  const lastUserIdRef = useRef<string | null>(null);
 
   // Fetch settings from profile - optimized with minimal query
   const fetchSettings = useCallback(async () => {
@@ -88,12 +89,17 @@ export function useSettings() {
   }, [user, setSettings]);
 
   useEffect(() => {
-    // Reset settingsLoaded whenever user changes
-    setSettingsLoaded(false);
+    const currentUserId = user?.id ?? null;
+    if (lastUserIdRef.current !== currentUserId) {
+      lastUserIdRef.current = currentUserId;
+      setSettingsLoaded(false);
+    }
+
     if (!user) {
       return;
     }
-    if (!settingsLoaded && user) {
+
+    if (!settingsLoaded) {
       fetchSettings();
     }
   }, [user, settingsLoaded, fetchSettings, setSettingsLoaded]);
