@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check, LogOut, Shield } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Check, LogOut, Shield, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -14,11 +15,12 @@ export default function Paywall() {
   const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
   const [isLoading, setIsLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
   
   // Stripe Price IDs - replace these with your actual price IDs
   const priceIds: Record<PlanType, string> = {
-    monthly: 'price_1234567890', // Replace with your monthly price ID
-    annual: 'price_0987654321',  // Replace with your annual price ID
+    monthly: 'price_1SuHcmELJcgT10sLDsC9DpZ6', // Replace with your monthly price ID
+    annual: 'price_1SuHcmELJcgT10sLOE2DoLrq',  // Replace with your annual price ID
   };
 
   const handleSignOut = async () => {
@@ -44,6 +46,7 @@ export default function Paywall() {
           userId: user.id,
           planType: selectedPlanType,
           userEmail: user.email,
+          promoCode: promoCode.trim() || undefined,
         },
       });
 
@@ -205,11 +208,33 @@ export default function Paywall() {
               </div>
             </button>
 
+            {/* Promo Code Input */}
+            <div className="mt-4">
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Tag className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Promo code (optional)"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  className="h-12 pl-12 pr-4 rounded-xl border text-sm"
+                  style={{ 
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    color: '#ffffff'
+                  }}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
             {/* Mobile CTA Button */}
             <Button
               onClick={handleSubscribe}
               disabled={isLoading}
-              className="w-full h-14 rounded-xl font-semibold text-base mt-2 border-0"
+              className="w-full h-14 rounded-xl font-semibold text-base mt-4 border-0"
               style={{ 
                 backgroundColor: selectedPlan === 'annual' ? '#ffffff' : 'rgba(255,255,255,0.1)',
                 color: selectedPlan === 'annual' ? '#0a0a0f' : '#ffffff'

@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { priceId, userId, planType, userEmail } = await req.json();
+    const { priceId, userId, planType, userEmail, promoCode } = await req.json();
 
     if (!priceId || !userId) {
       return new Response(
@@ -27,7 +27,7 @@ serve(async (req) => {
       );
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: any = {
       mode: 'subscription',
       payment_method_types: ['card'],
       customer_email: userEmail,
@@ -43,7 +43,14 @@ serve(async (req) => {
         user_id: userId,
         plan_type: planType || 'monthly',
       },
-    });
+    };
+
+    // Add promo code if provided
+    if (promoCode) {
+      sessionConfig.discounts = [{ promotion_code: promoCode }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),
