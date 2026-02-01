@@ -399,6 +399,28 @@ export default function Paywall() {
             </button>
           </div>
 
+          {/* Promo Code Input - Desktop */}
+          <div className="hidden sm:block mt-6">
+            <div className="relative max-w-md mx-auto">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                <Tag className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+              </div>
+              <Input
+                type="text"
+                placeholder="Have a promo code? Enter it here"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                className="h-12 pl-12 pr-4 rounded-xl border text-sm text-center"
+                style={{ 
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderColor: 'rgba(255,255,255,0.1)',
+                  color: '#ffffff'
+                }}
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+
           {/* Trust Signals */}
           <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs mt-6 sm:mt-8" style={{ color: 'rgba(255,255,255,0.4)' }}>
             <span className="flex items-center gap-1.5">
