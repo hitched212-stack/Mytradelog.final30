@@ -164,9 +164,8 @@ export function useSettings() {
   const setGoals = useCallback(async (goals: PnlGoals) => {
     if (!user) return;
 
-    setSettings({ ...settings, goals });
-
     try {
+      // Update database first
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -178,11 +177,17 @@ export function useSettings() {
         .eq('user_id', user.id);
 
       if (error) throw error;
+      
+      // Update local state after successful DB update
+      const currentSettings = useDataStore.getState().settings;
+      setSettings({ ...currentSettings, goals });
+      
+      console.log('Goals saved successfully:', goals);
     } catch (error) {
       console.error('Error updating goals:', error);
       toast.error('Failed to save goals');
     }
-  }, [user, settings, setSettings]);
+  }, [user, setSettings]);
 
   // Update username
   const setUsername = useCallback(async (username: string) => {
