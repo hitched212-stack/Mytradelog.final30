@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Trade Log | Professional Trading Journal</title>
+    <meta name="description" content="Track your trades, analyze performance, and improve your trading discipline with Trade Log - a minimal, professional trading journal." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    
+    <!-- iOS PWA Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="TradeLog" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- App Icons - Using SVG for consistency with dashboard logo -->
+    <link rel="apple-touch-icon" href="/app-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/app-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/app-icon.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/app-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/app-icon.svg" />
+
+    <!-- iOS Splash Screens (will use theme color as fallback) -->
+    <meta name="apple-mobile-web-app-orientations" content="portrait" />
+
+    <meta property="og:title" content="Trade Log - Trading Journal" />
+    <meta property="og:description" content="Track your trades, analyze performance, and improve your trading discipline." />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Trade Log - Trading Journal" />
+  </head>
+
+  <body>
+    <!-- Prevent flash on PWA launch - immediate dark background -->
+    <script>
+      (function() {
+        // Only apply to standalone/PWA mode on mobile
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                          window.navigator.standalone === true;
+        if (isStandalone) {
+          document.documentElement.style.backgroundColor = '#0a0a0a';
+          document.body.style.backgroundColor = '#0a0a0a';
+        }
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

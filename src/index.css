@@ -1,0 +1,560 @@
+html, body {
+  background: #000 !important;
+  scroll-behavior: smooth;
+}
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
+@import "@fontsource/geist-mono/600.css";
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/instrument-sans/400.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 0 0% 96%;
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 88%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 58%;
+
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 96%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 96%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 12%;
+    --ring: 0 0% 32%;
+
+    --radius: 0.5rem;
+
+    /* Custom tokens */
+    --surface-elevated: 0 0% 10%;
+    --text-primary: 0 0% 96%;
+    --text-secondary: 0 0% 68%;
+    --text-tertiary: 0 0% 48%;
+    --pnl-positive: 142 71% 45%;
+    --pnl-negative: 0 72% 55%;
+    --accent-color: 142 71% 45%;
+    --border-subtle: 0 0% 13%;
+    --interactive: 0 0% 25%;
+    --interactive-hover: 0 0% 32%;
+
+    --font-mono: system-ui, -apple-system, sans-serif;
+    --font-sans: system-ui, -apple-system, sans-serif;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 0 0% 96%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 0 0% 32%;
+
+    /* Glass card token */
+    --glass-card-bg: 0 0% 100%;
+    --glass-card-border: 0 0% 100%;
+  }
+
+  .light {
+    --background: 0 0% 99%;
+    --foreground: 0 0% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
+
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 99%;
+
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 0 0% 94%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 99%;
+
+    --border: 0 0% 86%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 40%;
+
+    --surface-elevated: 0 0% 100%;
+    --text-primary: 0 0% 5%;
+    --text-secondary: 0 0% 35%;
+    --text-tertiary: 0 0% 50%;
+    --pnl-positive: 142 71% 35%;
+    --pnl-negative: 0 72% 50%;
+    --accent-color: 142 71% 35%;
+    --border-subtle: 0 0% 90%;
+    --interactive: 0 0% 94%;
+    --interactive-hover: 0 0% 90%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 5%;
+    --sidebar-primary: 0 0% 10%;
+    --sidebar-primary-foreground: 0 0% 99%;
+    --sidebar-accent: 0 0% 93%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 0 0% 40%;
+
+    --glass-card-bg: 0 0% 0%;
+    --glass-card-border: 0 0% 0%;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 0 0% 96%;
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 88%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 58%;
+
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 96%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 96%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 12%;
+    --ring: 0 0% 32%;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 0 0% 96%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 0 0% 32%;
+
+    --glass-card-bg: 0 0% 100%;
+    --glass-card-border: 0 0% 100%;
+  }
+
+  /* Text size modifiers */
+  .text-size-small {
+    font-size: 14px;
+  }
+  
+  .text-size-medium {
+    font-size: 16px;
+  }
+  
+  .text-size-large {
+    font-size: 18px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Prevent flash on PWA launch - set root background immediately */
+  html, body, #root {
+    background-color: hsl(0 0% 4%);
+  }
+
+  /* Override with theme colors once app loads */
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "tnum" on, "lnum" on;
+  }
+
+  /* Apply display font ONLY for explicit numeric classes - not tabular-nums */
+  .font-numeric {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-feature-settings: "tnum" on, "lnum" on;
+  }
+
+  /* Balance display - bold display font for currency/amounts */
+  .balance-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-feature-settings: "tnum" on, "lnum" on;
+    letter-spacing: -0.025em;
+  }
+  
+  /* Tabular nums for alignment only - inherit font from parent */
+  .tabular-nums {
+    font-feature-settings: "tnum" on, "lnum" on;
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  .text-pnl-positive {
+    color: hsl(var(--pnl-positive));
+  }
+  
+  .text-pnl-negative {
+    color: hsl(var(--pnl-negative));
+  }
+  
+  .bg-pnl-positive {
+    background-color: hsl(var(--pnl-positive));
+  }
+  
+  .bg-pnl-negative {
+    background-color: hsl(var(--pnl-negative));
+  }
+  
+  .bg-surface-elevated {
+    background-color: hsl(var(--surface-elevated));
+  }
+  
+  .border-subtle {
+    border-color: hsl(var(--border-subtle));
+  }
+
+  /* Accent color utilities - these respond to the selected accent color */
+  .text-accent {
+    color: hsl(var(--accent-color));
+  }
+  
+  .bg-accent-primary {
+    background-color: hsl(var(--accent-color));
+  }
+  
+  .bg-accent-muted {
+    background-color: hsl(var(--accent-color) / 0.2);
+  }
+  
+  .border-accent {
+    border-color: hsl(var(--accent-color));
+  }
+  
+  .ring-accent {
+    --tw-ring-color: hsl(var(--accent-color));
+  }
+
+  /* Glass card utility class */
+  .glass-card {
+    @apply rounded-2xl border backdrop-blur-xl relative overflow-hidden transition-all duration-300;
+    background: linear-gradient(to bottom right, hsl(var(--glass-card-bg) / 0.05), hsl(var(--glass-card-bg) / 0.02));
+    border-color: hsl(var(--glass-card-border) / 0.1);
+  }
+
+  .glass-card-hover:hover {
+    background: linear-gradient(to bottom right, hsl(var(--glass-card-bg) / 0.1), hsl(var(--glass-card-bg) / 0.05));
+  }
+
+  /* Glass highlight overlay */
+  .glass-highlight {
+    @apply absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300;
+    background: linear-gradient(to bottom right, hsl(var(--glass-card-bg) / 0.08), transparent, transparent);
+  }
+}
+
+/* No glass mode - disable backdrop blur effects and use solid backgrounds */
+.no-glass .backdrop-blur-xl,
+.no-glass .backdrop-blur-lg,
+.no-glass .backdrop-blur-md,
+.no-glass .backdrop-blur-sm,
+.no-glass .backdrop-blur,
+.no-glass [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.no-glass .glass-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.no-glass .bg-card\/80,
+.no-glass .bg-card\/95 {
+  background: hsl(var(--card)) !important;
+}
+
+.no-glass .bg-background\/80 {
+  background: hsl(var(--background)) !important;
+}
+
+/* Light mode solid card styles */
+.light .glass-card {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+}
+
+.light .glass-card-hover:hover {
+  background: hsl(var(--muted));
+}
+
+/* Light mode icon visibility */
+.light .settings-icon {
+  @apply text-foreground/70;
+}
+
+/* No-glass mode forced solid backgrounds */
+.no-glass [class*="bg-gradient-to-br"][class*="from-white"] {
+  background: hsl(var(--card)) !important;
+}
+
+.no-glass [class*="border-white/"] {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Light mode visibility adjustments */
+.light [class*="bg-white/5"],
+.light [class*="bg-white/10"],
+.light [class*="from-white/5"],
+.light [class*="to-white/"] {
+  background: hsl(var(--card));
+}
+
+.light [class*="border-white/5"],
+.light [class*="border-white/10"] {
+  border-color: hsl(var(--border));
+}
+
+.light [class*="text-white/70"] {
+  color: hsl(var(--foreground) / 0.7);
+}
+
+.light [class*="text-white/60"] {
+  color: hsl(var(--foreground) / 0.6);
+}
+
+.light [class*="hover:bg-white/5"]:hover,
+.light [class*="hover:bg-white/10"]:hover {
+  background: hsl(var(--muted));
+}
+
+/* Light mode card backgrounds - solid surfaces */
+.light .bg-card\/50,
+.light .bg-card\/80,
+.light .bg-card\/95 {
+  background-color: hsl(var(--card));
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.light .border-border\/50 {
+  border-color: hsl(var(--border));
+}
+
+.light .bg-muted\/50 {
+  background-color: hsl(var(--muted));
+}
+
+.light .bg-muted\/30 {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.light .bg-secondary {
+  background-color: hsl(var(--secondary));
+}
+
+.light .bg-white\/\[0\.02\] {
+  background: hsl(var(--muted) / 0.3);
+}
+
+/* Dark mode specific muted backgrounds */
+.dark .bg-muted\/50 {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.dark .bg-muted\/30 {
+  background-color: hsl(var(--muted) / 0.2);
+}
+
+/* Landing page - Fixed color palette that ignores theme settings */
+[data-theme="landing"],
+[data-theme="landing"] * {
+  color-scheme: dark !important;
+}
+
+[data-theme="landing"] {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+  --font-sans: "Inter", "Inter Fallback", sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  color: hsl(var(--foreground));
+  background-color: #000;
+}
+
+/* Prevent light mode overrides on landing page */
+.light [data-theme="landing"],
+.light [data-theme="landing"] * {
+  color: inherit;
+  background-color: inherit;
+}
+
+.light [data-theme="landing"] [class*="bg-white/"],
+.light [data-theme="landing"] [class*="text-white/"],
+.light [data-theme="landing"] [class*="border-white/"] {
+  background-color: unset;
+  color: unset;
+  border-color: unset;
+}
+
+/* Reset all light mode color overrides inside landing page */
+.light [data-theme="landing"] [class*="bg-white/5"],
+.light [data-theme="landing"] [class*="bg-white/10"],
+.light [data-theme="landing"] [class*="from-white/5"],
+.light [data-theme="landing"] [class*="to-white/"] {
+  background: initial;
+}
+
+.light [data-theme="landing"] [class*="border-white/5"],
+.light [data-theme="landing"] [class*="border-white/10"] {
+  border-color: initial;
+}
+
+.light [data-theme="landing"] [class*="text-white/70"],
+.light [data-theme="landing"] [class*="text-white/60"] {
+  color: initial;
+}
+
+.light [data-theme="landing"] [class*="hover:bg-white/5"]:hover,
+.light [data-theme="landing"] [class*="hover:bg-white/10"]:hover {
+  background: initial;
+}
+
+/* Global tap highlight removal for mobile */
+button,
+a,
+[role="button"],
+.interactive {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Landing page reveal-on-scroll animation */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-on-scroll {
+    animation: none;
+  }
+}
+
+.delay-100 {
+  transition-delay: 100ms;
+}
+.delay-200 {
+  transition-delay: 200ms;
+}
+.delay-300 {
+  transition-delay: 300ms;
+}
+.delay-400 {
+  transition-delay: 400ms;
+}
+.delay-500 {
+  transition-delay: 500ms;
+}
+.delay-600 {
+  transition-delay: 600ms;
+}
+.delay-700 {
+  transition-delay: 700ms;
+}
+.delay-800 {
+  transition-delay: 800ms;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-out forwards;
+}
