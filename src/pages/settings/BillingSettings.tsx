@@ -189,7 +189,7 @@ export default function BillingSettings() {
               <div className="p-4 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Billing Amount</span>
                 <span className="text-sm font-medium text-foreground">
-                  {subscription.plan_type === 'annual' ? '$79/year' : '$9.99/month'}
+                  {monthlyPrice || (subscription.plan_type === 'annual' ? '$79/year' : '$9.99/month')}
                 </span>
               </div>
             </div>

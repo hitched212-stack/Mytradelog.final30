@@ -95,6 +95,9 @@ serve(async (req) => {
         return new Response('No user_id', { status: 400 });
       }
 
+      // Calculate the amount from the checkout session
+      const amountInCents = session.amount_total || 0;
+
       const { error } = await supabase
         .from('subscriptions')
         .upsert({
@@ -103,6 +106,7 @@ serve(async (req) => {
           plan_type: session.metadata?.plan_type || 'monthly',
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
+          amount: amountInCents,
           current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         }, { onConflict: 'user_id' });
 
@@ -161,6 +165,9 @@ serve(async (req) => {
         planType = 'yearly';
       }
 
+      // Capture the amount in cents from the invoice
+      const amountInCents = invoice.lines?.data?.[0]?.price?.unit_amount || 0;
+
       const { error } = await supabase
         .from('subscriptions')
         .upsert({
@@ -169,6 +176,7 @@ serve(async (req) => {
           plan_type: planType,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
+          amount: amountInCents,
           current_period_end: new Date(invoice.lines.data[0].period.end * 1000).toISOString(),
           current_period_start: new Date(invoice.lines.data[0].period.start * 1000).toISOString(),
         }, { onConflict: 'user_id' });

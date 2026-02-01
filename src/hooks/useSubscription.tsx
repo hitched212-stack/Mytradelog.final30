@@ -12,6 +12,7 @@ export interface Subscription {
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   cancel_at_period_end: boolean;
+  amount: number | null; // Amount in cents
   created_at: string;
   updated_at: string;
 }
@@ -76,10 +77,20 @@ export function useSubscription() {
     return subscription.plan_type === 'annual' ? 'Annual Pro' : 'Monthly Pro';
   }, [subscription]);
 
-  // Get monthly price based on plan
+  // Get monthly price based on plan - uses actual amount from Stripe if available
   const getMonthlyPrice = useCallback(() => {
     if (!subscription) return null;
-    return subscription.plan_type === 'annual' ? '$6.58' : '$9.99';
+    
+    // If we have the actual amount from Stripe, use it
+    if (subscription.amount) {
+      const amountInDollars = (subscription.amount / 100).toFixed(2);
+      return subscription.plan_type === 'annual' 
+        ? `$${amountInDollars}/year` 
+        : `$${amountInDollars}/month`;
+    }
+    
+    // Fallback to defaults if amount not yet captured
+    return subscription.plan_type === 'annual' ? '$79/year' : '$9.99/month';
   }, [subscription]);
 
   return {
