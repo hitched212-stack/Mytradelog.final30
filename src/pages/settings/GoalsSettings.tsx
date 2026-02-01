@@ -30,14 +30,14 @@ export default function GoalsSettings() {
     });
   }, [settings.goals]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const numericGoals: PnlGoals = {
       daily: parseFloat(goals.daily) || 0,
       weekly: parseFloat(goals.weekly) || 0,
       monthly: parseFloat(goals.monthly) || 0,
       yearly: parseFloat(goals.yearly) || 0
     };
-    setGoals(numericGoals);
+    await setGoals(numericGoals);
     toast({
       title: 'Goals updated',
       description: 'Your P&L goals have been saved',

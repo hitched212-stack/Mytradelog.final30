@@ -51,10 +51,15 @@ export function useTradingPreferences() {
   }, [user]);
 
   useEffect(() => {
+    // Reset loaded state whenever user changes
+    setIsLoaded(false);
+    if (!user) {
+      return;
+    }
     if (!isLoaded && user) {
       fetchPreferences();
     }
-  }, [isLoaded, user, fetchPreferences]);
+  }, [user, isLoaded, fetchPreferences]);
 
   // Update trading rules
   const setTradingRules = useCallback(async (tradingRules: string[]) => {
