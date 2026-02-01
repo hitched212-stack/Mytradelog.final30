@@ -28,6 +28,12 @@ serve(async (req) => {
     }
 
     const appBaseUrl = Deno.env.get('APP_BASE_URL') || req.headers.get('origin') || '';
+    const appBasePath = Deno.env.get('APP_BASE_PATH') || '';
+    const normalizedBaseUrl = appBaseUrl.replace(/\/$/, '');
+    const normalizedBasePath = appBasePath
+      ? (appBasePath.startsWith('/') ? appBasePath : `/${appBasePath}`)
+      : '';
+    const appUrl = `${normalizedBaseUrl}${normalizedBasePath}`;
     const sessionConfig: any = {
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -39,8 +45,8 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appBaseUrl}/pricing`,
+      success_url: `${appUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/paywall`,
       metadata: {
         user_id: userId,
         plan_type: planType || 'monthly',
