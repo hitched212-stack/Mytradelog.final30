@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 export function useSettings() {
   const { user } = useAuth();
-  const { settings, settingsLoaded, setSettings } = useDataStore();
+  const { settings, settingsLoaded, setSettings, setSettingsLoaded } = useDataStore();
 
   // Fetch settings from profile - optimized with minimal query
   const fetchSettings = useCallback(async () => {
@@ -88,10 +88,15 @@ export function useSettings() {
   }, [user, setSettings]);
 
   useEffect(() => {
+    // Reset settingsLoaded whenever user changes
+    setSettingsLoaded(false);
+    if (!user) {
+      return;
+    }
     if (!settingsLoaded && user) {
       fetchSettings();
     }
-  }, [settingsLoaded, user, fetchSettings]);
+  }, [user, settingsLoaded, fetchSettings, setSettingsLoaded]);
 
   // Update currency
   const setCurrency = useCallback(async (currency: Currency) => {
