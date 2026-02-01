@@ -589,147 +589,192 @@ export default function CalendarPage() {
             ) : (
               /* Month View - Original Calendar */
               <>
-                {/* Day Headers with Weekly P&L column - Weekdays only */}
-                <div className="grid grid-cols-[repeat(5,1fr)_auto] gap-1 text-center">
-                  {[{
-                  short: 'M',
-                  full: 'Mon'
-                }, {
-                  short: 'T',
-                  full: 'Tue'
-                }, {
-                  short: 'W',
-                  full: 'Wed'
-                }, {
-                  short: 'T',
-                  full: 'Thu'
-                }, {
-                  short: 'F',
-                  full: 'Fri'
-                }].map((day, i) => <div key={i} className="py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-muted-foreground text-center">
-                      <span className="sm:hidden">{day.short}</span>
-                      <span className="hidden sm:inline">{day.full}</span>
-                    </div>)}
-                  <div className="w-12 sm:w-16 lg:w-24" /> {/* Spacer for weekly column header */}
+                {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
+                <div className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1 text-center mb-1">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                    <div key={i} className="py-1 text-[10px] font-medium text-muted-foreground">
+                      {day}
+                    </div>
+                  ))}
+                  <div className="w-16 md:w-20" /> {/* Spacer for weekly column */}
+                </div>
+                {/* Mobile headers - Mon to Fri only */}
+                <div className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 text-center mb-1">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
+                    <div key={i} className="py-1 text-[10px] font-medium text-muted-foreground">
+                      {day}
+                    </div>
+                  ))}
+                  <div className="w-14" /> {/* Spacer for weekly column */}
                 </div>
 
-                {/* Calendar Grid with Weekly P&L - Weekdays only */}
-                <div className="space-y-1 md:space-y-1.5">
+                {/* Calendar Grid with Weekly P&L - Full week */}
+                <div className="space-y-0.5 md:space-y-1">
                   {(() => {
-                  // Filter out weekends (Sat=6, Sun=0) and build rows of weekdays only
-                  const weekdaysOnly = days.filter(day => {
-                    const dayOfWeek = getDay(day);
-                    return dayOfWeek >= 1 && dayOfWeek <= 5; // Mon-Fri only
-                  });
-                  
-                  // Group by week - each week has up to 5 days (Mon-Fri)
-                  const weeks: Date[][] = [];
-                  let currentWeek: Date[] = [];
-                  
-                  weekdaysOnly.forEach((day, index) => {
-                    const dayOfWeek = getDay(day); // 1=Mon, 5=Fri
+                    const monthStart = startOfMonth(currentMonth);
+                    const monthEnd = endOfMonth(currentMonth);
+                    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+                    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
                     
-                    // Start a new week if this is Monday and we have days in current week
-                    if (dayOfWeek === 1 && currentWeek.length > 0) {
-                      weeks.push(currentWeek);
-                      currentWeek = [];
+                    const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+                    const weeks: Date[][] = [];
+                    
+                    for (let i = 0; i < allDays.length; i += 7) {
+                      weeks.push(allDays.slice(i, i + 7));
                     }
                     
-                    // Add empty slots at the start of first week if needed
-                    if (weeks.length === 0 && currentWeek.length === 0 && dayOfWeek > 1) {
-                      for (let i = 1; i < dayOfWeek; i++) {
-                        currentWeek.push(null as unknown as Date); // placeholder for empty
-                      }
-                    }
-                    
-                    currentWeek.push(day);
-                  });
-                  
-                  // Push the last week
-                  if (currentWeek.length > 0) {
-                    weeks.push(currentWeek);
-                  }
-                  
-                  // Pad last week to 5 days if needed
-                  const lastWeek = weeks[weeks.length - 1];
-                  if (lastWeek) {
-                    while (lastWeek.length < 5) {
-                      lastWeek.push(null as unknown as Date);
-                    }
-                  }
-                  
-                  return weeks.map((week, rowIndex) => {
-                    const weekData = weeklyPnlData[rowIndex];
-                    return <div key={rowIndex} className="grid grid-cols-[repeat(5,minmax(0,1fr))_auto] gap-1 md:gap-1.5">
-                          {week.map((day, cellIndex) => {
-                        if (!day) {
-                          return <div key={`empty-${rowIndex}-${cellIndex}`} className="aspect-square min-h-[64px] max-h-20 md:h-20 md:aspect-auto rounded-lg md:rounded-xl bg-foreground/10 dark:bg-muted/40" />;
-                        }
-                        const dateStr = format(day, 'yyyy-MM-dd');
-                        const dayPnl = getDailyPnl(dateStr);
-                        const tradeCount = getTradeCountForDay(dateStr);
-                        const hasTrades = tradeCount > 0;
-                        const isTodayDate = isToday(day);
-                        const isWin = dayPnl > 0;
-                        const isLoss = dayPnl < 0;
-                        return <button key={dateStr} onClick={() => handleDayClick(day)} className={cn('aspect-square min-h-[64px] max-h-20 md:h-20 md:aspect-auto rounded-lg md:rounded-xl flex flex-col items-start justify-start p-1.5 md:p-2 transition-all duration-200 relative hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md', hasTrades ? isWin ? 'bg-pnl-positive/20 border-2 border-pnl-positive/40' : isLoss ? 'bg-pnl-negative/20 border-2 border-pnl-negative/40' : 'bg-muted/50 border border-border' : 'bg-muted/30 hover:bg-muted/50', isTodayDate && 'ring-2 ring-foreground/40')}>
-                                <span className={cn('text-xs md:text-base font-normal', hasTrades ? 'text-foreground' : isTodayDate ? 'text-foreground' : 'text-muted-foreground')}>
-                                  {format(day, 'd')}
-                                </span>
-                                {hasTrades && <div className="flex flex-col items-start mt-auto w-full">
-                                    <div className="flex items-center gap-0.5 text-[9px] md:text-[10px] text-muted-foreground">
-                                      <span>{tradeCount}</span>
-                                      <ArrowLeftRight className="h-2 w-2 md:h-2.5 md:w-2.5" />
-                                    </div>
-                                    <span className={cn('text-[10px] md:text-xs font-medium whitespace-nowrap font-display', dayPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
-                                      {formatPnlWithK(dayPnl)}
-                                    </span>
-                                  </div>}
-                              </button>;
-                      })}
-                          
-                          {/* Weekly P&L Card */}
-                          <div className={cn(
-                            "flex flex-col justify-between h-full min-w-[52px] sm:min-w-[72px] lg:min-w-[100px] rounded-xl border p-1.5 sm:p-2 lg:p-3 relative overflow-hidden shrink-0",
-                            preferences.liquidGlassEnabled
-                              ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                              : "border-border/50 bg-card"
-                          )}>
-                            {preferences.liquidGlassEnabled && (
-                              <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                  <pattern id={`week-dots-${rowIndex}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                                      <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                                  </pattern>
-                                </defs>
-                                <rect width="100%" height="100%" fill={`url(#week-dots-${rowIndex})`} />
-                              </svg>
-                            )}
-                            <div className="relative flex flex-col h-full justify-between">
-                              {/* Week Label */}
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="text-[8px] sm:text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                  W{weekData?.weekNumber || rowIndex + 1}
-                                </span>
-                                <span className="text-[7px] sm:text-[9px] lg:text-[10px] text-muted-foreground/70">
-                                  {weekData?.tradingDays || 0} trades
-                                </span>
-                              </div>
-                              
-                              {/* P&L Amount */}
-                              <div className="flex-1 flex items-center justify-center py-1">
-                                <span className={cn(
-                                  "text-xs sm:text-sm lg:text-base font-bold font-display tabular-nums tracking-tight",
-                                  (weekData?.pnl || 0) >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                    return weeks.map((week, weekIndex) => {
+                      const weekData = weeklyPnlData[weekIndex];
+                      const weekStartBalance = activeAccount?.starting_balance || 0;
+                      const weekPnlPercent = weekStartBalance > 0 ? ((weekData?.pnl || 0) / weekStartBalance * 100).toFixed(2) : '0.00';
+                      
+                      // For mobile: only Mon-Fri (indices 1-5), for tablet+: full week
+                      const weekdaysOnly = week.slice(1, 6); // Mon to Fri
+                      
+                      return (
+                        <>
+                        {/* Desktop/Tablet - Full week */}
+                        <div key={weekIndex} className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1">
+                          {week.map((day) => {
+                            const dateStr = format(day, 'yyyy-MM-dd');
+                            const dayPnl = getDailyPnl(dateStr);
+                            const dayTrades = trades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
+                            const tradeCount = dayTrades.length;
+                            const wins = dayTrades.filter(t => t.pnlAmount > 0).length;
+                            const winRate = tradeCount > 0 ? Math.round((wins / tradeCount) * 100) : 0;
+                            const isTodayDate = isToday(day);
+                            const isCurrentMonth = isSameMonth(day, currentMonth);
+                            
+                            // Calculate percentage based on account balance
+                            const accountBalance = activeAccount?.starting_balance || 0;
+                            const pnlPercent = accountBalance > 0 ? (dayPnl / accountBalance * 100).toFixed(2) : '0.00';
+                            
+                            return (
+                              <button
+                                key={dateStr}
+                                onClick={() => handleDayClick(day)}
+                                className={cn(
+                                  'h-16 md:h-20 rounded-md flex flex-col items-center justify-center p-1 transition-all relative border',
+                                  isCurrentMonth ? 'opacity-100' : 'opacity-40',
+                                  isTodayDate && 'ring-2 ring-primary/60',
+                                  tradeCount === 0 && 'bg-muted/30 border-border/30 hover:bg-muted/40'
+                                )}
+                                style={tradeCount > 0 ? {
+                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.15)`,
+                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.3)`
+                                } : undefined}
+                              >
+                                {/* Date number - top left */}
+                                <div className={cn(
+                                  'absolute top-0.5 left-0.5 text-[10px] font-medium',
+                                  isTodayDate ? 'text-primary font-bold' : 'text-muted-foreground'
                                 )}>
-                                  {(weekData?.pnl || 0) >= 0 ? '+' : ''}{currencySymbol}{Math.abs(weekData?.pnl || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                                </span>
-                              </div>
+                                  {format(day, 'd')}
+                                </div>
+
+                                {/* Trade info - centered */}
+                                {tradeCount > 0 && (
+                                  <div className="flex flex-col items-center gap-0.5 mt-2">
+                                    <div className="text-xs font-semibold w-full text-center px-0.5 truncate"
+                                      style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                                      {formatPnlWithK(dayPnl)}
+                                    </div>
+                                    <div className="text-[8px] text-muted-foreground">
+                                      {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
+                                    </div>
+                                    <div className="text-[8px] text-muted-foreground/70">
+                                      {dayPnl >= 0 ? '+' : ''}{pnlPercent}%
+                                    </div>
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                          
+                          {/* Weekly Summary */}
+                          <div className="h-16 md:h-20 w-16 md:w-20 flex flex-col items-center justify-center rounded-md p-1.5 bg-muted/30 border border-border/30">
+                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
+                              Week {weekIndex + 1}
+                            </div>
+                            <div className="text-xs font-bold font-display mb-0.5 w-full text-center truncate tabular-nums"
+                              style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                              {formatPnlWithK(weekData?.pnl || 0)}
+                            </div>
+                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap">
+                              {weekData?.tradingDays || 0} days
                             </div>
                           </div>
-                        </div>;
-                  });
-                })()}
+                        </div>
+                        
+                        {/* Mobile - Weekdays only (Mon-Fri) */}
+                        <div key={`${weekIndex}-mobile`} className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5">
+                          {weekdaysOnly.map((day) => {
+                            const dateStr = format(day, 'yyyy-MM-dd');
+                            const dayPnl = getDailyPnl(dateStr);
+                            const dayTrades = trades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
+                            const tradeCount = dayTrades.length;
+                            const isTodayDate = isToday(day);
+                            const isCurrentMonth = isSameMonth(day, currentMonth);
+                            const accountBalance = activeAccount?.starting_balance || 0;
+                            const pnlPercent = accountBalance > 0 ? (dayPnl / accountBalance * 100).toFixed(2) : '0.00';
+                            
+                            return (
+                              <button
+                                key={dateStr}
+                                onClick={() => handleDayClick(day)}
+                                className={cn(
+                                  'h-16 rounded-md flex flex-col items-center justify-center p-1 transition-all relative border',
+                                  isCurrentMonth ? 'opacity-100' : 'opacity-40',
+                                  isTodayDate && 'ring-2 ring-primary/60',
+                                  tradeCount === 0 && 'bg-muted/30 border-border/30 hover:bg-muted/40'
+                                )}
+                                style={tradeCount > 0 ? {
+                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.15)`,
+                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.3)`
+                                } : undefined}
+                              >
+                                <div className={cn(
+                                  'absolute top-0.5 left-0.5 text-[10px] font-medium',
+                                  isTodayDate ? 'text-primary font-bold' : 'text-muted-foreground'
+                                )}>
+                                  {format(day, 'd')}
+                                </div>
+                                {tradeCount > 0 && (
+                                  <div className="flex flex-col items-center gap-0.5 mt-2">
+                                    <div className="text-xs font-semibold w-full text-center px-0.5 truncate"
+                                      style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                                      {formatPnlWithK(dayPnl)}
+                                    </div>
+                                    <div className="text-[8px] text-muted-foreground">
+                                      {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
+                                    </div>
+                                    <div className="text-[8px] text-muted-foreground/70">
+                                      {dayPnl >= 0 ? '+' : ''}{pnlPercent}%
+                                    </div>
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                          
+                          {/* Weekly Summary - Mobile */}
+                          <div className="h-16 w-14 flex flex-col items-center justify-center rounded-md p-1.5 bg-muted/30 border border-border/30">
+                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
+                              Wk {weekIndex + 1}
+                            </div>
+                            <div className="text-xs font-bold font-display mb-0.5 w-full text-center truncate tabular-nums"
+                              style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                              {formatPnlWithK(weekData?.pnl || 0)}
+                            </div>
+                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap">
+                              {weekData?.tradingDays || 0}d
+                            </div>
+                          </div>
+                        </div>
+                        </>
+                      );
+                    });
+                  })()}
                 </div>
 
                 {/* Calendar Legend */}

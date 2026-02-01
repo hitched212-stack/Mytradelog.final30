@@ -159,14 +159,6 @@ export default function Auth() {
         toast.error(error.message);
       }
     } else {
-      // Update the username in the profiles table
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        await supabase
-          .from('profiles')
-          .update({ username: username.trim() })
-          .eq('user_id', userData.user.id);
-      }
       toast.success('Account created successfully!');
       navigate('/paywall');
     }
