@@ -27,18 +27,20 @@ serve(async (req) => {
       );
     }
 
+    const appBaseUrl = Deno.env.get('APP_BASE_URL') || req.headers.get('origin') || '';
     const sessionConfig: any = {
       mode: 'subscription',
       payment_method_types: ['card'],
       customer_email: userEmail,
+      allow_promotion_codes: true,
       line_items: [
         {
           price: priceId,
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.get('origin')}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/pricing`,
+      success_url: `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appBaseUrl}/pricing`,
       metadata: {
         user_id: userId,
         plan_type: planType || 'monthly',
@@ -47,7 +49,16 @@ serve(async (req) => {
 
     // Add promo code if provided
     if (promoCode) {
-      sessionConfig.discounts = [{ promotion_code: promoCode }];
+      const promoResult = await stripe.promotionCodes.list({
+        code: promoCode,
+        active: true,
+        limit: 1,
+      });
+
+      const matchedPromo = promoResult.data?.[0];
+      if (matchedPromo) {
+        sessionConfig.discounts = [{ promotion_code: matchedPromo.id }];
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
