@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { priceId, userId, planType } = await req.json();
+    const { priceId, userId, planType, userEmail } = await req.json();
 
     if (!priceId || !userId) {
       return new Response(
@@ -30,6 +30,7 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
+      customer_email: userEmail,
       line_items: [
         {
           price: priceId,

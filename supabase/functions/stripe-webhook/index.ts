@@ -96,6 +96,73 @@ serve(async (req) => {
       break;
     }
 
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object;
+      const customerEmail = invoice.customer_email;
+      const customerId = invoice.customer;
+      const subscriptionId = invoice.subscription;
+
+      if (!customerEmail) {
+        console.error('No customer email in invoice');
+        return new Response('No customer email', { status: 400 });
+      }
+
+      // Try to find user by existing stripe_customer_id first
+      const { data: profileByStripeId } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('stripe_customer_id', customerId)
+        .single();
+
+      let userId = profileByStripeId?.user_id;
+
+      // If not found by customer ID, validate email and match to user
+      if (!userId) {
+        const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+        if (userError) {
+          console.error('Error fetching users:', userError);
+          return new Response('Database error', { status: 500 });
+        }
+
+        const user = userData.users.find(u => u.email === customerEmail);
+        if (!user) {
+          console.error('Payment email does not match any account:', customerEmail);
+          return new Response('Payment email must match account email', { status: 404 });
+        }
+        userId = user.id;
+
+        // Store the stripe_customer_id in profiles for future use
+        await supabase
+          .from('profiles')
+          .update({ stripe_customer_id: customerId })
+          .eq('user_id', userId);
+      }
+
+      // Determine plan type from invoice line items
+      let planType = 'monthly';
+      if (invoice.lines?.data?.[0]?.price?.recurring?.interval === 'year') {
+        planType = 'yearly';
+      }
+
+      const { error } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: userId,
+          status: 'active',
+          plan_type: planType,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: subscriptionId,
+          current_period_end: new Date(invoice.lines.data[0].period.end * 1000).toISOString(),
+          current_period_start: new Date(invoice.lines.data[0].period.start * 1000).toISOString(),
+        }, { onConflict: 'user_id' });
+
+      if (error) {
+        console.error('Error updating subscription:', error);
+        return new Response('Database error', { status: 500 });
+      }
+      break;
+    }
+
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted': {
       const subscription = event.data.object;
