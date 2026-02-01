@@ -121,6 +121,11 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
     }
   }, [authLoading, accountLoading, activeAccount, subscriptionStatus, onDataReady, setIsHydrating]);
 
+  // If auth has resolved and there's no user, redirect immediately
+  if (!authLoading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   // Show minimal loading state while auth/account/subscription is loading
   if (authLoading || accountLoading || subscriptionStatus === 'loading') {
     return (
@@ -128,10 +133,6 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
   }
 
   // Redirect to paywall if no active subscription
