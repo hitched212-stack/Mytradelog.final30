@@ -232,7 +232,7 @@ export default function Paywall() {
 
             {/* Mobile CTA Button */}
             <Button
-              onClick={handleSubscribe}
+              onClick={() => handleSubscribe()}
               disabled={isLoading}
               className="w-full h-14 rounded-xl font-semibold text-base mt-4 border-0"
               style={{ 
