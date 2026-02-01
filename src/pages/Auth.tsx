@@ -401,7 +401,7 @@ export default function Auth() {
 
           {/* Footer */}
           <motion.p variants={fadeIn} className="text-center text-xs text-neutral-500 mt-8">
-            Bi continuing, you agree to our{' '}
+            By continuing, you agree to our{' '}
             <a href="/terms" className="text-neutral-400 underline hover:text-white transition-colors">
               Terms and Services
             </a>
