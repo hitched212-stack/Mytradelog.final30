@@ -375,7 +375,7 @@ export default function CalendarPage() {
     return dayOfWeekStats.reduce((worst, day) => day.pnl < worst.pnl ? day : worst, dayOfWeekStats[0]);
   }, [dayOfWeekStats]);
     return <div className="min-h-screen pb-24">
-      <div className="px-4 md:px-6 lg:px-8">
+      <div className="px-4 pt-2 md:px-6 md:pt-0 lg:px-8">
         <div className="flex flex-col gap-4">
           {/* Main Calendar Section - Full width on desktop */}
           <div className="w-full space-y-3">
