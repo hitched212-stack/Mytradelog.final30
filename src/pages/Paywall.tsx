@@ -53,6 +53,8 @@ export default function Paywall() {
       if (error) throw error;
 
       if (data?.url) {
+        // Mark that we're coming from checkout so dashboard can show loading screen
+        sessionStorage.setItem('from_stripe_checkout', 'true');
         // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {

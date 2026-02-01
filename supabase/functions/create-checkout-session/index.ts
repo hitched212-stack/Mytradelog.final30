@@ -28,8 +28,6 @@ serve(async (req) => {
     }
 
     const origin = (req.headers.get('origin') || '').replace(/\/$/, '');
-    const successUrl = `${origin}/app/dashboard`;
-    const cancelUrl = `${origin}/app/paywall`;
 
     const sessionConfig: any = {
       mode: 'subscription',
@@ -42,8 +40,8 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      success_url: `${origin}/app/dashboard`,
+      cancel_url: `${origin}/app/paywall`,
       metadata: {
         user_id: userId,
         plan_type: planType || 'monthly',

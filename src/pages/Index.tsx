@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTrades } from '@/hooks/useTrades';
 import { useSettings } from '@/hooks/useSettings';
 import { useAccount } from '@/hooks/useAccount';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useDataStore } from '@/store/dataStore';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Target, BarChart3, Trophy, AlertTriangle, Zap, Wallet } from 'lucide-react';
@@ -20,9 +21,39 @@ export default function Index() {
   const { settings, isLoading: settingsLoading } = useSettings();
   const { activeAccount, loading: accountLoading, isSwitching } = useAccount();
   const { isHydrating, isTransitioning, previousStartingBalance } = useDataStore();
+  const { subscription, loading: subscriptionLoading, refetch } = useSubscription();
   const currencySymbol = activeAccount?.currency ? getCurrencySymbol(activeAccount.currency as any) : getCurrencySymbol(settings.currency);
   const todayPnl = getDailyPnl(format(new Date(), 'yyyy-MM-dd'));
   const [activeTab, setActiveTab] = useState<'all' | 'open' | 'closed'>('all');
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+
+  // Check if just returned from payment
+  useEffect(() => {
+    const checkPostPayment = async () => {
+      // Only check if this is the first load after returning from Stripe
+      const isFromStripe = sessionStorage.getItem('from_stripe_checkout');
+      if (isFromStripe === 'true') {
+        sessionStorage.removeItem('from_stripe_checkout');
+        setIsCheckingPayment(true);
+        
+        // Poll for subscription registration (max 15 seconds, every 500ms)
+        let attempts = 0;
+        const maxAttempts = 30;
+        
+        const checkSubscription = setInterval(async () => {
+          attempts++;
+          await refetch();
+          
+          if (attempts >= maxAttempts) {
+            clearInterval(checkSubscription);
+            setIsCheckingPayment(false);
+          }
+        }, 500);
+      }
+    };
+    
+    checkPostPayment();
+  }, [refetch]);
 
   // Clear URL params after reading them
   useEffect(() => {
@@ -186,6 +217,21 @@ export default function Index() {
 
   // Show loading state immediately when data hasn't loaded yet or hydrating after auth change
   const isLoading = tradesLoading || settingsLoading || accountLoading || isHydrating;
+
+  // Show loading screen while checking for payment registration
+  if (isCheckingPayment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pb-24">
+        <div className="text-center">
+          <div className="mb-6">
+            <div className="inline-flex h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary"></div>
+          </div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Processing your payment...</h2>
+          <p className="text-sm text-muted-foreground">Setting up your subscription. This may take a few seconds.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show skeleton to prevent any flash of unloaded content
   if (isLoading) {
