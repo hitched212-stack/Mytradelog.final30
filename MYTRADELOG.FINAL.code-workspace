@@ -1,6 +1,9 @@
 {
 	"folders": [
-		{}
+		{
+			"path": "focus-trade-app",
+			"name": "focus-trade-app"
+		}
 	],
 	"settings": {}
 }
