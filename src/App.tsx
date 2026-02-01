@@ -207,6 +207,7 @@ const App = () => {
   const isTermsRoute = typeof window !== "undefined" && window.location.pathname === "/terms";
   const isStandalone = typeof window !== "undefined" && (
     window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
     (window.navigator as any).standalone === true ||
     document.referrer.includes('android-app://')
   );
