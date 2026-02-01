@@ -71,10 +71,27 @@ serve(async (req) => {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object;
-      const userId = session.metadata?.user_id;
+      let userId = session.metadata?.user_id;
+      const customerEmail = session.customer_details?.email || session.customer_email;
       
+      // If no user_id in metadata, try to find user by email
+      if (!userId && customerEmail) {
+        const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+        if (userError) {
+          console.error('Error fetching users:', userError);
+          return new Response('Database error', { status: 500 });
+        }
+
+        const user = userData.users.find(u => u.email === customerEmail);
+        if (!user) {
+          console.error('No user found with email:', customerEmail);
+          return new Response('User not found', { status: 404 });
+        }
+        userId = user.id;
+      }
+
       if (!userId) {
-        console.error('No user_id in session metadata');
+        console.error('No user_id in session metadata and no email');
         return new Response('No user_id', { status: 400 });
       }
 
