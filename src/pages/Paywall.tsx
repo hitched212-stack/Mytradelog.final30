@@ -5,16 +5,20 @@ import { Check, LogOut, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 type PlanType = 'annual' | 'monthly';
 
 export default function Paywall() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
   const [isLoading, setIsLoading] = useState(false);
-  const checkoutLinks: Record<PlanType, string> = {
-    monthly: 'https://buy.stripe.com/bJedR96IEgPcbnu9weeQM01',
-    annual: 'https://buy.stripe.com/9B66oHgjegPcbnu5fYeQM00',
+  
+  // Stripe Price IDs - replace these with your actual price IDs
+  const priceIds: Record<PlanType, string> = {
+    monthly: 'price_1234567890', // Replace with your monthly price ID
+    annual: 'price_0987654321',  // Replace with your annual price ID
   };
 
   const handleSignOut = async () => {
@@ -23,9 +27,39 @@ export default function Paywall() {
   };
 
   const handleSubscribe = async (plan?: PlanType) => {
+    if (!user) {
+      toast.error('Please sign in to subscribe');
+      navigate('/auth');
+      return;
+    }
+
     setIsLoading(true);
-    const checkoutUrl = checkoutLinks[plan ?? selectedPlan];
-    window.location.href = checkoutUrl;
+    const selectedPlanType = plan ?? selectedPlan;
+
+    try {
+      // Call your create-checkout-session Edge Function
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          priceId: priceIds[selectedPlanType],
+          userId: user.id,
+          planType: selectedPlanType,
+          userEmail: user.email,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error: any) {
+      console.error('Error creating checkout session:', error);
+      toast.error(error.message || 'Failed to start checkout');
+      setIsLoading(false);
+    }
   };
 
   return (
