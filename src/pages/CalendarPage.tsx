@@ -293,7 +293,8 @@ export default function CalendarPage() {
       return {
         weekNumber: index + 1,
         pnl,
-        tradingDays: tradingDaysInWeek
+        tradingDays: tradingDaysInWeek,
+        tradeCount: weekTrades.length
       };
     });
   }, [trades, currentMonth]);
@@ -373,12 +374,7 @@ export default function CalendarPage() {
   const worstDay = useMemo(() => {
     return dayOfWeekStats.reduce((worst, day) => day.pnl < worst.pnl ? day : worst, dayOfWeekStats[0]);
   }, [dayOfWeekStats]);
-  return <div className="min-h-screen pb-24">
-      {/* Header */}
-      <header className="px-4 pt-6 pb-2 md:px-6 lg:px-8 flex items-center justify-between">
-        
-      </header>
-
+    return <div className="min-h-screen pb-24">
       <div className="px-4 md:px-6 lg:px-8">
         <div className="flex flex-col gap-4">
           {/* Main Calendar Section - Full width on desktop */}
@@ -698,7 +694,7 @@ export default function CalendarPage() {
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
                             <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap">
-                              {weekData?.tradingDays || 0} days
+                              {weekData?.tradeCount || 0} trades
                             </div>
                           </div>
                         </div>
@@ -756,12 +752,12 @@ export default function CalendarPage() {
                             <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
                               Wk {weekIndex + 1}
                             </div>
-                            <div className="text-xs font-bold font-display mb-0.5 w-full text-center truncate tabular-nums"
+                            <div className="text-[10px] font-bold font-display mb-0.5 w-full text-center truncate tabular-nums leading-none"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
                             <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap">
-                              {weekData?.tradingDays || 0}d
+                              {weekData?.tradeCount || 0}t
                             </div>
                           </div>
                         </div>

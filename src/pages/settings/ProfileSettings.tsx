@@ -19,13 +19,15 @@ export default function ProfileSettings() {
     setUsernameLocal(settings.username || '');
   }, [settings.username]);
 
-  const handleSave = () => {
-    setUsername(username.trim());
-    toast({
-      title: 'Profile updated',
-      description: username.trim() ? `Username set to ${username.trim()}` : 'Username cleared'
-    });
-    navigate('/settings');
+  const handleSave = async () => {
+    const saved = await setUsername(username.trim());
+    if (saved) {
+      toast({
+        title: 'Profile updated',
+        description: username.trim() ? `Username set to ${username.trim()}` : 'Username cleared'
+      });
+      navigate('/settings');
+    }
   };
 
   return (

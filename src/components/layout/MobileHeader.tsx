@@ -29,8 +29,8 @@ export function MobileHeader() {
 
   return (
     <div className="md:hidden">
-      {/* Header spacer for PWA mode - accounts for status bar */}
-      <header className="h-14" />
+      {/* Header spacer for PWA mode - use safe-area inset only */}
+      <header style={{ height: 'env(safe-area-inset-top)' }} />
     </div>
   );
 }

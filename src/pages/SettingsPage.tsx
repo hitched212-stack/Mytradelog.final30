@@ -157,9 +157,11 @@ export default function SettingsPage() {
   };
 
   const handleSaveUsername = async () => {
-    await setUsername(usernameInput);
-    setIsEditingUsername(false);
-    toast.success('Username updated');
+    const saved = await setUsername(usernameInput);
+    if (saved) {
+      setIsEditingUsername(false);
+      toast.success('Username updated');
+    }
   };
 
   const handleResetPassword = async () => {

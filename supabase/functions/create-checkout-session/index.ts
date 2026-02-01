@@ -40,8 +40,8 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${origin}/app/dashboard`,
-      cancel_url: `${origin}/app/paywall`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         user_id: userId,
         plan_type: planType || 'monthly',
@@ -63,6 +63,10 @@ serve(async (req) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
+
+    // Build success URL with session ID for post-payment verification
+    const successUrl = `${origin}/app/dashboard?session=${session.id}`;
+    const cancelUrl = `${origin}/app/paywall`;
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),

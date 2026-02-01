@@ -207,9 +207,11 @@ export function useSettings() {
       setSettings({ ...currentSettings, username });
       
       console.log('Username saved successfully:', username);
+      return true;
     } catch (error) {
       console.error('Error updating username:', error);
       toast.error('Failed to save username');
+      return false;
     }
   }, [user, setSettings]);
 
