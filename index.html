@@ -5,14 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Trade Log | Professional Trading Journal</title>
     <meta name="description" content="Track your trades, analyze performance, and improve your trading discipline with Trade Log - a minimal, professional trading journal." />
+    
+    <!-- PWA Theme Colors -->
     <meta name="theme-color" content="#0a0a0a" />
+    <meta name="msapplication-TileColor" content="#0a0a0a" />
+    <meta name="msapplication-navbutton-color" content="#0a0a0a" />
+    
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
     
     <!-- iOS PWA Configuration -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -20,16 +25,24 @@
     <meta name="apple-mobile-web-app-title" content="TradeLog" />
     <meta name="mobile-web-app-capable" content="yes" />
     
+    <!-- Android PWA Configuration -->
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#0a0a0a" />
+    
     <!-- App Icons - Using SVG for consistency with dashboard logo -->
     <link rel="apple-touch-icon" href="/app-icon.png" />
     <link rel="apple-touch-icon" sizes="152x152" href="/app-icon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png" />
     <link rel="apple-touch-icon" sizes="167x167" href="/app-icon.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/app-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/app-icon.png" />
     <link rel="icon" type="image/svg+xml" href="/app-icon.svg" />
 
     <!-- iOS Splash Screens (will use theme color as fallback) -->
     <meta name="apple-mobile-web-app-orientations" content="portrait" />
+    
+    <!-- Prevent iOS from auto-detecting and styling links -->
+    <meta name="format-detection" content="telephone=no" />
 
     <meta property="og:title" content="Trade Log - Trading Journal" />
     <meta property="og:description" content="Track your trades, analyze performance, and improve your trading discipline." />
@@ -52,6 +65,44 @@
         }
       })();
     </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(function(registration) {
+              console.log('ServiceWorker registered:', registration.scope);
+              
+              // Check for updates on page load
+              registration.update();
+              
+              // Handle updates
+              registration.addEventListener('updatefound', function() {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', function() {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New service worker available, refresh to use it
+                    if (confirm('New version available! Refresh to update?')) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch(function(error) {
+              console.log('ServiceWorker registration failed:', error);
+            });
+            
+          // Reload page when new service worker takes over
+          navigator.serviceWorker.addEventListener('controllerchange', function() {
+            window.location.reload();
+          });
+        });
+      }
+    </script>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
