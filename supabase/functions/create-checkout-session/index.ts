@@ -27,13 +27,11 @@ serve(async (req) => {
       );
     }
 
-    const appBaseUrl = Deno.env.get('APP_BASE_URL') || req.headers.get('origin') || '';
-    const appBasePath = Deno.env.get('APP_BASE_PATH') || '';
-    const normalizedBaseUrl = appBaseUrl.replace(/\/$/, '');
-    const normalizedBasePath = appBasePath
-      ? (appBasePath.startsWith('/') ? appBasePath : `/${appBasePath}`)
-      : '';
-    const appUrl = `${normalizedBaseUrl}${normalizedBasePath}`;
+    const origin = req.headers.get('origin') || '';
+    const appBasePath = Deno.env.get('APP_BASE_PATH') || '/app';
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    const normalizedBasePath = appBasePath.startsWith('/') ? appBasePath : `/${appBasePath}`;
+    const appUrl = `${normalizedOrigin}${normalizedBasePath}`;
     const sessionConfig: any = {
       mode: 'subscription',
       payment_method_types: ['card'],
