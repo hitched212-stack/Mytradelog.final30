@@ -71,18 +71,26 @@
                       window.innerWidth <= 768;
         
         if (isStandalone && isMobile) {
-          // Set splash screen background immediately to prevent flash
+          // Set splash screen background immediately
           document.documentElement.style.backgroundColor = '#000000';
           document.documentElement.style.background = 'linear-gradient(to bottom, #000000, #0f172a)';
           document.body.style.backgroundColor = '#000000';
           document.body.style.background = 'linear-gradient(to bottom, #000000, #0f172a)';
+          document.body.style.margin = '0';
+          document.body.style.padding = '0';
           
-          // Hide root content until splash screen is ready
+          // Immediately hide root content until splash completes
+          document.addEventListener('DOMContentLoaded', function() {
+            var root = document.getElementById('root');
+            if (root) {
+              root.style.display = 'none';
+            }
+          }, false);
+          
+          // Also try to hide it as soon as possible via observer
           var root = document.getElementById('root');
           if (root) {
-            root.style.backgroundColor = '#000000';
-            root.style.background = 'linear-gradient(to bottom, #000000, #0f172a)';
-            root.style.visibility = 'hidden';
+            root.style.display = 'none';
           }
         }
       })();

@@ -298,7 +298,7 @@ function SplashScreenController({
     if (splashComplete) {
       const root = document.getElementById('root');
       if (root) {
-        root.style.visibility = 'visible';
+        root.style.display = 'block';
       }
     }
   }, [splashComplete]);
@@ -310,7 +310,7 @@ function SplashScreenController({
   return (
     <SplashScreen 
       onComplete={onSplashComplete} 
-      minDisplayTime={600}
+      minDisplayTime={100}
       isDataReady={effectiveDataReady}
     />
   );

@@ -14,7 +14,7 @@ interface SplashScreenProps {
   isDataReady?: boolean;
 }
 
-export function SplashScreen({ onComplete, minDisplayTime = 600, isDataReady = false }: SplashScreenProps) {
+export function SplashScreen({ onComplete, minDisplayTime = 100, isDataReady = false }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
@@ -31,10 +31,10 @@ export function SplashScreen({ onComplete, minDisplayTime = 600, isDataReady = f
   // Track when data is actually ready
   useEffect(() => {
     if (isDataReady) {
-      // Small delay to show completion animation
+      // Minimal delay to show completion
       const timer = setTimeout(() => {
         setIsLoadingComplete(true);
-      }, 200);
+      }, 50);
       return () => clearTimeout(timer);
     }
   }, [isDataReady]);
