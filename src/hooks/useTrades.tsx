@@ -152,12 +152,19 @@ export function useTrades() {
       const mappedTrades = (data || []).map(d => mapDbTradeToTrade(d as unknown as DbTrade));
       setTrades(mappedTrades);
       setCurrentAccountId(accountId ?? 'all');
+      
+      // Try to cache trades, but don't crash if localStorage is full
       if (typeof window !== 'undefined') {
         try {
           const cacheKey = getTradesCacheKey(user.id, accountId);
           localStorage.setItem(cacheKey, JSON.stringify(mappedTrades));
         } catch (error) {
-          console.warn('Failed to cache trades locally:', error);
+          // Silently ignore quota exceeded errors - the app will work fine without caching
+          if (error instanceof Error && error.name === 'QuotaExceededError') {
+            console.debug('localStorage full - trades will load from Supabase');
+          } else {
+            console.warn('Failed to cache trades locally:', error);
+          }
         }
       }
     } catch (error) {
