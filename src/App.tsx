@@ -221,6 +221,13 @@ const App = () => {
   // Mark splash as complete when it finishes
   const handleSplashComplete = () => {
     setSplashComplete(true);
+    // Make sure root is visible
+    const root = document.getElementById('root');
+    if (root) {
+      root.style.display = 'block';
+      root.style.visibility = 'visible';
+      root.style.opacity = '1';
+    }
   };
 
   // Mark data as ready when protected layout signals it
@@ -293,14 +300,31 @@ function SplashScreenController({
   // This prevents splash screen from getting stuck on auth page after sign out
   const effectiveDataReady = isDataReady || (!loading && !user);
   
-  // Unhide root content when splash is complete
+  // Show the app content when splash is complete
   useEffect(() => {
     if (splashComplete) {
       const root = document.getElementById('root');
       if (root) {
         root.style.display = 'block';
+        root.style.visibility = 'visible';
+        root.style.opacity = '1';
       }
     }
+  }, [splashComplete]);
+  
+  // Safety fallback: if splash takes too long, force show the app after 3 seconds
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!splashComplete) {
+        const root = document.getElementById('root');
+        if (root) {
+          root.style.display = 'block';
+          root.style.visibility = 'visible';
+          root.style.opacity = '1';
+        }
+      }
+    }, 3000);
+    return () => clearTimeout(timeout);
   }, [splashComplete]);
   
   if (!showSplash || splashComplete) {

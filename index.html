@@ -78,20 +78,10 @@
           document.body.style.background = 'linear-gradient(to bottom, #000000, #0f172a)';
           document.body.style.margin = '0';
           document.body.style.padding = '0';
+          document.body.style.overflow = 'hidden';
           
-          // Immediately hide root content until splash completes
-          document.addEventListener('DOMContentLoaded', function() {
-            var root = document.getElementById('root');
-            if (root) {
-              root.style.display = 'none';
-            }
-          }, false);
-          
-          // Also try to hide it as soon as possible via observer
-          var root = document.getElementById('root');
-          if (root) {
-            root.style.display = 'none';
-          }
+          // Mark that we should hide root
+          window.__shouldHideRootOnLoad = true;
         }
       })();
     </script>

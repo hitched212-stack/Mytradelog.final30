@@ -25,6 +25,9 @@ body {
 #root {
   min-height: 100vh;
   background-color: hsl(var(--background));
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 @tailwind base;
