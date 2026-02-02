@@ -57,7 +57,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <AppLayout />;
+    return null; // Don't show anything while loading to prevent flash
   }
 
   if (!user) {
@@ -70,7 +70,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
   const { user, loading: authLoading } = useAuth();
   const { activeAccount, accounts, loading: accountLoading } = useAccount();
-  const { tradesLoaded, settingsLoaded, setIsHydrating } = useDataStore();
+  const { setIsHydrating } = useDataStore();
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'active' | 'inactive'>('loading');
 
   // Check subscription status
@@ -111,24 +111,28 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
     }
   }, [user, authLoading]);
 
-  // Signal data ready when auth, account, subscription are loaded AND trades are loaded
-  // This ensures the splash screen doesn't dismiss until all data is ready
+  // Signal data ready immediately when auth and account are loaded
+  // Trades load in parallel - don't block the UI
   useEffect(() => {
-    if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading' && tradesLoaded && settingsLoaded) {
+    if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading') {
       // Mark hydrating as false immediately so UI renders
       setIsHydrating(false);
       onDataReady?.();
     }
-  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, tradesLoaded, settingsLoaded, onDataReady, setIsHydrating]);
+  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, onDataReady, setIsHydrating]);
 
   // If auth has resolved and there's no user, redirect immediately
   if (!authLoading && !user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Avoid blocking the UI with a full-screen loader; the dashboard can render with its own skeletons
+  // Show minimal loading state while auth/account/subscription is loading
   if (authLoading || accountLoading || subscriptionStatus === 'loading') {
-    return <AppLayout />;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   // Redirect to paywall if no active subscription
@@ -150,7 +154,7 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
 function RootRoute() {
   const { user, loading } = useAuth();
   
-  if (loading) return <Navigate to="/dashboard" replace />;
+  if (loading) return null;
   if (!user) return <Navigate to="/auth" replace />;
   return <Navigate to="/dashboard" replace />;
 }
@@ -209,33 +213,13 @@ const App = () => {
     document.referrer.includes('android-app://')
   );
   const shouldRedirectToApp = !isAppRoute && isStandalone;
-  // Show splash only when in standalone mode (added to home screen) on mobile
-  const [showSplash, setShowSplash] = useState(false);
-  const [splashComplete, setSplashComplete] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => isMobileDevice() && !isStandalone);
+  const [splashComplete, setSplashComplete] = useState(!isMobileDevice() || isStandalone);
   const [isDataReady, setIsDataReady] = useState(false);
-
-  useEffect(() => {
-    if (!isStandalone || !isMobileDevice()) {
-      const root = document.getElementById('root');
-      if (root) {
-        root.style.display = 'block';
-        root.style.visibility = 'visible';
-        root.style.opacity = '1';
-      }
-      document.body.style.overflow = 'auto';
-    }
-  }, [isStandalone]);
 
   // Mark splash as complete when it finishes
   const handleSplashComplete = () => {
     setSplashComplete(true);
-    // Make sure root is visible
-    const root = document.getElementById('root');
-    if (root) {
-      root.style.display = 'block';
-      root.style.visibility = 'visible';
-      root.style.opacity = '1';
-    }
   };
 
   // Mark data as ready when protected layout signals it
@@ -308,33 +292,6 @@ function SplashScreenController({
   // This prevents splash screen from getting stuck on auth page after sign out
   const effectiveDataReady = isDataReady || (!loading && !user);
   
-  // Show the app content when splash is complete
-  useEffect(() => {
-    if (splashComplete) {
-      const root = document.getElementById('root');
-      if (root) {
-        root.style.display = 'block';
-        root.style.visibility = 'visible';
-        root.style.opacity = '1';
-      }
-    }
-  }, [splashComplete]);
-  
-  // Safety fallback: if splash takes too long, force show the app after 3 seconds
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (!splashComplete) {
-        const root = document.getElementById('root');
-        if (root) {
-          root.style.display = 'block';
-          root.style.visibility = 'visible';
-          root.style.opacity = '1';
-        }
-      }
-    }, 3000);
-    return () => clearTimeout(timeout);
-  }, [splashComplete]);
-  
   if (!showSplash || splashComplete) {
     return null;
   }
@@ -342,7 +299,7 @@ function SplashScreenController({
   return (
     <SplashScreen 
       onComplete={onSplashComplete} 
-      minDisplayTime={100}
+      minDisplayTime={1200}
       isDataReady={effectiveDataReady}
     />
   );
