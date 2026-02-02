@@ -121,6 +121,7 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
     }
   }, [authLoading, accountLoading, activeAccount, subscriptionStatus, onDataReady, setIsHydrating]);
 
+  // Determine what to render - all hooks are called above
   // If auth has resolved and there's no user, redirect immediately
   if (!authLoading && !user) {
     return <Navigate to="/auth" replace />;
@@ -263,8 +264,8 @@ const App = () => {
                   isDataReady={isDataReady}
                   onSplashComplete={handleSplashComplete}
                 />
-                {/* App routes - always visible on desktop, hidden during splash on mobile */}
-                {(!showSplash || splashComplete) && <AppRoutes onDataReady={handleDataReady} />}
+                {/* App routes - always render to prevent hooks mismatch */}
+                <AppRoutes onDataReady={handleDataReady} />
               </AccountProvider>
             </PreferencesProvider>
           </AuthProvider>
