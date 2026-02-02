@@ -87,8 +87,8 @@ export default function EconomicNews() {
   const { user } = useAuth();
   const { preferences } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
-  const [currencyFilter, setCurrencyFilter] = useState('all');
-  const [impactFilter, setImpactFilter] = useState('all');
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(['all']);
+  const [selectedImpacts, setSelectedImpacts] = useState<string[]>(['all']);
   const [savedFilters, setSavedFilters] = useState(DEFAULT_FILTERS);
   
   // Initialize from session storage to persist across page navigation
@@ -153,9 +153,9 @@ export default function EconomicNews() {
         if (error) throw error;
         
         if (data?.news_filters) {
-          const filters = data.news_filters as { currency: string; impact: string; timeRange?: 'day' | 'week' };
-          setCurrencyFilter(filters.currency || 'all');
-          setImpactFilter(filters.impact || 'all');
+          const filters = data.news_filters as { currency: string[]; impact: string[]; timeRange?: 'day' | 'week' };
+          setSelectedCurrencies(filters.currency || ['all']);
+          setSelectedImpacts(filters.impact || ['all']);
           // Only apply saved timeRange if there's no session storage (first visit)
           const hasSession = sessionStorage.getItem(NEWS_SESSION_KEY);
           if (!hasSession && filters.timeRange) {
@@ -174,8 +174,8 @@ export default function EconomicNews() {
   }, [user]);
 
   // Check if current filters match saved filters
-  const filtersMatchSaved = currencyFilter === savedFilters.currency && impactFilter === savedFilters.impact && timeRangeFilter === savedFilters.timeRange;
-  const hasActiveFilters = currencyFilter !== 'all' || impactFilter !== 'all' || timeRangeFilter !== 'day';
+  const filtersMatchSaved = JSON.stringify(selectedCurrencies) === JSON.stringify(savedFilters.currency) && JSON.stringify(selectedImpacts) === JSON.stringify(savedFilters.impact) && timeRangeFilter === savedFilters.timeRange;
+  const hasActiveFilters = !selectedCurrencies.includes('all') || !selectedImpacts.includes('all') || timeRangeFilter !== 'day';
 
   // Save filters to database
   const saveFilters = async () => {
@@ -189,7 +189,7 @@ export default function EconomicNews() {
     }
 
     try {
-      const newFilters = { currency: currencyFilter, impact: impactFilter, timeRange: timeRangeFilter };
+      const newFilters = { currency: selectedCurrencies, impact: selectedImpacts, timeRange: timeRangeFilter };
       
       const { error } = await supabase
         .from('profiles')
@@ -217,8 +217,8 @@ export default function EconomicNews() {
 
   // Clear all filters
   const clearFilters = () => {
-    setCurrencyFilter('all');
-    setImpactFilter('all');
+    setSelectedCurrencies(['all']);
+    setSelectedImpacts(['all']);
     setTimeRangeFilter('day');
     setSelectedDate(new Date());
   };
@@ -369,8 +369,8 @@ export default function EconomicNews() {
   const filteredEvents = useMemo(() => {
     return newsEvents.filter(event => {
       const eventDate = new Date(event.date);
-      const matchesCurrency = currencyFilter === 'all' || event.currency === currencyFilter;
-      const matchesImpact = impactFilter === 'all' || event.impact === impactFilter;
+      const matchesCurrency = selectedCurrencies.includes('all') || selectedCurrencies.includes(event.currency);
+      const matchesImpact = selectedImpacts.includes('all') || selectedImpacts.includes(event.impact);
       
       // Time range filter
       let matchesTimeRange = true;
@@ -389,7 +389,7 @@ export default function EconomicNews() {
       if (dateCompare !== 0) return dateCompare;
       return a.time.localeCompare(b.time);
     });
-  }, [newsEvents, currencyFilter, impactFilter, timeRangeFilter, selectedDate]);
+  }, [newsEvents, selectedCurrencies, selectedImpacts, timeRangeFilter, selectedDate]);
 
   // Group events by date for display
   const groupedEvents = useMemo(() => {
@@ -506,13 +506,10 @@ export default function EconomicNews() {
 
   return (
     <div className="min-h-screen pb-24 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="px-4 py-6 md:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Economic Calendar</h1>
-            <p className="text-sm text-muted-foreground">Real-time market news & events</p>
-          </div>
+      {/* Header with title and refresh */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border/50">
+        <div className="flex items-center justify-between px-4 py-4">
+          <h1 className="text-lg font-semibold text-foreground">Economic Calendar</h1>
           <Button
             variant="ghost"
             size="icon"
@@ -520,399 +517,295 @@ export default function EconomicNews() {
             disabled={isLoading}
             className="h-9 w-9"
           >
-            <RefreshCw className={cn("h-5 w-5 text-muted-foreground", isLoading && "animate-spin")} />
+            <RefreshCw className={cn("h-5 w-5", isLoading && "animate-spin")} />
           </Button>
         </div>
+      </div>
 
-        {/* Last Updated */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-          <Clock className="h-3 w-3" />
-          <span>Last updated: {format(lastUpdated, 'HH:mm:ss')}</span>
-          <span className="px-1.5 py-0.5 rounded bg-pnl-positive/20 text-pnl-positive text-[10px] font-medium">
-            LIVE
-          </span>
+      <div className="px-4 py-6">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Find an event or currency"
+              className="w-full pl-12 pr-12 py-3 rounded-2xl border-0 bg-white/5 text-foreground placeholder-gray-500 focus:outline-none focus:ring-0 transition-all"
+            />
+            <svg className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6-8v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          </div>
         </div>
 
-        {/* Controls Row - Single Row Layout */}
-        <div className="flex items-center gap-2 mb-6 flex-wrap">
-          {/* Date picker - only show in day mode */}
-          {timeRangeFilter === 'day' && (
-            <>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "justify-start text-left font-normal h-9",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "MMM d, yyyy") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-
-              {/* Quick date navigation */}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setSelectedDate(subDays(selectedDate, 1))}
-                className="h-9 w-9"
-              >
-                ←
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-                className="h-9 w-9"
-              >
-                →
-              </Button>
-            </>
-          )}
-
-          {/* Week navigation - only show in week mode */}
-          {timeRangeFilter === 'week' && (
-            <>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateWeek('prev')}
-                className="h-9 w-9"
-              >
-                ←
-              </Button>
-              <div className="flex items-center gap-2 px-3 h-9 rounded-xl border border-border/50 bg-card/50 text-sm">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{getWeekRangeText()}</span>
-                {isCurrentWeek() && (
-                  <Badge variant="outline" className="text-[10px] bg-pnl-positive/20 text-pnl-positive border-pnl-positive/30">
-                    Current
-                  </Badge>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateWeek('next')}
-                className="h-9 w-9"
-              >
-                →
-              </Button>
-              {!isCurrentWeek() && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedDate(new Date())}
-                  className="h-9 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Go to current week
-                </Button>
-              )}
-            </>
-          )}
-
-          {/* Time range dropdown */}
-          <Select value={timeRangeFilter} onValueChange={(v: 'day' | 'week') => handleTimeRangeChange(v)}>
-            <SelectTrigger className="w-[120px] h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">Day</SelectItem>
-              <SelectItem value="week">Week</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Currency filter */}
-          <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
-            <SelectTrigger className="w-[130px] h-9 text-sm">
-              <SelectValue placeholder="Currency" />
-            </SelectTrigger>
-            <SelectContent>
-              {CURRENCY_FILTERS.map(filter => (
-                <SelectItem key={filter.value} value={filter.value}>
-                  {filter.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Impact filter */}
-          <Select value={impactFilter} onValueChange={setImpactFilter}>
-            <SelectTrigger className="w-[130px] h-9 text-sm">
-              <SelectValue placeholder="Impact" />
-            </SelectTrigger>
-            <SelectContent>
-              {IMPACT_FILTERS.map(filter => (
-                <SelectItem key={filter.value} value={filter.value}>
-                  {filter.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Clear filters button */}
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-9 gap-1.5 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-              Clear
-            </Button>
-          )}
-
-          {/* Save filters button */}
-          <Button
-            variant={filtersSaved ? "default" : "outline"}
-            size="sm"
-            onClick={saveFilters}
-            disabled={filtersMatchSaved && !filtersSaved}
+        {/* Time Period Buttons */}
+        <div className="flex gap-2 sm:gap-3 mb-6 justify-center flex-wrap">
+          <button
+            onClick={() => setSelectedDate(subDays(new Date(), 1))}
             className={cn(
-              "h-9 gap-1.5",
-              filtersSaved && "bg-emerald-500 hover:bg-emerald-600"
+              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+              isSameDay(selectedDate, subDays(new Date(), 1))
+                ? "bg-white text-black"
+                : "bg-transparent text-gray-400 hover:text-white"
             )}
           >
-            {filtersSaved ? (
-              <>
-                <Check className="h-4 w-4" />
-                Saved
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Save
-              </>
+            Yesterday
+          </button>
+          <button
+            onClick={() => setSelectedDate(new Date())}
+            className={cn(
+              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+              isSameDay(selectedDate, new Date())
+                ? "bg-white text-black"
+                : "bg-transparent text-gray-400 hover:text-white"
             )}
-          </Button>
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setSelectedDate(addDays(new Date(), 1))}
+            className={cn(
+              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+              isSameDay(selectedDate, addDays(new Date(), 1))
+                ? "bg-white text-black"
+                : "bg-transparent text-gray-400 hover:text-white"
+            )}
+          >
+            Tomorrow
+          </button>
+          <button
+            onClick={() => handleTimeRangeChange('week')}
+            className={cn(
+              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+              timeRangeFilter === 'week'
+                ? "bg-white text-black"
+                : "bg-transparent text-gray-400 hover:text-white"
+            )}
+          >
+            Week
+          </button>
         </div>
 
-        {/* News Events List */}
-        <div className="relative min-h-[200px]">
-          {isLoading ? (
-            <div className="space-y-3 animate-fade-in">
+        {/* Week Day Selector - always show */}
+        <div className="mb-8 flex gap-1.5 sm:gap-2 justify-center overflow-x-auto pb-2 px-2 scrollbar-hide">
+          {Array.from({ length: 7 }, (_, i) => {
+            const day = addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), i);
+            const isSelected = isSameDay(day, selectedDate);
+            return (
+              <button
+                key={format(day, 'yyyy-MM-dd')}
+                onClick={() => setSelectedDate(day)}
+                className={cn(
+                  "h-14 sm:h-16 min-w-[60px] sm:min-w-[70px] rounded-2xl flex flex-col items-center justify-center transition-all flex-shrink-0",
+                  isSelected 
+                    ? "border-2 border-white bg-transparent"
+                    : "border-0 bg-transparent text-gray-500 hover:text-white"
+                )}
+              >
+                <span className="text-xs font-medium mb-0.5 sm:mb-1">{format(day, 'EEE')}</span>
+                <span className="text-xl sm:text-2xl font-medium">{format(day, 'd')}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Impact Filter Pills */}
+        <div className="mb-6 flex items-center gap-4">
+          <p className="text-xs text-muted-foreground font-medium min-w-fit">Impact</p>
+          <div className="flex gap-2">
+            {IMPACT_FILTERS.map(filter => {
+              const isSelected = filter.value === 'all' 
+                ? selectedImpacts.includes('all')
+                : selectedImpacts.includes(filter.value);
+              return (
+                <button
+                  key={filter.value}
+                  onClick={() => {
+                    if (filter.value === 'all') {
+                      setSelectedImpacts(['all']);
+                    } else if (selectedImpacts.includes('all')) {
+                      setSelectedImpacts([filter.value]);
+                    } else if (isSelected) {
+                      const updated = selectedImpacts.filter(v => v !== filter.value);
+                      setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
+                    } else {
+                      setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
+                    }
+                  }}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                    isSelected
+                      ? "bg-white text-black"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {filter.label.split(' ')[0]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Currency Filter Pills */}
+        <div className="mb-8 flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground font-medium">Currency</p>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {['All', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD', 'CNY'].map((curr) => {
+              const isSelected = curr === 'All'
+                ? selectedCurrencies.includes('all')
+                : selectedCurrencies.includes(curr);
+              return (
+                <button
+                  key={curr}
+                  onClick={() => {
+                    if (curr === 'All') {
+                      setSelectedCurrencies(['all']);
+                    } else if (selectedCurrencies.includes('all')) {
+                      setSelectedCurrencies([curr]);
+                    } else if (isSelected) {
+                      const updated = selectedCurrencies.filter(v => v !== curr);
+                      setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
+                    } else {
+                      setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
+                    }
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
+                    isSelected
+                      ? "bg-white text-black"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {curr !== 'All' && <span className="text-sm">{getCurrencyFlag(curr)}</span>}
+                  {curr}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* News Events Timeline */}
+        <div className="relative">
+          {isLoading && filteredEvents.length === 0 ? (
+            <div className="space-y-4 animate-fade-in">
               {[1, 2, 3, 4, 5].map(i => (
-                <Skeleton key={i} className="h-24 rounded-xl" />
+                <div key={i} className="flex gap-4">
+                  <Skeleton className="h-6 w-12 flex-shrink-0" />
+                  <Skeleton className="h-24 flex-1 rounded-lg" />
+                </div>
               ))}
             </div>
-          ) : Object.keys(groupedEvents).length === 0 ? (
+          ) : filteredEvents.length === 0 ? (
             <div className={cn(
-              "flex flex-col items-center justify-center py-20 text-center rounded-2xl border animate-fade-in relative overflow-hidden",
+              "flex flex-col items-center justify-center py-16 text-center rounded-2xl border animate-fade-in relative overflow-hidden",
               isGlassEnabled
                 ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
                 : "border-border/50 bg-card"
             )}>
-              {/* Dot pattern - only show when glass is enabled */}
-              {isGlassEnabled && (
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <pattern id="news-empty-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                      <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.06]" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#news-empty-dots)" />
-                </svg>
-              )}
-              <CalendarX2 className="h-12 w-12 text-muted-foreground/50 mb-4 relative" />
-              <h2 className="text-lg font-medium mb-2 relative text-foreground">No events scheduled</h2>
-              <p className="text-sm text-muted-foreground max-w-xs relative">
+              <CalendarX2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h2 className="text-lg font-medium mb-2 text-foreground">No events found</h2>
+              <p className="text-sm text-muted-foreground">
                 {timeRangeFilter === 'week' 
-                  ? 'No economic events found for this week with current filters'
-                  : 'No economic events found for this day with current filters'}
+                  ? 'No economic events for this week with current filters'
+                  : 'No economic events for today with current filters'}
               </p>
             </div>
           ) : (
-            <div key={dataKey} className="space-y-6 animate-fade-in">
-            {Object.entries(groupedEvents).map(([dateStr, events]) => (
-              <div key={dateStr}>
-                {/* Date Header */}
-                <div className="flex items-center gap-2 mb-3 sticky top-0 bg-background py-2 z-10">
-                  <CalendarIcon className="h-4 w-4 text-white/70" />
-                  <span className="text-sm font-semibold text-foreground">
-                    {format(new Date(dateStr), 'EEEE, MMMM d, yyyy')}
-                  </span>
-                  {isSameDay(new Date(dateStr), new Date()) && (
-                    <Badge variant="outline" className="text-[10px] bg-pnl-positive/20 text-pnl-positive border-pnl-positive/30">
-                      Today
-                    </Badge>
-                  )}
-                </div>
+            <div key={dataKey} className="space-y-4 animate-fade-in">
+              {filteredEvents.map((event, index) => {
+                const comparison = getActualVsForecast(event.actual, event.forecast);
+                const now = new Date();
+                const eventDate = new Date(event.date);
+                
+                // Parse event time to get exact datetime
+                let eventDateTime: Date | null = null;
+                if (event.time !== 'All Day' && event.time !== 'Tentative') {
+                  const [time, period] = event.time.split(' ');
+                  const [hours, minutes] = time.split(':').map(Number);
+                  let hour24 = hours;
+                  if (period === 'PM' && hours !== 12) hour24 += 12;
+                  if (period === 'AM' && hours === 12) hour24 = 0;
+                  eventDateTime = new Date(eventDate);
+                  eventDateTime.setHours(hour24, minutes || 0, 0, 0);
+                }
+                
+                const isTimePast = eventDateTime ? eventDateTime < now : eventDate < new Date(now.toDateString());
+                const isPast = event.actual !== null || isTimePast;
+                
+                const isLive = !isPast && eventDateTime && (() => {
+                  const timeDiff = eventDateTime.getTime() - now.getTime();
+                  const minutesDiff = timeDiff / (1000 * 60);
+                  return minutesDiff >= -5 && minutesDiff <= 15;
+                })();
 
-                <div className="space-y-3">
-                  {events.map(event => {
-                    const comparison = getActualVsForecast(event.actual, event.forecast);
-                    // Check if event is in the past based on actual data OR time comparison
-                    const now = new Date();
-                    const eventDate = new Date(event.date);
-                    
-                    // Parse event time to get exact datetime
-                    let eventDateTime: Date | null = null;
-                    if (event.time !== 'All Day' && event.time !== 'Tentative') {
-                      const [time, period] = event.time.split(' ');
-                      const [hours, minutes] = time.split(':').map(Number);
-                      let hour24 = hours;
-                      if (period === 'PM' && hours !== 12) hour24 += 12;
-                      if (period === 'AM' && hours === 12) hour24 = 0;
-                      eventDateTime = new Date(eventDate);
-                      eventDateTime.setHours(hour24, minutes || 0, 0, 0);
-                    }
-                    
-                    const isTimePast = eventDateTime ? eventDateTime < now : eventDate < new Date(now.toDateString());
-                    const isPast = event.actual !== null || isTimePast;
-                    
-                    // Check if event is happening NOW (within 15 minutes before or after event time)
-                    const isLive = !isPast && eventDateTime && (() => {
-                      const timeDiff = eventDateTime.getTime() - now.getTime();
-                      const minutesDiff = timeDiff / (1000 * 60);
-                      // Event is "live" if it's within -5 to +15 minutes of now
-                      return minutesDiff >= -5 && minutesDiff <= 15;
-                    })();
-                    
-                    return (
-                      <div
-                        key={event.id}
-                        onClick={() => setSelectedEvent(event)}
-                        className={cn(
-                          "rounded-2xl border p-3 md:p-4 transition-all duration-300 cursor-pointer overflow-hidden relative group",
-                          "hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
-                          isGlassEnabled
-                            ? "bg-card/95 dark:bg-card/80 backdrop-blur-xl hover:bg-card"
-                            : "bg-card hover:bg-muted/50",
-                          isPast && "opacity-60",
-                          // Live indicator styling - professional static glow
-                          isLive 
-                            ? "border-pnl-positive/60 shadow-sm shadow-pnl-positive/10" 
-                            : "border-border/50"
-                        )}
-                      >
-                        {/* Dot pattern - only show when glass is enabled */}
-                        {isGlassEnabled && (
-                          <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                              <pattern id={`news-card-dots-${event.id}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                                <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.04] dark:fill-foreground/[0.03]" />
-                              </pattern>
-                            </defs>
-                            <rect width="100%" height="100%" fill={`url(#news-card-dots-${event.id})`} />
-                          </svg>
-                        )}
-                        {/* Live indicator - just a pulsing dot in corner */}
-                        {isLive && (
-                          <div className="absolute top-2 right-2 md:top-3 md:right-3 z-10">
-                            <span className="inline-flex h-2 w-2 rounded-full bg-pnl-positive animate-pulse" />
-                          </div>
-                        )}
-                        <div className="flex items-start justify-between gap-2 md:gap-3 relative">
-                          <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
-                            {/* Currency Flag */}
-                            <div className={cn("text-xl md:text-2xl flex-shrink-0", isPast && "grayscale")}>{getCurrencyFlag(event.currency)}</div>
-                            
-                            <div className="flex-1 min-w-0 overflow-hidden">
-                              {/* Title Row */}
-                              <div className="flex items-center gap-1.5 md:gap-2 flex-wrap mb-1">
-                                <span className={cn(
-                                  "font-semibold text-sm md:text-base truncate max-w-[140px] md:max-w-none",
-                                  isPast ? "text-muted-foreground" : "text-foreground"
-                                )}>
-                                  {event.title}
-                                </span>
-                                <Badge 
-                                  variant="outline" 
-                                  className={cn(
-                                    "text-[9px] md:text-[10px] uppercase font-bold flex-shrink-0", 
-                                    isPast ? "text-muted-foreground border-muted-foreground/30 bg-muted/20" : getImpactColor(event.impact)
-                                  )}
-                                >
-                                  {event.impact === 'high' && <Star className={cn("h-2 w-2 md:h-2.5 md:w-2.5 mr-0.5", !isPast && "fill-current")} />}
-                                  {event.impact}
-                                </Badge>
-                                <Info className="h-3 w-3 md:h-3.5 md:w-3.5 text-muted-foreground flex-shrink-0 hidden md:block" />
-                              </div>
-                              
-                              {/* Country, Date & Time */}
-                              <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-muted-foreground mb-2 flex-wrap md:flex-nowrap">
-                                <span className="whitespace-nowrap">{event.country}</span>
-                                <span className="hidden md:inline">•</span>
-                                <span className="whitespace-nowrap">{format(new Date(event.date), 'MMM d')}</span>
-                                <span className="hidden md:inline">•</span>
-                                <span className={cn(
-                                  "inline-flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 rounded-md font-semibold border whitespace-nowrap text-[10px] md:text-xs",
-                                  isPast 
-                                    ? "bg-muted/30 text-muted-foreground border-muted-foreground/20" 
-                                    : "bg-primary/15 text-primary border-primary/20"
-                                )}>
-                                  <Clock className="h-2.5 w-2.5 md:h-3 md:w-3 flex-shrink-0" />
-                                  {event.time}
-                                </span>
-                                <span className="px-1 md:px-1.5 py-0.5 rounded bg-muted text-[9px] md:text-[10px] font-medium whitespace-nowrap">
-                                  {event.currency}
-                                </span>
-                              </div>
-                              
-                              {/* Forecast / Actual / Previous */}
-                              <div className="flex flex-wrap gap-2 md:gap-3 text-[10px] md:text-xs">
-                                <div className="flex items-center gap-1">
-                                  <span className="text-muted-foreground">Forecast:</span>
-                                  <span className={cn("font-medium", isPast ? "text-muted-foreground" : "text-foreground")}>{event.forecast}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-muted-foreground">Previous:</span>
-                                  <span className={cn("font-medium", isPast ? "text-muted-foreground" : "text-foreground")}>{event.previous}</span>
-                                </div>
-                                {event.actual && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-muted-foreground">Actual:</span>
-                                    <span className={cn(
-                                      "font-bold flex items-center gap-0.5",
-                                      comparison === 'better' && "text-pnl-positive",
-                                      comparison === 'worse' && "text-pnl-negative",
-                                      comparison === 'neutral' && "text-muted-foreground"
-                                    )}>
-                                      {event.actual}
-                                      {comparison === 'better' && <TrendingUp className="h-3 w-3" />}
-                                      {comparison === 'worse' && <TrendingDown className="h-3 w-3" />}
-                                      {comparison === 'neutral' && <Minus className="h-3 w-3" />}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                return (
+                  <div key={event.id} className="flex gap-4 group cursor-pointer">
+                    {/* Timeline Column */}
+                    <div className="flex flex-col items-center pt-1.5 flex-shrink-0">
+                      <div className="text-xs font-semibold text-foreground whitespace-nowrap w-12 text-center">
+                        {event.time}
+                      </div>
+                      {index < filteredEvents.length - 1 && (
+                        <div className={cn(
+                          "w-0.5 h-12 mt-2",
+                          event.impact === 'high' ? "bg-red-500" :
+                          event.impact === 'medium' ? "bg-orange-500" :
+                          "bg-white/20"
+                        )} />
+                      )}
+                    </div>
 
-                          {/* Status Indicator */}
-                          <div className="flex-shrink-0">
-                            {isPast ? (
-                              <div className="px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-muted text-[9px] md:text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                                Released
-                              </div>
-                            ) : (
-                              <div className="px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-amber-500/20 text-[9px] md:text-[10px] font-medium text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap">
-                                Upcoming
-                              </div>
-                            )}
-                          </div>
+                    {/* Event Card */}
+                    <div
+                      onClick={() => setSelectedEvent(event)}
+                      className={cn(
+                        "flex-1 rounded-xl border transition-all duration-200 cursor-pointer",
+                        "p-4",
+                        isPast && "opacity-50",
+                        "border-white/10 bg-white/5 hover:bg-white/10"
+                      )}
+                    >
+                      {/* Title and Currency/Flag/Impact */}
+                      <div className="flex items-start justify-between gap-3 mb-2.5">
+                        <span className="font-semibold text-base text-white flex-1">
+                          {event.title}
+                        </span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={cn(
+                            "inline-flex h-2 w-2 rounded-full flex-shrink-0",
+                            event.impact === 'high' ? "bg-red-500" :
+                            event.impact === 'medium' ? "bg-orange-500" :
+                            "bg-white/30"
+                          )} />
+                          <span className="text-lg">{getCurrencyFlag(event.currency)}</span>
+                          <span className="text-xs font-semibold text-muted-foreground">
+                            {event.currency}
+                          </span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                      
+                      {/* Description */}
+                      <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
+                        {event.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
