@@ -115,6 +115,31 @@ export function useTrades() {
     return `trade-log-trades-cache:${userId}:${accountId ?? 'all'}`;
   }, []);
 
+  // Load cached trades from Supabase Storage
+  const getCachedTrades = useCallback(async (userId: string, accountId: string | null): Promise<Trade[] | null> => {
+    try {
+      const cacheKey = getTradesCacheKey(userId, accountId);
+      const { data, error } = await supabase.storage
+        .from('trades-cache')
+        .download(cacheKey);
+      
+      if (error) {
+        console.debug('No cached trades found:', error);
+        return null;
+      }
+
+      if (!data) return null;
+
+      const text = await data.text();
+      const cached = JSON.parse(text) as Trade[];
+      console.debug('Loaded cached trades from Supabase Storage');
+      return cached;
+    } catch (error) {
+      console.debug('Failed to load cached trades:', error);
+      return null;
+    }
+  }, [getTradesCacheKey]);
+
   // Fetch trades from database for the active account - with fast retry logic
   const fetchTrades = useCallback(async (retryCount = 0, silent = false): Promise<void> => {
     if (!user) {
@@ -153,18 +178,24 @@ export function useTrades() {
       setTrades(mappedTrades);
       setCurrentAccountId(accountId ?? 'all');
       
-      // Try to cache trades, but don't crash if localStorage is full
+      // Cache trades to Supabase Storage instead of localStorage to avoid quota limits
       if (typeof window !== 'undefined') {
         try {
           const cacheKey = getTradesCacheKey(user.id, accountId);
-          localStorage.setItem(cacheKey, JSON.stringify(mappedTrades));
-        } catch (error) {
-          // Silently ignore quota exceeded errors - the app will work fine without caching
-          if (error instanceof Error && error.name === 'QuotaExceededError') {
-            console.debug('localStorage full - trades will load from Supabase');
-          } else {
-            console.warn('Failed to cache trades locally:', error);
+          // Store in Supabase Storage (browser storage accessed via REST API)
+          const { error: uploadError } = await supabase.storage
+            .from('trades-cache')
+            .upload(cacheKey, JSON.stringify(mappedTrades), {
+              upsert: true,
+              contentType: 'application/json',
+            });
+          
+          if (uploadError && uploadError.name !== 'StorageApiError') {
+            console.debug('Failed to cache trades to Supabase Storage:', uploadError);
           }
+        } catch (error) {
+          // Silently ignore errors - trades will load from Supabase on next refresh
+          console.debug('Failed to cache trades:', error);
         }
       }
     } catch (error) {
