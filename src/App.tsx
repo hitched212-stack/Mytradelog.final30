@@ -214,8 +214,9 @@ const App = () => {
     document.referrer.includes('android-app://')
   );
   const shouldRedirectToApp = !isAppRoute && isStandalone;
-  const [showSplash, setShowSplash] = useState(() => isMobileDevice() && !isStandalone);
-  const [splashComplete, setSplashComplete] = useState(!isMobileDevice() || isStandalone);
+  // Temporarily disable splash screen to fix black screen issue
+  const [showSplash, setShowSplash] = useState(false);
+  const [splashComplete, setSplashComplete] = useState(true);
   const [isDataReady, setIsDataReady] = useState(false);
 
   // Mark splash as complete when it finishes
