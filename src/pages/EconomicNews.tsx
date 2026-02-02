@@ -752,6 +752,17 @@ export default function EconomicNews() {
                   <p className="text-xs text-muted-foreground font-medium mb-2">Time</p>
                   <div className="flex flex-wrap gap-2">
                     <button
+                      onClick={() => handleTimeRangeChange('day')}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        timeRangeFilter === 'day'
+                          ? "bg-white text-black"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      )}
+                    >
+                      Day
+                    </button>
+                    <button
                       onClick={() => setSelectedDate(subDays(new Date(), 1))}
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
@@ -949,6 +960,17 @@ export default function EconomicNews() {
 
         {/* Time Period Buttons */}
         <div className="hidden sm:flex gap-2 sm:gap-3 mb-6 justify-center flex-wrap">
+          <button
+            onClick={() => handleTimeRangeChange('day')}
+            className={cn(
+              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+              timeRangeFilter === 'day'
+                ? "bg-white text-black shadow"
+                : "bg-white/5 text-gray-400 hover:bg-white/10"
+            )}
+          >
+            Day
+          </button>
           <button
             onClick={() => setSelectedDate(subDays(new Date(), 1))}
             className={cn(
