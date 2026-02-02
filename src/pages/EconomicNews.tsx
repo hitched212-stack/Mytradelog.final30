@@ -441,6 +441,95 @@ export default function EconomicNews() {
     return 'neutral';
   };
 
+  const renderEventRow = (event: NewsEvent, index: number, total: number) => {
+    const now = new Date();
+    const eventDate = new Date(event.date);
+
+    // Parse event time to get exact datetime
+    let eventDateTime: Date | null = null;
+    if (event.time !== 'All Day' && event.time !== 'Tentative') {
+      const [time, period] = event.time.split(' ');
+      const [hours, minutes] = time.split(':').map(Number);
+      let hour24 = hours;
+      if (period === 'PM' && hours !== 12) hour24 += 12;
+      if (period === 'AM' && hours === 12) hour24 = 0;
+      eventDateTime = new Date(eventDate);
+      eventDateTime.setHours(hour24, minutes || 0, 0, 0);
+    }
+
+    const isTimePast = eventDateTime ? eventDateTime < now : eventDate < new Date(now.toDateString());
+    const isPast = event.actual !== null || isTimePast;
+
+    const isLive = !isPast && eventDateTime && (() => {
+      const timeDiff = eventDateTime.getTime() - now.getTime();
+      const minutesDiff = timeDiff / (1000 * 60);
+      return minutesDiff >= -5 && minutesDiff <= 15;
+    })();
+
+    const impactLineClass = event.impact === 'high'
+      ? "bg-red-500"
+      : event.impact === 'medium'
+        ? "bg-orange-500"
+        : "bg-yellow-500";
+
+    return (
+      <div key={event.id} className="flex gap-4 group cursor-pointer">
+        {/* Timeline Column */}
+        <div className="flex flex-col items-center pt-1.5 flex-shrink-0">
+          <div className={cn(
+            "text-xs font-semibold whitespace-nowrap w-12 text-center",
+            isLive ? "text-white" : "text-foreground"
+          )}>
+            {event.time}
+          </div>
+          <div className={cn(
+            "w-0.5 h-12 mt-2 rounded-full",
+            isLive ? "bg-red-500" : impactLineClass
+          )} />
+        </div>
+
+        {/* Event Card */}
+        <div
+          onClick={() => setSelectedEvent(event)}
+          className={cn(
+            "flex-1 rounded-2xl border transition-all duration-200 cursor-pointer",
+            "p-4",
+            isPast && "opacity-50",
+            isLive
+              ? "border-white/20 bg-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+              : "border-white/10 bg-white/5 hover:bg-white/10"
+          )}
+        >
+          {/* Title and Currency/Flag/Impact */}
+          <div className="flex items-start justify-between gap-3 mb-2.5">
+            <span className="font-semibold text-base text-white flex-1">
+              {event.title}
+            </span>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className={cn(
+                "inline-flex h-2 w-2 rounded-full flex-shrink-0",
+                isLive
+                  ? "bg-red-500 animate-pulse"
+                  : event.impact === 'high' ? "bg-red-500" :
+                  event.impact === 'medium' ? "bg-orange-500" :
+                  "bg-white/30"
+              )} />
+              <span className="text-lg">{getCurrencyFlag(event.currency)}</span>
+              <span className="text-xs font-semibold text-muted-foreground">
+                {event.currency}
+              </span>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
+            {event.description}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const getCurrencyFlag = (currency: string) => {
     const flags: Record<string, string> = {
       USD: '🇺🇸',
@@ -935,95 +1024,28 @@ export default function EconomicNews() {
               </p>
             </div>
           ) : (
-            <div key={dataKey} className="space-y-4 animate-fade-in">
-              {filteredEvents.map((event, index) => {
-                const comparison = getActualVsForecast(event.actual, event.forecast);
-                const now = new Date();
-                const eventDate = new Date(event.date);
-                
-                // Parse event time to get exact datetime
-                let eventDateTime: Date | null = null;
-                if (event.time !== 'All Day' && event.time !== 'Tentative') {
-                  const [time, period] = event.time.split(' ');
-                  const [hours, minutes] = time.split(':').map(Number);
-                  let hour24 = hours;
-                  if (period === 'PM' && hours !== 12) hour24 += 12;
-                  if (period === 'AM' && hours === 12) hour24 = 0;
-                  eventDateTime = new Date(eventDate);
-                  eventDateTime.setHours(hour24, minutes || 0, 0, 0);
-                }
-                
-                const isTimePast = eventDateTime ? eventDateTime < now : eventDate < new Date(now.toDateString());
-                const isPast = event.actual !== null || isTimePast;
-                
-                const isLive = !isPast && eventDateTime && (() => {
-                  const timeDiff = eventDateTime.getTime() - now.getTime();
-                  const minutesDiff = timeDiff / (1000 * 60);
-                  return minutesDiff >= -5 && minutesDiff <= 15;
-                })();
-
-                return (
-                  <div key={event.id} className="flex gap-4 group cursor-pointer">
-                    {/* Timeline Column */}
-                    <div className="flex flex-col items-center pt-1.5 flex-shrink-0">
-                      <div className={cn(
-                        "text-xs font-semibold whitespace-nowrap w-12 text-center",
-                        isLive ? "text-white" : "text-foreground"
-                      )}>
-                        {event.time}
+            <div key={dataKey} className="space-y-6 animate-fade-in">
+              {timeRangeFilter === 'week' ? (
+                Object.entries(groupedEvents)
+                  .sort((a, b) => a[0].localeCompare(b[0]))
+                  .map(([date, events]) => (
+                    <div key={date} className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <p className="text-sm font-semibold text-foreground">
+                          {format(new Date(date), 'EEEE, MMM d')}
+                        </p>
+                        <div className="h-px flex-1 bg-white/10" />
                       </div>
-                      {index < filteredEvents.length - 1 && (
-                        <div className={cn(
-                          "w-0.5 h-12 mt-2",
-                          isLive ? "bg-white/70" :
-                          event.impact === 'high' ? "bg-red-500" :
-                          event.impact === 'medium' ? "bg-orange-500" :
-                          "bg-white/20"
-                        )} />
-                      )}
-                    </div>
-
-                    {/* Event Card */}
-                    <div
-                      onClick={() => setSelectedEvent(event)}
-                      className={cn(
-                        "flex-1 rounded-2xl border transition-all duration-200 cursor-pointer",
-                        "p-4",
-                        isPast && "opacity-50",
-                        isLive
-                          ? "border-white/20 bg-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
-                          : "border-white/10 bg-white/5 hover:bg-white/10"
-                      )}
-                    >
-                      {/* Title and Currency/Flag/Impact */}
-                      <div className="flex items-start justify-between gap-3 mb-2.5">
-                        <span className="font-semibold text-base text-white flex-1">
-                          {event.title}
-                        </span>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className={cn(
-                            "inline-flex h-2 w-2 rounded-full flex-shrink-0",
-                            isLive
-                              ? "bg-red-500 animate-pulse"
-                              : event.impact === 'high' ? "bg-red-500" :
-                              event.impact === 'medium' ? "bg-orange-500" :
-                              "bg-white/30"
-                          )} />
-                          <span className="text-lg">{getCurrencyFlag(event.currency)}</span>
-                          <span className="text-xs font-semibold text-muted-foreground">
-                            {event.currency}
-                          </span>
-                        </div>
+                      <div className="space-y-4">
+                        {events.map((event, index) => renderEventRow(event, index, events.length))}
                       </div>
-                      
-                      {/* Description */}
-                      <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
-                        {event.description}
-                      </p>
                     </div>
-                  </div>
-                );
-              })}
+                  ))
+              ) : (
+                <div className="space-y-4">
+                  {filteredEvents.map((event, index) => renderEventRow(event, index, filteredEvents.length))}
+                </div>
+              )}
             </div>
           )}
         </div>
