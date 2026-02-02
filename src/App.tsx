@@ -70,7 +70,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
   const { user, loading: authLoading } = useAuth();
   const { activeAccount, accounts, loading: accountLoading } = useAccount();
-  const { setIsHydrating } = useDataStore();
+  const { tradesLoaded, setIsHydrating } = useDataStore();
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'active' | 'inactive'>('loading');
 
   // Check subscription status
@@ -111,15 +111,15 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
     }
   }, [user, authLoading]);
 
-  // Signal data ready immediately when auth and account are loaded
-  // Trades load in parallel - don't block the UI
+  // Signal data ready when auth, account, subscription are loaded AND trades are loaded
+  // This ensures the splash screen doesn't dismiss until all data is ready
   useEffect(() => {
-    if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading') {
+    if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading' && tradesLoaded) {
       // Mark hydrating as false immediately so UI renders
       setIsHydrating(false);
       onDataReady?.();
     }
-  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, onDataReady, setIsHydrating]);
+  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, tradesLoaded, onDataReady, setIsHydrating]);
 
   // If auth has resolved and there's no user, redirect immediately
   if (!authLoading && !user) {
@@ -213,8 +213,9 @@ const App = () => {
     document.referrer.includes('android-app://')
   );
   const shouldRedirectToApp = !isAppRoute && isStandalone;
-  const [showSplash, setShowSplash] = useState(() => isMobileDevice() && !isStandalone);
-  const [splashComplete, setSplashComplete] = useState(!isMobileDevice() || isStandalone);
+  // Show splash only when in standalone mode (added to home screen) on mobile
+  const [showSplash, setShowSplash] = useState(() => isMobileDevice() && isStandalone);
+  const [splashComplete, setSplashComplete] = useState(!isMobileDevice() || !isStandalone);
   const [isDataReady, setIsDataReady] = useState(false);
 
   // Mark splash as complete when it finishes
