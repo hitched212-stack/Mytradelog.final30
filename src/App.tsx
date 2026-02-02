@@ -258,12 +258,6 @@ const App = () => {
           <AuthProvider>
             <PreferencesProvider>
               <AccountProvider>
-                <SplashScreenController 
-                  showSplash={showSplash}
-                  splashComplete={splashComplete}
-                  isDataReady={isDataReady}
-                  onSplashComplete={handleSplashComplete}
-                />
                 {/* App routes - always render to prevent hooks mismatch */}
                 <AppRoutes onDataReady={handleDataReady} />
               </AccountProvider>
