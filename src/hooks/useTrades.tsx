@@ -157,7 +157,25 @@ export function useTrades() {
           const cacheKey = getTradesCacheKey(user.id, accountId);
           localStorage.setItem(cacheKey, JSON.stringify(mappedTrades));
         } catch (error) {
-          console.warn('Failed to cache trades locally:', error);
+          // If localStorage is full, clear old trade caches and try again
+          if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+            try {
+              // Clear all trade cache keys except the current one
+              const keys = Object.keys(localStorage);
+              keys.forEach(key => {
+                if (key.startsWith('trade-log-trades-') && key !== getTradesCacheKey(user.id, accountId)) {
+                  localStorage.removeItem(key);
+                }
+              });
+              // Try caching again
+              const cacheKey = getTradesCacheKey(user.id, accountId);
+              localStorage.setItem(cacheKey, JSON.stringify(mappedTrades));
+            } catch (retryError) {
+              console.warn('Failed to cache trades after clearing old data:', retryError);
+            }
+          } else {
+            console.warn('Failed to cache trades locally:', error);
+          }
         }
       }
     } catch (error) {

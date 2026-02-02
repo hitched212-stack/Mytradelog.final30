@@ -1,8 +1,32 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- Initialize theme BEFORE page renders to prevent flash -->
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('preferences');
+          var theme = 'dark'; // default
+          
+          if (stored) {
+            var prefs = JSON.parse(stored);
+            theme = prefs.theme || 'dark';
+          }
+          
+          if (theme === 'system') {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          
+          document.documentElement.classList.add(theme);
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
     <title>Trade Log | Professional Trading Journal</title>
     <meta name="description" content="Track your trades, analyze performance, and improve your trading discipline with Trade Log - a minimal, professional trading journal." />
     
@@ -60,29 +84,6 @@
   </head>
 
   <body>
-    <!-- Prevent flash on PWA launch - immediate dark background -->
-    <script>
-      (function() {
-        // Only apply to standalone/PWA mode on mobile
-        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                          window.navigator.standalone === true ||
-                          window.navigator.standalone === 'true';
-        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                      window.innerWidth <= 768;
-        
-        if (isStandalone && isMobile) {
-          // Set splash screen background immediately
-          document.documentElement.style.backgroundColor = '#000000';
-          document.documentElement.style.background = 'linear-gradient(to bottom, #000000, #0f172a)';
-          document.body.style.backgroundColor = '#000000';
-          document.body.style.background = 'linear-gradient(to bottom, #000000, #0f172a)';
-          document.body.style.margin = '0';
-          document.body.style.padding = '0';
-          document.body.style.overflow = 'hidden';
-        }
-      })();
-    </script>
-    
     <!-- Service Worker Disabled (prevents stale cache black screen) -->
     <script>
       if ('serviceWorker' in navigator) {

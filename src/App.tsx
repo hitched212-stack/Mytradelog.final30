@@ -204,7 +204,24 @@ const AppRoutes = ({ onDataReady }: { onDataReady?: () => void }) => {
 };
 
 const App = () => {
-  const isAppRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/app");
+  const isAppRoute = typeof window !== "undefined" && (
+    window.location.pathname.startsWith("/app") || 
+    window.location.pathname.startsWith("/dashboard") ||
+    window.location.pathname.startsWith("/auth") ||
+    window.location.pathname.startsWith("/paywall") ||
+    window.location.pathname.startsWith("/select-account") ||
+    window.location.pathname.startsWith("/coach") ||
+    window.location.pathname.startsWith("/backtesting") ||
+    window.location.pathname.startsWith("/playbook") ||
+    window.location.pathname.startsWith("/news") ||
+    window.location.pathname.startsWith("/calendar") ||
+    window.location.pathname.startsWith("/history") ||
+    window.location.pathname.startsWith("/add") ||
+    window.location.pathname.startsWith("/edit") ||
+    window.location.pathname.startsWith("/analytics") ||
+    window.location.pathname.startsWith("/settings") ||
+    window.location.pathname.startsWith("/day")
+  );
   const isTermsRoute = typeof window !== "undefined" && window.location.pathname === "/terms";
   const isStandalone = typeof window !== "undefined" && (
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -250,7 +267,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         {/* Always render the app structure so data can preload */}
-        <BrowserRouter basename="/app">
+        <BrowserRouter>
           <ScrollToTop />
           <AuthProvider>
             <PreferencesProvider>

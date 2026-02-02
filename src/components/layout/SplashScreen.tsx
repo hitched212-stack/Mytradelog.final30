@@ -26,6 +26,15 @@ export function SplashScreen({ onComplete, minDisplayTime = 1000, isDataReady = 
     return () => clearTimeout(timer);
   }, [minDisplayTime]);
 
+  // Maximum timeout - force dismiss after 3 seconds to prevent infinite black screen
+  useEffect(() => {
+    const maxTimeout = setTimeout(() => {
+      setIsVisible(false);
+    }, 3000);
+
+    return () => clearTimeout(maxTimeout);
+  }, []);
+
   // Only hide splash when both min time has elapsed AND data is ready
   // Add a small buffer to ensure smooth transition
   useEffect(() => {
