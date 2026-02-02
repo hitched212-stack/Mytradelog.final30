@@ -15,10 +15,9 @@ interface SplashScreenProps {
   isDataReady?: boolean;
 }
 
-export function SplashScreen({ onComplete, minDisplayTime = 100, maxDisplayTime = 3000, isDataReady = false }: SplashScreenProps) {
+export function SplashScreen({ onComplete, minDisplayTime = 100, maxDisplayTime = 15000, isDataReady = false }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
-  const [maxTimeElapsed, setMaxTimeElapsed] = useState(false);
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
 
   // Start the min display time timer immediately
@@ -30,14 +29,17 @@ export function SplashScreen({ onComplete, minDisplayTime = 100, maxDisplayTime 
     return () => clearTimeout(timer);
   }, [minDisplayTime]);
 
-  // Set max display time - force close after 3 seconds regardless of data
+  // Safety timeout to force dismiss after max time (fallback for stuck data loading)
   useEffect(() => {
     const timer = setTimeout(() => {
-      setMaxTimeElapsed(true);
+      if (!isLoadingComplete) {
+        console.warn('Splash screen timeout: Data took too long to load, forcing dismiss');
+        setIsLoadingComplete(true);
+      }
     }, maxDisplayTime);
 
     return () => clearTimeout(timer);
-  }, [maxDisplayTime]);
+  }, [maxDisplayTime, isLoadingComplete]);
 
   // Track when data is actually ready
   useEffect(() => {
@@ -50,16 +52,16 @@ export function SplashScreen({ onComplete, minDisplayTime = 100, maxDisplayTime 
     }
   }, [isDataReady]);
 
-  // Hide splash when: min time elapsed AND (data ready OR max time elapsed)
+  // Hide splash only when: min time elapsed AND data is fully ready
   useEffect(() => {
-    if (minTimeElapsed && (isLoadingComplete || maxTimeElapsed)) {
+    if (minTimeElapsed && isLoadingComplete) {
       // Minimal delay to ensure smooth transition
       const timer = setTimeout(() => {
         setIsVisible(false);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [minTimeElapsed, isLoadingComplete, maxTimeElapsed]);
+  }, [minTimeElapsed, isLoadingComplete]);
 
   return (
     <AnimatePresence onExitComplete={onComplete}>

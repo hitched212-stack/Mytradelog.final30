@@ -70,7 +70,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
   const { user, loading: authLoading } = useAuth();
   const { activeAccount, accounts, loading: accountLoading } = useAccount();
-  const { tradesLoaded, setIsHydrating } = useDataStore();
+  const { tradesLoaded, settingsLoaded, setIsHydrating } = useDataStore();
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'active' | 'inactive'>('loading');
 
   // Check subscription status
@@ -114,12 +114,12 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
   // Signal data ready when auth, account, subscription are loaded AND trades are loaded
   // This ensures the splash screen doesn't dismiss until all data is ready
   useEffect(() => {
-    if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading' && tradesLoaded) {
+    if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading' && tradesLoaded && settingsLoaded) {
       // Mark hydrating as false immediately so UI renders
       setIsHydrating(false);
       onDataReady?.();
     }
-  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, tradesLoaded, onDataReady, setIsHydrating]);
+  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, tradesLoaded, settingsLoaded, onDataReady, setIsHydrating]);
 
   // If auth has resolved and there's no user, redirect immediately
   if (!authLoading && !user) {
