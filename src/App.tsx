@@ -67,7 +67,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
+function ProtectedLayout() {
   const { user, loading: authLoading } = useAuth();
   const { activeAccount, accounts, loading: accountLoading } = useAccount();
   const { setIsHydrating } = useDataStore();
@@ -117,9 +117,8 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
     if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading') {
       // Mark hydrating as false immediately so UI renders
       setIsHydrating(false);
-      onDataReady?.();
     }
-  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, onDataReady, setIsHydrating]);
+  }, [authLoading, accountLoading, activeAccount, subscriptionStatus, setIsHydrating]);
 
   // Determine what to render - all hooks are called above
   // If auth has resolved and there's no user, redirect immediately
@@ -160,7 +159,7 @@ function RootRoute() {
   return <Navigate to="/dashboard" replace />;
 }
 
-const AppRoutes = ({ onDataReady }: { onDataReady?: () => void }) => {
+const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
@@ -174,7 +173,7 @@ const AppRoutes = ({ onDataReady }: { onDataReady?: () => void }) => {
         </ProtectedRoute>
       } />
       {/* Protected routes */}
-      <Route element={<ProtectedLayout onDataReady={onDataReady} />}>
+      <Route element={<ProtectedLayout />}>
         <Route path="/dashboard" element={<Journal />} />
         <Route path="/coach" element={<PerformanceCoach />} />
         <Route path="/backtesting" element={<Backtesting />} />
@@ -215,20 +214,6 @@ const App = () => {
     document.referrer.includes('android-app://')
   );
   const shouldRedirectToApp = !isAppRoute && isStandalone;
-  // Temporarily disable splash screen to fix black screen issue
-  const [showSplash, setShowSplash] = useState(false);
-  const [splashComplete, setSplashComplete] = useState(true);
-  const [isDataReady, setIsDataReady] = useState(false);
-
-  // Mark splash as complete when it finishes
-  const handleSplashComplete = () => {
-    setSplashComplete(true);
-  };
-
-  // Mark data as ready when protected layout signals it
-  const handleDataReady = () => {
-    setIsDataReady(true);
-  };
 
   useEffect(() => {
     if (shouldRedirectToApp) {
@@ -259,7 +244,7 @@ const App = () => {
             <PreferencesProvider>
               <AccountProvider>
                 {/* App routes - always render to prevent hooks mismatch */}
-                <AppRoutes onDataReady={handleDataReady} />
+                <AppRoutes />
               </AccountProvider>
             </PreferencesProvider>
           </AuthProvider>
