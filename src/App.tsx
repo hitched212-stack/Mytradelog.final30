@@ -156,7 +156,7 @@ function ProtectedLayout() {
 
   // Proceed to layout - if there was a Supabase error, we're being lenient
   return <AppLayout />;
-}}
+}
 
 // Root route handler - redirect to auth for guests, journal for authenticated
 function RootRoute() {
