@@ -533,7 +533,7 @@ export default function EconomicNews() {
         <div className="flex flex-col items-center pt-1.5 flex-shrink-0">
           <div className={cn(
             "text-xs font-semibold whitespace-nowrap w-12 text-center",
-            isLive ? "text-white" : "text-foreground"
+            isLive ? "text-foreground" : "text-foreground"
           )}>
             {event.time}
           </div>
@@ -551,13 +551,13 @@ export default function EconomicNews() {
             "p-4",
             isPast && "opacity-50",
             isLive
-              ? "border-white/20 bg-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
-              : "border-white/10 bg-white/5 hover:bg-white/10"
+              ? "border-foreground/30 bg-card shadow-sm dark:border-white/20 dark:bg-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+              : "border-foreground/20 bg-card/80 hover:bg-card dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
           )}
         >
           {/* Title and Currency/Flag/Impact */}
           <div className="flex items-start justify-between gap-3 mb-2.5">
-            <span className="font-semibold text-base text-white flex-1">
+            <span className="font-semibold text-base text-black dark:text-white flex-1">
               {event.title}
             </span>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -570,14 +570,14 @@ export default function EconomicNews() {
                   "bg-white/30"
               )} />
               <span className="text-lg">{getCurrencyFlag(event.currency)}</span>
-              <span className="text-xs font-semibold text-muted-foreground">
+              <span className="text-xs font-semibold text-foreground/80 dark:text-muted-foreground">
                 {event.currency}
               </span>
             </div>
           </div>
 
           {/* Description */}
-          <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
+          <p className="text-xs text-foreground/80 dark:text-muted-foreground leading-relaxed line-clamp-2">
             {event.description}
           </p>
         </div>
@@ -633,7 +633,7 @@ export default function EconomicNews() {
           {/* News events skeleton */}
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="rounded-2xl border border-border/50 bg-card/80 p-4">
+              <div key={i} className="rounded-2xl border border-foreground/20 bg-card/80 p-4 dark:border-white/10">
                 <div className="flex items-start gap-3">
                   <Skeleton className="h-8 w-8 rounded-lg bg-muted/50" />
                   <div className="flex-1">
@@ -664,7 +664,7 @@ export default function EconomicNews() {
   return (
     <div className="min-h-screen pb-24 animate-in fade-in duration-300">
       {/* Header with title and refresh */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border/50">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-foreground/20 dark:border-white/10">
         <div className="flex items-center justify-between px-4 py-4">
           <h1 className="text-lg font-semibold text-foreground">Economic Calendar</h1>
           <Button
@@ -683,8 +683,8 @@ export default function EconomicNews() {
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 via-white/5 to-white/10 opacity-60" />
-            <div className="relative flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.25)] focus-within:border-white/30">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 dark:from-white/10 dark:via-white/5 dark:to-white/10 opacity-60" />
+            <div className="relative flex items-center gap-2 rounded-2xl border border-foreground/25 bg-muted/40 px-4 py-3 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] focus-within:border-foreground/40 dark:focus-within:border-white/30">
               <svg className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -693,12 +693,12 @@ export default function EconomicNews() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for news events"
-                className="w-full bg-transparent text-foreground placeholder-gray-500 focus:outline-none"
+                className="w-full bg-transparent text-foreground placeholder-muted-foreground focus:outline-none"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"
+                  className="h-8 w-8 rounded-full bg-muted/40 hover:bg-muted/60 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center"
                 >
                   <X className="h-4 w-4 text-muted-foreground" />
                 </button>
@@ -711,18 +711,18 @@ export default function EconomicNews() {
         <div className="mb-6 sm:hidden">
           <Popover>
             <PopoverTrigger asChild>
-              <button className="w-full px-4 py-3 rounded-2xl bg-white/5 text-foreground border border-white/10 flex items-center justify-between">
+              <button className="w-full px-4 py-3 rounded-2xl bg-muted/40 text-foreground border border-border/60 dark:bg-white/5 dark:border-white/10 flex items-center justify-between">
                 <span className="text-sm font-medium">Filters</span>
                 <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-[calc(100vw-2rem)] max-w-sm p-4 rounded-2xl bg-background/95 border border-white/10">
+            <PopoverContent className="w-[calc(100vw-2rem)] max-w-sm p-4 rounded-2xl bg-background/95 border border-border/60 dark:border-white/10">
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs text-muted-foreground font-medium">Presets</p>
+                    <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Presets</p>
                     <button
                       onClick={handleSavePreset}
                       className="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -731,7 +731,7 @@ export default function EconomicNews() {
                     </button>
                   </div>
                   <Select value={selectedPresetId} onValueChange={handleSelectPreset}>
-                    <SelectTrigger className="w-full rounded-xl bg-white/5 border-white/10 text-foreground">
+                    <SelectTrigger className="w-full rounded-xl bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10">
                       <SelectValue placeholder="Choose a preset" />
                     </SelectTrigger>
                     <SelectContent>
@@ -749,15 +749,15 @@ export default function EconomicNews() {
                   </Select>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium mb-2">Time</p>
+                  <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Time</p>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleTimeRangeChange('day')}
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                         timeRangeFilter === 'day'
-                          ? "bg-white text-black"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          ? "bg-foreground text-background dark:bg-white dark:text-black"
+                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                       )}
                     >
                       Day
@@ -767,8 +767,8 @@ export default function EconomicNews() {
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                         isSameDay(selectedDate, subDays(new Date(), 1))
-                          ? "bg-white text-black"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          ? "bg-foreground text-background dark:bg-white dark:text-black"
+                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                       )}
                     >
                       Yesterday
@@ -778,8 +778,8 @@ export default function EconomicNews() {
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                         isSameDay(selectedDate, new Date())
-                          ? "bg-white text-black"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          ? "bg-foreground text-background dark:bg-white dark:text-black"
+                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                       )}
                     >
                       Today
@@ -789,8 +789,8 @@ export default function EconomicNews() {
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                         isSameDay(selectedDate, addDays(new Date(), 1))
-                          ? "bg-white text-black"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          ? "bg-foreground text-background dark:bg-white dark:text-black"
+                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                       )}
                     >
                       Tomorrow
@@ -800,8 +800,8 @@ export default function EconomicNews() {
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                         timeRangeFilter === 'week'
-                          ? "bg-white text-black"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          ? "bg-foreground text-background dark:bg-white dark:text-black"
+                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                       )}
                     >
                       Week
@@ -810,7 +810,7 @@ export default function EconomicNews() {
                 </div>
 
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium mb-2">Day</p>
+                  <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Day</p>
                   <div className="grid grid-cols-7 gap-1">
                     {Array.from({ length: 7 }, (_, i) => {
                       const day = addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), i);
@@ -822,8 +822,8 @@ export default function EconomicNews() {
                           className={cn(
                             "h-10 rounded-xl flex flex-col items-center justify-center text-[11px] transition-all",
                             isSelected
-                              ? "border border-white bg-white/10 text-white"
-                              : "border border-white/5 bg-white/5 text-gray-400"
+                              ? "border border-foreground/50 bg-muted text-foreground dark:border-white dark:bg-white/10 dark:text-white"
+                              : "border border-border/60 bg-muted/40 text-foreground/80 dark:border-white/5 dark:bg-white/5 dark:text-gray-400"
                           )}
                         >
                           <span className="text-[10px]">{format(day, 'EEE')}</span>
@@ -835,19 +835,19 @@ export default function EconomicNews() {
                 </div>
 
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium mb-2">Impact</p>
+                  <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Impact</p>
                   <div className="flex flex-wrap gap-2">
                     {IMPACT_FILTERS.map(filter => {
                       const isSelected = filter.value === 'all' 
                         ? selectedImpacts.includes('all')
                         : selectedImpacts.includes(filter.value);
                       const selectedClass = filter.value === 'high'
-                        ? "bg-red-500/20 text-red-300 border border-red-500/40"
+                        ? "bg-red-500/20 text-red-600 border border-red-500/40 dark:text-red-300"
                         : filter.value === 'medium'
-                          ? "bg-orange-500/20 text-orange-300 border border-orange-500/40"
+                          ? "bg-orange-500/20 text-orange-600 border border-orange-500/40 dark:text-orange-300"
                           : filter.value === 'low'
-                            ? "bg-white/10 text-gray-200 border border-white/20"
-                            : "bg-white text-black";
+                            ? "bg-yellow-500/20 text-yellow-700 border border-yellow-500/40 dark:text-yellow-300"
+                            : "bg-foreground text-background dark:bg-white dark:text-black";
                       return (
                         <button
                           key={filter.value}
@@ -867,7 +867,7 @@ export default function EconomicNews() {
                             "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                             isSelected
                               ? selectedClass
-                              : "bg-white/5 text-gray-400 hover:bg-white/10"
+                              : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                           )}
                         >
                           {filter.label.split(' ')[0]}
@@ -879,11 +879,11 @@ export default function EconomicNews() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs text-muted-foreground font-medium">Currency</p>
+                    <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Currency</p>
                     {hasActiveFilters && (
                       <button
                         onClick={clearFilters}
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-xs text-foreground/70 hover:text-foreground transition-colors dark:text-muted-foreground"
                       >
                         Clear
                       </button>
@@ -912,8 +912,8 @@ export default function EconomicNews() {
                           className={cn(
                             "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
                             isSelected
-                              ? "bg-white text-black"
-                              : "bg-white/5 text-gray-400 hover:bg-white/10"
+                              ? "bg-foreground text-background dark:bg-white dark:text-black"
+                              : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                           )}
                         >
                           {curr !== 'All' && <span className="text-sm">{getCurrencyFlag(curr)}</span>}
@@ -931,9 +931,9 @@ export default function EconomicNews() {
         {/* Presets */}
         <div className="hidden sm:flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <p className="text-xs text-muted-foreground font-medium">Presets</p>
+            <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Presets</p>
             <Select value={selectedPresetId} onValueChange={handleSelectPreset}>
-              <SelectTrigger className="w-56 rounded-full bg-white/5 border-white/10 text-foreground">
+              <SelectTrigger className="w-56 rounded-full bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10">
                 <SelectValue placeholder="Choose a preset" />
               </SelectTrigger>
               <SelectContent>
@@ -952,7 +952,7 @@ export default function EconomicNews() {
           </div>
           <button
             onClick={handleSavePreset}
-            className="px-4 py-2 rounded-full text-xs font-medium bg-white text-black hover:bg-white/90 transition-colors"
+            className="px-4 py-2 rounded-full text-xs font-medium bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-white/90 transition-colors"
           >
             Save preset
           </button>
@@ -965,8 +965,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               timeRangeFilter === 'day'
-                ? "bg-white text-black shadow"
-                : "bg-white/5 text-gray-400 hover:bg-white/10"
+                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
+                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
             )}
           >
             Day
@@ -976,8 +976,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               isSameDay(selectedDate, subDays(new Date(), 1))
-                ? "bg-white text-black shadow"
-                : "bg-white/5 text-gray-400 hover:bg-white/10"
+                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
+                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
             )}
           >
             Yesterday
@@ -987,8 +987,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               isSameDay(selectedDate, new Date())
-                ? "bg-white text-black shadow"
-                : "bg-white/5 text-gray-400 hover:bg-white/10"
+                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
+                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
             )}
           >
             Today
@@ -998,8 +998,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               isSameDay(selectedDate, addDays(new Date(), 1))
-                ? "bg-white text-black shadow"
-                : "bg-white/5 text-gray-400 hover:bg-white/10"
+                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
+                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
             )}
           >
             Tomorrow
@@ -1009,8 +1009,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               timeRangeFilter === 'week'
-                ? "bg-white text-black shadow"
-                : "bg-white/5 text-gray-400 hover:bg-white/10"
+                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
+                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
             )}
           >
             Week
@@ -1029,8 +1029,8 @@ export default function EconomicNews() {
                 className={cn(
                   "h-14 sm:h-16 min-w-[60px] sm:min-w-[70px] rounded-2xl flex flex-col items-center justify-center transition-all flex-shrink-0",
                   isSelected 
-                    ? "border-2 border-white bg-white/10 text-white"
-                    : "border border-white/5 bg-white/5 text-gray-400 hover:text-white"
+                    ? "border-2 border-foreground/50 bg-muted text-foreground dark:border-white dark:bg-white/10 dark:text-white"
+                    : "border border-border/60 bg-muted/40 text-foreground/70 hover:text-foreground dark:border-white/5 dark:bg-white/5 dark:text-gray-400"
                 )}
               >
                 <span className="text-xs font-medium mb-0.5 sm:mb-1">{format(day, 'EEE')}</span>
@@ -1042,19 +1042,19 @@ export default function EconomicNews() {
 
         {/* Impact Filter Pills */}
         <div className="hidden sm:flex mb-6 items-center gap-4">
-          <p className="text-xs text-muted-foreground font-medium min-w-fit">Impact</p>
+          <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium min-w-fit">Impact</p>
           <div className="flex gap-2">
             {IMPACT_FILTERS.map(filter => {
               const isSelected = filter.value === 'all' 
                 ? selectedImpacts.includes('all')
                 : selectedImpacts.includes(filter.value);
               const selectedClass = filter.value === 'high'
-                ? "bg-red-500/20 text-red-300 border border-red-500/40"
+                ? "bg-red-500/20 text-red-600 border border-red-500/40 dark:text-red-300"
                 : filter.value === 'medium'
-                  ? "bg-orange-500/20 text-orange-300 border border-orange-500/40"
+                  ? "bg-orange-500/20 text-orange-600 border border-orange-500/40 dark:text-orange-300"
                   : filter.value === 'low'
-                    ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40"
-                    : "bg-white text-black";
+                    ? "bg-yellow-500/20 text-yellow-700 border border-yellow-500/40 dark:text-yellow-300"
+                    : "bg-foreground text-background dark:bg-white dark:text-black";
               return (
                 <button
                   key={filter.value}
@@ -1074,7 +1074,7 @@ export default function EconomicNews() {
                     "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                     isSelected
                       ? selectedClass
-                      : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                   )}
                 >
                   {filter.label.split(' ')[0]}
@@ -1087,7 +1087,7 @@ export default function EconomicNews() {
         {/* Currency Filter Pills */}
         <div className="hidden sm:flex mb-8 items-center gap-4">
           <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground font-medium">Currency</p>
+            <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Currency</p>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
@@ -1120,8 +1120,8 @@ export default function EconomicNews() {
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
                     isSelected
-                      ? "bg-white text-black"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      ? "bg-foreground text-background dark:bg-white dark:text-black"
+                      : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
                   )}
                 >
                   {curr !== 'All' && <span className="text-sm">{getCurrencyFlag(curr)}</span>}
@@ -1169,7 +1169,7 @@ export default function EconomicNews() {
                         <p className="text-sm font-semibold text-foreground">
                           {format(new Date(date), 'EEEE, MMM d')}
                         </p>
-                        <div className="h-px flex-1 bg-white/10" />
+                        <div className="h-px flex-1 bg-border/60 dark:bg-white/10" />
                       </div>
                       <div className="space-y-4">
                         {events.map((event, index) => renderEventRow(event, index, events.length))}
