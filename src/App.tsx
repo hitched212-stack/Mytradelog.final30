@@ -57,7 +57,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null; // Don't show anything while loading to prevent flash
+    return <AppLayout />;
   }
 
   if (!user) {
@@ -150,7 +150,7 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
 function RootRoute() {
   const { user, loading } = useAuth();
   
-  if (loading) return null;
+  if (loading) return <Navigate to="/dashboard" replace />;
   if (!user) return <Navigate to="/auth" replace />;
   return <Navigate to="/dashboard" replace />;
 }
