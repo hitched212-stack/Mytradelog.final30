@@ -122,6 +122,18 @@ export default {
           "0%, 100%": { transform: "scaleY(1)" },
           "50%": { transform: "scaleY(0.4)" },
         },
+        "chat-bounce-1": {
+          "0%, 60%, 100%": { transform: "translateY(0)" },
+          "30%": { transform: "translateY(-10px)" },
+        },
+        "chat-bounce-2": {
+          "0%, 60%, 100%": { transform: "translateY(0)" },
+          "30%": { transform: "translateY(-10px)" },
+        },
+        "chat-bounce-3": {
+          "0%, 60%, 100%": { transform: "translateY(0)" },
+          "30%": { transform: "translateY(-10px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -133,6 +145,9 @@ export default {
         "wave-3": "wave-3 0.8s ease-in-out infinite 0.2s",
         "wave-4": "wave-4 0.8s ease-in-out infinite 0.3s",
         "wave-5": "wave-5 0.8s ease-in-out infinite 0.4s",
+        "chat-bounce-1": "chat-bounce-1 1.4s infinite",
+        "chat-bounce-2": "chat-bounce-2 1.4s infinite 0.2s",
+        "chat-bounce-3": "chat-bounce-3 1.4s infinite 0.4s",
       },
     },
   },

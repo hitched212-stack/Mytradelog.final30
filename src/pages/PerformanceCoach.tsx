@@ -379,12 +379,10 @@ export default function PerformanceCoach() {
                   <div className="shrink-0 w-8 h-8 rounded-lg bg-foreground/10 flex items-center justify-center border border-border/50">
                     <Bot className="h-4 w-4 text-foreground" />
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-card border border-border px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-foreground/40 animate-pulse" />
-                      <div className="w-2 h-2 rounded-full bg-foreground/40 animate-pulse delay-75" />
-                      <div className="w-2 h-2 rounded-full bg-foreground/40 animate-pulse delay-150" />
-                    </div>
+                  <div className="rounded-2xl rounded-tl-sm bg-card border border-border px-4 py-3 flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-foreground/40 animate-chat-bounce-1" />
+                    <div className="w-2 h-2 rounded-full bg-foreground/40 animate-chat-bounce-2" />
+                    <div className="w-2 h-2 rounded-full bg-foreground/40 animate-chat-bounce-3" />
                   </div>
                 </div>}
               <div ref={messagesEndRef} />
@@ -393,28 +391,23 @@ export default function PerformanceCoach() {
 
         {/* Input Area */}
         <div className="shrink-0 px-4 pb-4 md:px-6 md:pb-6 flex justify-center">
-          <div className="flex flex-col bg-card/50 border border-border/50 rounded-2xl p-4 w-full max-w-2xl">
+          <div className="flex flex-col w-full max-w-2xl">
             {/* Pending Images Preview */}
-            {pendingImages.length > 0 && <div className="flex gap-2 mb-3 flex-wrap">
+            {pendingImages.length > 0 && <div className="flex gap-2 mb-3 flex-wrap px-1">
                 {pendingImages.map((img, index) => <div key={index} className="relative">
                     <img src={img.url} alt={`Pending ${index + 1}`} className="h-16 w-16 object-cover rounded-lg border border-border" />
-                    <button onClick={() => removeImage(index)} className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center">
+                    <button onClick={() => removeImage(index)} className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90 transition-colors">
                       <X className="h-3 w-3" />
                     </button>
                   </div>)}
               </div>}
             
-            {/* Text Input */}
-            <Textarea ref={textareaRef} value={userInput} onChange={e => setUserInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask anything" disabled={isLoading} className="flex-1 min-h-[60px] max-h-[120px] bg-transparent border-0 resize-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60 p-0" rows={2} />
-            
-            {/* Hidden file input */}
-            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" />
-            
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-between mt-3">
+            {/* ChatGPT-style Input Container */}
+            <div className="flex items-end gap-2 bg-card/80 border border-border/50 rounded-2xl px-4 py-3 shadow-sm hover:border-border/80 transition-colors focus-within:border-border focus-within:bg-card">
+              {/* Attach Button */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground" title="Add">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/5 shrink-0" title="Add attachment">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -430,17 +423,21 @@ export default function PerformanceCoach() {
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              <div className="flex items-center gap-2">
-                {/* Animated Wave icon */}
-                <div className="flex items-center justify-center h-8 w-8 text-muted-foreground">
-                  <AnimatedWaveIcon className="h-5 w-5" isAnimating={isLoading} />
-                </div>
-                
-                {/* Send Button */}
-                <Button onClick={() => handleSendMessage()} disabled={isLoading || !userInput.trim() && pendingImages.length === 0} size="icon" className="h-9 w-9 shrink-0 rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
-                  {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
-                </Button>
-              </div>
+              {/* Text Input */}
+              <Textarea ref={textareaRef} value={userInput} onChange={e => setUserInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask anything about your trading..." disabled={isLoading} className="flex-1 min-h-[44px] max-h-[120px] bg-transparent border-0 resize-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 p-0 m-0 leading-relaxed" rows={1} />
+              
+              {/* Hidden file input */}
+              <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" />
+              
+              {/* Send Button */}
+              <Button 
+                onClick={() => handleSendMessage()} 
+                disabled={isLoading || (!userInput.trim() && pendingImages.length === 0)} 
+                size="icon" 
+                className="h-8 w-8 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 disabled:hover:bg-foreground transition-all"
+              >
+                {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+              </Button>
             </div>
           </div>
         </div>
