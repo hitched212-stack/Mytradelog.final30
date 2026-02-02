@@ -122,6 +122,7 @@ export default function EconomicNews() {
   const [filtersSaved, setFiltersSaved] = useState(false);
   const [dataKey, setDataKey] = useState(0);
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Cache for prefetched data
   const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
@@ -367,10 +368,22 @@ export default function EconomicNews() {
 
   // Filter news events
   const filteredEvents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return newsEvents.filter(event => {
       const eventDate = new Date(event.date);
-      const matchesCurrency = selectedCurrencies.includes('all') || selectedCurrencies.includes(event.currency);
-      const matchesImpact = selectedImpacts.includes('all') || selectedImpacts.includes(event.impact);
+      const eventCurrency = (event.currency || '').trim().toUpperCase();
+      const eventImpact = (event.impact || '').toString().trim().toLowerCase();
+      const matchesCurrency = selectedCurrencies.includes('all') || selectedCurrencies.includes(eventCurrency);
+      const matchesImpact = selectedImpacts.includes('all') || selectedImpacts.includes(eventImpact);
+      const matchesSearch = !query || [
+        event.title,
+        eventCurrency,
+        event.country,
+        event.description,
+        event.time,
+      ]
+        .filter(Boolean)
+        .some(value => value.toLowerCase().includes(query));
       
       // Time range filter
       let matchesTimeRange = true;
@@ -382,14 +395,14 @@ export default function EconomicNews() {
         matchesTimeRange = isWithinInterval(eventDate, { start: weekStart, end: weekEnd });
       }
       
-      return matchesCurrency && matchesImpact && matchesTimeRange;
+      return matchesCurrency && matchesImpact && matchesTimeRange && matchesSearch;
     }).sort((a, b) => {
       // Sort by date first, then by time
       const dateCompare = a.date.localeCompare(b.date);
       if (dateCompare !== 0) return dateCompare;
       return a.time.localeCompare(b.time);
     });
-  }, [newsEvents, selectedCurrencies, selectedImpacts, timeRangeFilter, selectedDate]);
+  }, [newsEvents, selectedCurrencies, selectedImpacts, timeRangeFilter, selectedDate, searchQuery]);
 
   // Group events by date for display
   const groupedEvents = useMemo(() => {
@@ -526,29 +539,221 @@ export default function EconomicNews() {
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Find an event or currency"
-              className="w-full pl-12 pr-12 py-3 rounded-2xl border-0 bg-white/5 text-foreground placeholder-gray-500 focus:outline-none focus:ring-0 transition-all"
-            />
-            <svg className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6-8v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 via-white/5 to-white/10 opacity-60" />
+            <div className="relative flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.25)] focus-within:border-white/30">
+              <svg className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events, currency, or country"
+                className="w-full bg-transparent text-foreground placeholder-gray-500 focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
+        {/* Mobile Filters Dropdown */}
+        <div className="mb-6 sm:hidden">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="w-full px-4 py-3 rounded-2xl bg-white/5 text-foreground border border-white/10 flex items-center justify-between">
+                <span className="text-sm font-medium">Filters</span>
+                <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[calc(100vw-2rem)] max-w-sm p-4 rounded-2xl bg-background/95 border border-white/10">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-2">Time</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedDate(subDays(new Date(), 1))}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        isSameDay(selectedDate, subDays(new Date(), 1))
+                          ? "bg-white text-black"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      )}
+                    >
+                      Yesterday
+                    </button>
+                    <button
+                      onClick={() => setSelectedDate(new Date())}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        isSameDay(selectedDate, new Date())
+                          ? "bg-white text-black"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      )}
+                    >
+                      Today
+                    </button>
+                    <button
+                      onClick={() => setSelectedDate(addDays(new Date(), 1))}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        isSameDay(selectedDate, addDays(new Date(), 1))
+                          ? "bg-white text-black"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      )}
+                    >
+                      Tomorrow
+                    </button>
+                    <button
+                      onClick={() => handleTimeRangeChange('week')}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        timeRangeFilter === 'week'
+                          ? "bg-white text-black"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      )}
+                    >
+                      Week
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-2">Day</p>
+                  <div className="grid grid-cols-7 gap-1">
+                    {Array.from({ length: 7 }, (_, i) => {
+                      const day = addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), i);
+                      const isSelected = isSameDay(day, selectedDate);
+                      return (
+                        <button
+                          key={format(day, 'yyyy-MM-dd')}
+                          onClick={() => setSelectedDate(day)}
+                          className={cn(
+                            "h-10 rounded-xl flex flex-col items-center justify-center text-[11px] transition-all",
+                            isSelected
+                              ? "border border-white bg-white/10 text-white"
+                              : "border border-white/5 bg-white/5 text-gray-400"
+                          )}
+                        >
+                          <span className="text-[10px]">{format(day, 'EEE')}</span>
+                          <span className="text-sm font-medium leading-none">{format(day, 'd')}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-2">Impact</p>
+                  <div className="flex flex-wrap gap-2">
+                    {IMPACT_FILTERS.map(filter => {
+                      const isSelected = filter.value === 'all' 
+                        ? selectedImpacts.includes('all')
+                        : selectedImpacts.includes(filter.value);
+                      const selectedClass = filter.value === 'high'
+                        ? "bg-red-500/20 text-red-300 border border-red-500/40"
+                        : filter.value === 'medium'
+                          ? "bg-orange-500/20 text-orange-300 border border-orange-500/40"
+                          : filter.value === 'low'
+                            ? "bg-white/10 text-gray-200 border border-white/20"
+                            : "bg-white text-black";
+                      return (
+                        <button
+                          key={filter.value}
+                          onClick={() => {
+                            if (filter.value === 'all') {
+                              setSelectedImpacts(['all']);
+                            } else if (selectedImpacts.includes('all')) {
+                              setSelectedImpacts([filter.value]);
+                            } else if (isSelected) {
+                              const updated = selectedImpacts.filter(v => v !== filter.value);
+                              setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
+                            } else {
+                              setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
+                            }
+                          }}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                            isSelected
+                              ? selectedClass
+                              : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          )}
+                        >
+                          {filter.label.split(' ')[0]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-muted-foreground font-medium">Currency</p>
+                    {hasActiveFilters && (
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {['All', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD', 'CNY'].map((curr) => {
+                      const isSelected = curr === 'All'
+                        ? selectedCurrencies.includes('all')
+                        : selectedCurrencies.includes(curr);
+                      return (
+                        <button
+                          key={curr}
+                          onClick={() => {
+                            if (curr === 'All') {
+                              setSelectedCurrencies(['all']);
+                            } else if (selectedCurrencies.includes('all')) {
+                              setSelectedCurrencies([curr]);
+                            } else if (isSelected) {
+                              const updated = selectedCurrencies.filter(v => v !== curr);
+                              setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
+                            } else {
+                              setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
+                            }
+                          }}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
+                            isSelected
+                              ? "bg-white text-black"
+                              : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          )}
+                        >
+                          {curr !== 'All' && <span className="text-sm">{getCurrencyFlag(curr)}</span>}
+                          {curr}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
         {/* Time Period Buttons */}
-        <div className="flex gap-2 sm:gap-3 mb-6 justify-center flex-wrap">
+        <div className="hidden sm:flex gap-2 sm:gap-3 mb-6 justify-center flex-wrap">
           <button
             onClick={() => setSelectedDate(subDays(new Date(), 1))}
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               isSameDay(selectedDate, subDays(new Date(), 1))
-                ? "bg-white text-black"
-                : "bg-transparent text-gray-400 hover:text-white"
+                ? "bg-white text-black shadow"
+                : "bg-white/5 text-gray-400 hover:bg-white/10"
             )}
           >
             Yesterday
@@ -558,8 +763,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               isSameDay(selectedDate, new Date())
-                ? "bg-white text-black"
-                : "bg-transparent text-gray-400 hover:text-white"
+                ? "bg-white text-black shadow"
+                : "bg-white/5 text-gray-400 hover:bg-white/10"
             )}
           >
             Today
@@ -569,8 +774,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               isSameDay(selectedDate, addDays(new Date(), 1))
-                ? "bg-white text-black"
-                : "bg-transparent text-gray-400 hover:text-white"
+                ? "bg-white text-black shadow"
+                : "bg-white/5 text-gray-400 hover:bg-white/10"
             )}
           >
             Tomorrow
@@ -580,8 +785,8 @@ export default function EconomicNews() {
             className={cn(
               "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               timeRangeFilter === 'week'
-                ? "bg-white text-black"
-                : "bg-transparent text-gray-400 hover:text-white"
+                ? "bg-white text-black shadow"
+                : "bg-white/5 text-gray-400 hover:bg-white/10"
             )}
           >
             Week
@@ -589,7 +794,7 @@ export default function EconomicNews() {
         </div>
 
         {/* Week Day Selector - always show */}
-        <div className="mb-8 flex gap-1.5 sm:gap-2 justify-center overflow-x-auto pb-2 px-2 scrollbar-hide">
+        <div className="hidden sm:flex mb-8 gap-1.5 sm:gap-2 justify-center overflow-x-auto pb-2 px-2 scrollbar-hide">
           {Array.from({ length: 7 }, (_, i) => {
             const day = addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), i);
             const isSelected = isSameDay(day, selectedDate);
@@ -600,8 +805,8 @@ export default function EconomicNews() {
                 className={cn(
                   "h-14 sm:h-16 min-w-[60px] sm:min-w-[70px] rounded-2xl flex flex-col items-center justify-center transition-all flex-shrink-0",
                   isSelected 
-                    ? "border-2 border-white bg-transparent"
-                    : "border-0 bg-transparent text-gray-500 hover:text-white"
+                    ? "border-2 border-white bg-white/10 text-white"
+                    : "border border-white/5 bg-white/5 text-gray-400 hover:text-white"
                 )}
               >
                 <span className="text-xs font-medium mb-0.5 sm:mb-1">{format(day, 'EEE')}</span>
@@ -612,13 +817,20 @@ export default function EconomicNews() {
         </div>
 
         {/* Impact Filter Pills */}
-        <div className="mb-6 flex items-center gap-4">
+        <div className="hidden sm:flex mb-6 items-center gap-4">
           <p className="text-xs text-muted-foreground font-medium min-w-fit">Impact</p>
           <div className="flex gap-2">
             {IMPACT_FILTERS.map(filter => {
               const isSelected = filter.value === 'all' 
                 ? selectedImpacts.includes('all')
                 : selectedImpacts.includes(filter.value);
+              const selectedClass = filter.value === 'high'
+                ? "bg-red-500/20 text-red-300 border border-red-500/40"
+                : filter.value === 'medium'
+                  ? "bg-orange-500/20 text-orange-300 border border-orange-500/40"
+                  : filter.value === 'low'
+                    ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40"
+                    : "bg-white text-black";
               return (
                 <button
                   key={filter.value}
@@ -635,10 +847,10 @@ export default function EconomicNews() {
                     }
                   }}
                   className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                     isSelected
-                      ? "bg-white text-black"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      ? selectedClass
+                      : "bg-white/5 text-gray-400 hover:bg-white/10"
                   )}
                 >
                   {filter.label.split(' ')[0]}
@@ -649,7 +861,7 @@ export default function EconomicNews() {
         </div>
 
         {/* Currency Filter Pills */}
-        <div className="mb-8 flex items-center gap-4">
+        <div className="hidden sm:flex mb-8 items-center gap-4">
           <div className="flex items-center gap-2">
             <p className="text-xs text-muted-foreground font-medium">Currency</p>
             {hasActiveFilters && (
@@ -685,7 +897,7 @@ export default function EconomicNews() {
                     "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
                     isSelected
                       ? "bg-white text-black"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      : "bg-white/5 text-gray-400 hover:bg-white/10"
                   )}
                 >
                   {curr !== 'All' && <span className="text-sm">{getCurrencyFlag(curr)}</span>}
@@ -754,12 +966,16 @@ export default function EconomicNews() {
                   <div key={event.id} className="flex gap-4 group cursor-pointer">
                     {/* Timeline Column */}
                     <div className="flex flex-col items-center pt-1.5 flex-shrink-0">
-                      <div className="text-xs font-semibold text-foreground whitespace-nowrap w-12 text-center">
+                      <div className={cn(
+                        "text-xs font-semibold whitespace-nowrap w-12 text-center",
+                        isLive ? "text-white" : "text-foreground"
+                      )}>
                         {event.time}
                       </div>
                       {index < filteredEvents.length - 1 && (
                         <div className={cn(
                           "w-0.5 h-12 mt-2",
+                          isLive ? "bg-white/70" :
                           event.impact === 'high' ? "bg-red-500" :
                           event.impact === 'medium' ? "bg-orange-500" :
                           "bg-white/20"
@@ -771,10 +987,12 @@ export default function EconomicNews() {
                     <div
                       onClick={() => setSelectedEvent(event)}
                       className={cn(
-                        "flex-1 rounded-xl border transition-all duration-200 cursor-pointer",
+                        "flex-1 rounded-2xl border transition-all duration-200 cursor-pointer",
                         "p-4",
                         isPast && "opacity-50",
-                        "border-white/10 bg-white/5 hover:bg-white/10"
+                        isLive
+                          ? "border-white/20 bg-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+                          : "border-white/10 bg-white/5 hover:bg-white/10"
                       )}
                     >
                       {/* Title and Currency/Flag/Impact */}
@@ -785,9 +1003,11 @@ export default function EconomicNews() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className={cn(
                             "inline-flex h-2 w-2 rounded-full flex-shrink-0",
-                            event.impact === 'high' ? "bg-red-500" :
-                            event.impact === 'medium' ? "bg-orange-500" :
-                            "bg-white/30"
+                            isLive
+                              ? "bg-red-500 animate-pulse"
+                              : event.impact === 'high' ? "bg-red-500" :
+                              event.impact === 'medium' ? "bg-orange-500" :
+                              "bg-white/30"
                           )} />
                           <span className="text-lg">{getCurrencyFlag(event.currency)}</span>
                           <span className="text-xs font-semibold text-muted-foreground">
