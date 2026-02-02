@@ -218,6 +218,18 @@ const App = () => {
   const [splashComplete, setSplashComplete] = useState(!isMobileDevice() || !isStandalone);
   const [isDataReady, setIsDataReady] = useState(false);
 
+  useEffect(() => {
+    if (!isStandalone || !isMobileDevice()) {
+      const root = document.getElementById('root');
+      if (root) {
+        root.style.display = 'block';
+        root.style.visibility = 'visible';
+        root.style.opacity = '1';
+      }
+      document.body.style.overflow = 'auto';
+    }
+  }, [isStandalone]);
+
   // Mark splash as complete when it finishes
   const handleSplashComplete = () => {
     setSplashComplete(true);
