@@ -11,12 +11,14 @@ const SlashLogoIcon = ({ className }: { className?: string }) => (
 interface SplashScreenProps {
   onComplete: () => void;
   minDisplayTime?: number;
+  maxDisplayTime?: number;
   isDataReady?: boolean;
 }
 
-export function SplashScreen({ onComplete, minDisplayTime = 100, isDataReady = false }: SplashScreenProps) {
+export function SplashScreen({ onComplete, minDisplayTime = 100, maxDisplayTime = 3000, isDataReady = false }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [maxTimeElapsed, setMaxTimeElapsed] = useState(false);
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
 
   // Start the min display time timer immediately
@@ -27,6 +29,15 @@ export function SplashScreen({ onComplete, minDisplayTime = 100, isDataReady = f
 
     return () => clearTimeout(timer);
   }, [minDisplayTime]);
+
+  // Set max display time - force close after 3 seconds regardless of data
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMaxTimeElapsed(true);
+    }, maxDisplayTime);
+
+    return () => clearTimeout(timer);
+  }, [maxDisplayTime]);
 
   // Track when data is actually ready
   useEffect(() => {
@@ -39,16 +50,16 @@ export function SplashScreen({ onComplete, minDisplayTime = 100, isDataReady = f
     }
   }, [isDataReady]);
 
-  // Only hide splash when both min time has elapsed AND data is ready
+  // Hide splash when: min time elapsed AND (data ready OR max time elapsed)
   useEffect(() => {
-    if (minTimeElapsed && isLoadingComplete) {
+    if (minTimeElapsed && (isLoadingComplete || maxTimeElapsed)) {
       // Minimal delay to ensure smooth transition
       const timer = setTimeout(() => {
         setIsVisible(false);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [minTimeElapsed, isLoadingComplete]);
+  }, [minTimeElapsed, isLoadingComplete, maxTimeElapsed]);
 
   return (
     <AnimatePresence onExitComplete={onComplete}>
