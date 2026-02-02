@@ -126,13 +126,9 @@ function ProtectedLayout({ onDataReady }: { onDataReady?: () => void }) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show minimal loading state while auth/account/subscription is loading
+  // Avoid blocking the UI with a full-screen loader; the dashboard can render with its own skeletons
   if (authLoading || accountLoading || subscriptionStatus === 'loading') {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <AppLayout />;
   }
 
   // Redirect to paywall if no active subscription
@@ -214,8 +210,8 @@ const App = () => {
   );
   const shouldRedirectToApp = !isAppRoute && isStandalone;
   // Show splash only when in standalone mode (added to home screen) on mobile
-  const [showSplash, setShowSplash] = useState(() => isMobileDevice() && isStandalone);
-  const [splashComplete, setSplashComplete] = useState(!isMobileDevice() || !isStandalone);
+  const [showSplash, setShowSplash] = useState(false);
+  const [splashComplete, setSplashComplete] = useState(true);
   const [isDataReady, setIsDataReady] = useState(false);
 
   useEffect(() => {
