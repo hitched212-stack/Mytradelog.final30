@@ -24,11 +24,13 @@ export function useTradingPreferences() {
   // Fetch preferences from profile
   const fetchPreferences = useCallback(async () => {
     if (!user) {
+      console.log('No user, skipping fetch');
       setIsLoading(false);
       return;
     }
 
     try {
+      console.log('Fetching preferences for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('trading_rules, selected_timeframes')
@@ -39,12 +41,14 @@ export function useTradingPreferences() {
 
       if (data) {
         const savedTimeframes = (data.selected_timeframes as string[]) || [];
+        console.log('Fetched timeframes from DB:', savedTimeframes);
         setPreferencesState({
           tradingRules: (data.trading_rules as string[]) || [],
           selectedTimeframes: savedTimeframes.length > 0 ? savedTimeframes : DEFAULT_TIMEFRAMES,
         });
       } else {
         // No profile data yet, use defaults
+        console.log('No profile data, using defaults');
         setPreferencesState({
           tradingRules: [],
           selectedTimeframes: DEFAULT_TIMEFRAMES,
