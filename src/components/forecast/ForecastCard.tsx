@@ -46,27 +46,6 @@ const getShortTimeframeLabel = (value: string): string => {
   return shortLabels[value] || value;
 };
 
-// Persist collapsed state in localStorage
-const getCollapsedState = (id: string): boolean => {
-  try {
-    const stored = localStorage.getItem('forecast-collapsed-states');
-    if (stored) {
-      const states = JSON.parse(stored);
-      return states[id] || false;
-    }
-  } catch {}
-  return false;
-};
-
-const setCollapsedState = (id: string, collapsed: boolean) => {
-  try {
-    const stored = localStorage.getItem('forecast-collapsed-states');
-    const states = stored ? JSON.parse(stored) : {};
-    states[id] = collapsed;
-    localStorage.setItem('forecast-collapsed-states', JSON.stringify(states));
-  } catch {}
-};
-
 export function ForecastCard({
   id,
   symbol,
@@ -86,15 +65,10 @@ export function ForecastCard({
   const isLoss = outcome === 'loss';
   const isPreMarket = forecast_type === 'pre_market';
   
-  const [isCollapsed, setIsCollapsed] = useState(() => getCollapsedState(id));
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomImages, setZoomImages] = useState<string[]>([]);
   const [zoomIndex, setZoomIndex] = useState(0);
-  
-  // Persist collapsed state when it changes
-  useEffect(() => {
-    setCollapsedState(id, isCollapsed);
-  }, [id, isCollapsed]);
   
   const handleImageClick = (images: string[], index: number) => {
     setZoomImages(images);

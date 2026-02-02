@@ -27,35 +27,12 @@ const formatPnl = (value: number, currencySymbol: string): string => {
 };
 
 // Glass card styles - updated to match nav-style (no gradient shine)
-// Session storage key for persisting filters across navigation
-const ANALYTICS_SESSION_KEY = 'analytics-filters-session';
 
 export default function Analytics() {
-  const [timeFrame, setTimeFrame] = useState<TimeFrame>(() => {
-    try {
-      const saved = sessionStorage.getItem(ANALYTICS_SESSION_KEY);
-      if (saved) return JSON.parse(saved).timeFrame || 'Month';
-    } catch {}
-    return 'Month';
-  });
-  const [equityChartView, setEquityChartView] = useState<ChartViewType>(() => {
-    try {
-      const saved = sessionStorage.getItem(ANALYTICS_SESSION_KEY);
-      if (saved) return JSON.parse(saved).equityChartView || 'line';
-    } catch {}
-    return 'line';
-  });
+  const [timeFrame, setTimeFrame] = useState<TimeFrame>('Month');
+  const [equityChartView, setEquityChartView] = useState<ChartViewType>('line');
   const [activeBarIndex, setActiveBarIndex] = useState<number | undefined>(undefined);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
-    try {
-      const saved = sessionStorage.getItem(ANALYTICS_SESSION_KEY);
-      if (saved) {
-        const dateStr = JSON.parse(saved).selectedDate;
-        return dateStr ? new Date(dateStr) : undefined;
-      }
-    } catch {}
-    return undefined;
-  });
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const {
     trades
   } = useTrades();
@@ -73,15 +50,6 @@ export default function Analytics() {
   const isDefaultPreset = preferences.activePresetId === 'default';
   const profitColor = preferences.customColors.winColor;
   const lossColor = preferences.customColors.lossColor;
-
-  // Persist filters to sessionStorage
-  useEffect(() => {
-    sessionStorage.setItem(ANALYTICS_SESSION_KEY, JSON.stringify({
-      timeFrame,
-      equityChartView,
-      selectedDate: selectedDate?.toISOString() || null
-    }));
-  }, [timeFrame, equityChartView, selectedDate]);
 
   // Use active account's currency, fallback to profile settings
   const currencySymbol = activeAccount?.currency ? getCurrencySymbol(activeAccount.currency as Currency) : getCurrencySymbol(settings.currency);

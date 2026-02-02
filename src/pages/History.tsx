@@ -83,17 +83,7 @@ export default function History() {
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const { toast } = useToast();
   
-  // Session storage key for persisting filters across navigation
-  const HISTORY_SESSION_KEY = 'history-filters-session';
-  
-  // Initialize filter state from sessionStorage
-  const [searchQuery, setSearchQuery] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem(HISTORY_SESSION_KEY);
-      if (saved) return JSON.parse(saved).searchQuery || '';
-    } catch {}
-    return '';
-  });
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(isMobile ? 10 : 25);
   
@@ -103,46 +93,15 @@ export default function History() {
     setCurrentPage(1);
   }, [isMobile]);
   
-  const [sortField, setSortField] = useState<'date' | 'symbol' | 'pnl'>(() => {
-    try {
-      const saved = sessionStorage.getItem(HISTORY_SESSION_KEY);
-      if (saved) return JSON.parse(saved).sortField || 'date';
-    } catch {}
-    return 'date';
-  });
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(() => {
-    try {
-      const saved = sessionStorage.getItem(HISTORY_SESSION_KEY);
-      if (saved) return JSON.parse(saved).sortDirection || 'desc';
-    } catch {}
-    return 'desc';
-  });
+  const [sortField, setSortField] = useState<'date' | 'symbol' | 'pnl'>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [zoomImages, setZoomImages] = useState<string[]>([]);
   const [zoomIndex, setZoomIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [deleteTradeId, setDeleteTradeId] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
-    try {
-      const saved = sessionStorage.getItem(HISTORY_SESSION_KEY);
-      if (saved) {
-        const dateStr = JSON.parse(saved).selectedDate;
-        return dateStr ? new Date(dateStr) : undefined;
-      }
-    } catch {}
-    return undefined;
-  });
-
-  // Persist filters to sessionStorage
-  useEffect(() => {
-    sessionStorage.setItem(HISTORY_SESSION_KEY, JSON.stringify({
-      searchQuery,
-      sortField,
-      sortDirection,
-      selectedDate: selectedDate?.toISOString() || null
-    }));
-  }, [searchQuery, sortField, sortDirection, selectedDate]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   const currency = (activeAccount?.currency || settings.currency) as Currency;
   const currencySymbol = getCurrencySymbol(currency);

@@ -63,7 +63,7 @@ const defaultPreferences: Preferences = {
   folderColorPresets: [],
 };
 
-const STORAGE_KEY = 'app-preferences';
+const STORAGE_KEY = 'app-theme';
 
 const accentColors: Record<AccentColor, { hsl: string; name: string }> = {
   emerald: { hsl: '142 71% 45%', name: 'Emerald' },
@@ -122,30 +122,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<Preferences>(() => {
     if (typeof window === 'undefined') return defaultPreferences;
-    
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        const presets = parsed.presets?.length 
-          ? parsed.presets.map((p: ColorPreset) => 
-              p.id === 'default' ? defaultPreset : p
-            )
-          : [defaultPreset];
-        
-        const customColors = parsed.activePresetId === 'default' 
-          ? defaultPreferences.customColors 
-          : (parsed.customColors || defaultPreferences.customColors);
-        
-        return { 
-          ...defaultPreferences, 
-          ...parsed,
-          presets,
-          customColors,
-        };
-      } catch {
-        return defaultPreferences;
-      }
+    const storedTheme = localStorage.getItem(STORAGE_KEY);
+    if (storedTheme) {
+      return { ...defaultPreferences, theme: storedTheme as Theme };
     }
     return defaultPreferences;
   });
@@ -310,10 +289,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }
   }, [preferences.customColors, preferences.theme]);
 
-  // Save to localStorage
+  // Save only the theme to localStorage (small UI metadata)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
-  }, [preferences]);
+    localStorage.setItem(STORAGE_KEY, preferences.theme);
+  }, [preferences.theme]);
 
   const setTheme = useCallback((theme: Theme) => {
     setPreferences(prev => ({ ...prev, theme }));

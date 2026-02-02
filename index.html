@@ -8,13 +8,8 @@
     <script>
       (function() {
         try {
-          var stored = localStorage.getItem('preferences');
-          var theme = 'dark'; // default
-          
-          if (stored) {
-            var prefs = JSON.parse(stored);
-            theme = prefs.theme || 'dark';
-          }
+          var storedTheme = localStorage.getItem('app-theme');
+          var theme = storedTheme || 'dark'; // default
           
           if (theme === 'system') {
             theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

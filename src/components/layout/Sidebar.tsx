@@ -191,7 +191,13 @@ const allNavItems = [
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  isCollapsed: controlledCollapsed,
+  setIsCollapsed: setControlledCollapsed,
+}: {
+  isCollapsed?: boolean;
+  setIsCollapsed?: (value: boolean) => void;
+} = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -200,22 +206,12 @@ export function Sidebar() {
   const { settings } = useSettings();
   const { preferences } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    const saved = localStorage.getItem("sidebar-collapsed");
-    return saved === "true";
-  });
-  const [isTradingOpen, setIsTradingOpen] = useState(() => {
-    const saved = localStorage.getItem("sidebar-trading-open");
-    return saved !== "false"; // Default to open
-  });
-  const [isToolsOpen, setIsToolsOpen] = useState(() => {
-    const saved = localStorage.getItem("sidebar-tools-open");
-    return saved !== "false"; // Default to open
-  });
-  const [isParametersOpen, setIsParametersOpen] = useState(() => {
-    const saved = localStorage.getItem("sidebar-parameters-open");
-    return saved !== "false"; // Default to open
-  });
+  const [isCollapsedState, setIsCollapsedState] = useState(false);
+  const [isTradingOpen, setIsTradingOpen] = useState(true);
+  const [isToolsOpen, setIsToolsOpen] = useState(true);
+  const [isParametersOpen, setIsParametersOpen] = useState(true);
+  const isCollapsed = controlledCollapsed ?? isCollapsedState;
+  const setIsCollapsed = setControlledCollapsed ?? setIsCollapsedState;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
 
@@ -260,22 +256,7 @@ export function Sidebar() {
     fetchProfile();
   }, [user?.id]);
 
-  useEffect(() => {
-    localStorage.setItem("sidebar-collapsed", String(isCollapsed));
-    window.dispatchEvent(new Event("sidebar-toggle"));
-  }, [isCollapsed]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar-trading-open", String(isTradingOpen));
-  }, [isTradingOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar-tools-open", String(isToolsOpen));
-  }, [isToolsOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar-parameters-open", String(isParametersOpen));
-  }, [isParametersOpen]);
+  // Sidebar UI state is kept in-memory only
 
   // Track active path for indicator
   useEffect(() => {

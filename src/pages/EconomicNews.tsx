@@ -35,7 +35,6 @@ const IMPACT_FILTERS = [
   { value: 'low', label: 'Low Impact' },
 ];
 
-const PRESET_STORAGE_KEY = 'economic_news_presets_v1';
 
 type NewsPreset = {
   id: string;
@@ -67,13 +66,6 @@ interface NewsEvent {
 
 const DEFAULT_FILTERS = { currency: 'all', impact: 'all', timeRange: 'day' as 'day' | 'week' };
 
-// Session storage key for persisting date/time range
-const NEWS_SESSION_KEY = 'economic-news-session';
-
-interface NewsSession {
-  selectedDate: string;
-  timeRangeFilter: 'day' | 'week';
-}
 
 interface CacheEntry {
   data: NewsEvent[];
@@ -101,28 +93,8 @@ export default function EconomicNews() {
   const [selectedImpacts, setSelectedImpacts] = useState<string[]>(['all']);
   const [savedFilters, setSavedFilters] = useState(DEFAULT_FILTERS);
   
-  // Initialize from session storage to persist across page navigation
-  const [timeRangeFilter, setTimeRangeFilter] = useState<'day' | 'week'>(() => {
-    try {
-      const saved = sessionStorage.getItem(NEWS_SESSION_KEY);
-      if (saved) {
-        const session: NewsSession = JSON.parse(saved);
-        return session.timeRangeFilter;
-      }
-    } catch {}
-    return 'day';
-  });
-  
-  const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    try {
-      const saved = sessionStorage.getItem(NEWS_SESSION_KEY);
-      if (saved) {
-        const session: NewsSession = JSON.parse(saved);
-        return new Date(session.selectedDate);
-      }
-    } catch {}
-    return new Date();
-  });
+  const [timeRangeFilter, setTimeRangeFilter] = useState<'day' | 'week'>('day');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   const [newsEvents, setNewsEvents] = useState<NewsEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,19 +106,11 @@ export default function EconomicNews() {
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [presets, setPresets] = useState<NewsPreset[]>([]);
+  const [presetsLoaded, setPresetsLoaded] = useState(false);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   
   // Cache for prefetched data
   const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
-
-  // Persist session state when date/timeRange changes
-  useEffect(() => {
-    const session: NewsSession = {
-      selectedDate: selectedDate.toISOString(),
-      timeRangeFilter
-    };
-    sessionStorage.setItem(NEWS_SESSION_KEY, JSON.stringify(session));
-  }, [selectedDate, timeRangeFilter]);
 
   // Load saved filters from database on mount
   useEffect(() => {
@@ -169,9 +133,7 @@ export default function EconomicNews() {
           const filters = data.news_filters as { currency: string[]; impact: string[]; timeRange?: 'day' | 'week' };
           setSelectedCurrencies(filters.currency || ['all']);
           setSelectedImpacts(filters.impact || ['all']);
-          // Only apply saved timeRange if there's no session storage (first visit)
-          const hasSession = sessionStorage.getItem(NEWS_SESSION_KEY);
-          if (!hasSession && filters.timeRange) {
+          if (filters.timeRange) {
             setTimeRangeFilter(filters.timeRange);
           }
           setSavedFilters({ ...DEFAULT_FILTERS, ...filters });
@@ -186,21 +148,55 @@ export default function EconomicNews() {
     loadFiltersFromDB();
   }, [user]);
 
+  // Load presets from database
   useEffect(() => {
-    const stored = localStorage.getItem(PRESET_STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as NewsPreset[];
-        setPresets(parsed);
-      } catch {
-        setPresets([]);
+    const loadPresets = async () => {
+      if (!user) {
+        setPresetsLoaded(true);
+        return;
       }
-    }
-  }, []);
 
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('news_presets')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (Array.isArray(data?.news_presets)) {
+          setPresets(data.news_presets as NewsPreset[]);
+        }
+      } catch (error) {
+        console.error('Error loading presets:', error);
+      } finally {
+        setPresetsLoaded(true);
+      }
+    };
+
+    loadPresets();
+  }, [user]);
+
+  // Save presets to database when updated
   useEffect(() => {
-    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
-  }, [presets]);
+    const savePresets = async () => {
+      if (!user || !presetsLoaded) return;
+
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ news_presets: presets })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error saving presets:', error);
+      }
+    };
+
+    savePresets();
+  }, [user, presets, presetsLoaded]);
 
   // Check if current filters match saved filters
   const filtersMatchSaved = JSON.stringify(selectedCurrencies) === JSON.stringify(savedFilters.currency) && JSON.stringify(selectedImpacts) === JSON.stringify(savedFilters.impact) && timeRangeFilter === savedFilters.timeRange;

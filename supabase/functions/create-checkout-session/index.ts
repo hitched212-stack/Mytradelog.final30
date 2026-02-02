@@ -29,6 +29,9 @@ serve(async (req) => {
 
     const origin = (req.headers.get('origin') || '').replace(/\/$/, '');
 
+    const successUrl = `${origin}/app/dashboard?fromStripe=1&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${origin}/app/paywall`;
+
     const sessionConfig: any = {
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -63,10 +66,6 @@ serve(async (req) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
-
-    // Build success URL with session ID for post-payment verification
-    const successUrl = `${origin}/app/dashboard?session=${session.id}`;
-    const cancelUrl = `${origin}/app/paywall`;
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),

@@ -17,7 +17,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ACTIVE_ACCOUNT_KEY = 'trade-log-active-account';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -49,8 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Reset the global data store synchronously BEFORE updating auth state
           useDataStore.getState().resetAll();
           
-          // Clear localStorage for account selection
-          localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
           
           // Invalidate React Query cache if available
           if (queryClient) {
@@ -106,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     // Pre-emptively reset data store BEFORE signing in to ensure clean state
     useDataStore.getState().resetAll();
-    localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
     if (queryClient) {
       queryClient.clear();
     }
@@ -130,8 +126,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Reset AI chat store
     useAIChatStore.getState().resetOnLogout();
     
-    // Clear localStorage
-    localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
     
     // Clear React Query cache
     if (queryClient) {

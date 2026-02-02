@@ -22,10 +22,6 @@ export function useTradingPreferences() {
   const lastUserIdRef = useRef<string | null>(null);
   const hasFetchedRef = useRef(false);
 
-  const getPreferencesCacheKey = useCallback((userId: string) => {
-    return `trade-log-preferences-cache:${userId}`;
-  }, []);
-
   // Fetch preferences from profile
   const fetchPreferences = useCallback(async () => {
     if (!user) {
@@ -51,16 +47,6 @@ export function useTradingPreferences() {
           tradingRules: (data.trading_rules as string[]) || [],
           selectedTimeframes: savedTimeframes.length > 0 ? savedTimeframes : DEFAULT_TIMEFRAMES,
         });
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem(getPreferencesCacheKey(user.id), JSON.stringify({
-              tradingRules: (data.trading_rules as string[]) || [],
-              selectedTimeframes: savedTimeframes.length > 0 ? savedTimeframes : DEFAULT_TIMEFRAMES,
-            }));
-          } catch (error) {
-            console.warn('Failed to cache trading preferences:', error);
-          }
-        }
       } else {
         // No profile data yet, use defaults
         console.log('No profile data, using defaults');
@@ -91,29 +77,11 @@ export function useTradingPreferences() {
       return;
     }
 
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem(getPreferencesCacheKey(user.id));
-        if (cached) {
-          const parsed = JSON.parse(cached) as TradingPreferences;
-          setPreferencesState({
-            tradingRules: parsed.tradingRules || [],
-            selectedTimeframes: (parsed.selectedTimeframes || []).length > 0
-              ? parsed.selectedTimeframes
-              : DEFAULT_TIMEFRAMES,
-          });
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.warn('Failed to load cached trading preferences:', error);
-      }
-    }
-
     if (!hasFetchedRef.current || !isLoaded) {
       hasFetchedRef.current = true;
       fetchPreferences();
     }
-  }, [user?.id, isLoaded, fetchPreferences, getPreferencesCacheKey]);
+  }, [user?.id, isLoaded, fetchPreferences]);
 
   // Update trading rules
   const setTradingRules = useCallback(async (tradingRules: string[]) => {

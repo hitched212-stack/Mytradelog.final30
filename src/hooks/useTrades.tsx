@@ -111,35 +111,6 @@ export function useTrades() {
   const { trades, tradesLoaded, currentAccountId, previousTrades, isTransitioning, setTrades, setCurrentAccountId, setTradesLoaded } = useDataStore();
   const hasFetchedRef = useRef(false);
 
-  const getTradesCacheKey = useCallback((userId: string, accountId: string | null) => {
-    return `trade-log-trades-cache:${userId}:${accountId ?? 'all'}`;
-  }, []);
-
-  // Load cached trades from Supabase Storage
-  const getCachedTrades = useCallback(async (userId: string, accountId: string | null): Promise<Trade[] | null> => {
-    try {
-      const cacheKey = getTradesCacheKey(userId, accountId);
-      const { data, error } = await supabase.storage
-        .from('trades-cache')
-        .download(cacheKey);
-      
-      if (error) {
-        console.debug('No cached trades found:', error);
-        return null;
-      }
-
-      if (!data) return null;
-
-      const text = await data.text();
-      const cached = JSON.parse(text) as Trade[];
-      console.debug('Loaded cached trades from Supabase Storage');
-      return cached;
-    } catch (error) {
-      console.debug('Failed to load cached trades:', error);
-      return null;
-    }
-  }, [getTradesCacheKey]);
-
   // Fetch trades from database for the active account - with fast retry logic
   const fetchTrades = useCallback(async (retryCount = 0, silent = false): Promise<void> => {
     if (!user) {
@@ -177,27 +148,6 @@ export function useTrades() {
       const mappedTrades = (data || []).map(d => mapDbTradeToTrade(d as unknown as DbTrade));
       setTrades(mappedTrades);
       setCurrentAccountId(accountId ?? 'all');
-      
-      // Cache trades to Supabase Storage instead of localStorage to avoid quota limits
-      if (typeof window !== 'undefined') {
-        try {
-          const cacheKey = getTradesCacheKey(user.id, accountId);
-          // Store in Supabase Storage (browser storage accessed via REST API)
-          const { error: uploadError } = await supabase.storage
-            .from('trades-cache')
-            .upload(cacheKey, JSON.stringify(mappedTrades), {
-              upsert: true,
-              contentType: 'application/json',
-            });
-          
-          if (uploadError && uploadError.name !== 'StorageApiError') {
-            console.debug('Failed to cache trades to Supabase Storage:', uploadError);
-          }
-        } catch (error) {
-          // Silently ignore errors - trades will load from Supabase on next refresh
-          console.debug('Failed to cache trades:', error);
-        }
-      }
     } catch (error) {
       console.error('Error fetching trades:', error);
       // Set empty trades so UI shows "No trades yet" instead of infinite loading
@@ -250,30 +200,13 @@ export function useTrades() {
     const accountId = activeAccount?.id ?? 'all';
     const accountChanged = currentAccountId !== accountId;
 
-    if ((!tradesLoaded || accountChanged) && typeof window !== 'undefined') {
-      try {
-        const cacheKey = getTradesCacheKey(user.id, activeAccount?.id ?? null);
-        const cachedTrades = localStorage.getItem(cacheKey);
-        if (cachedTrades) {
-          const parsedTrades = JSON.parse(cachedTrades) as Trade[];
-          if (parsedTrades.length > 0) {
-            setTrades(parsedTrades);
-            setCurrentAccountId(accountId);
-            setTradesLoaded(true);
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to load cached trades:', error);
-      }
-    }
-    
     // Fetch immediately without conditions - ensures data loads on first app open
     // Use silent mode on initial load to avoid flashing error messages
     if (!hasFetchedRef.current || !tradesLoaded || accountChanged) {
       hasFetchedRef.current = true;
       fetchTrades(0, true); // Silent initial fetch - retries happen automatically
     }
-  }, [user?.id, activeAccount?.id, tradesLoaded, currentAccountId, fetchTrades, getTradesCacheKey, setTrades, setCurrentAccountId, setTradesLoaded]);
+  }, [user?.id, activeAccount?.id, tradesLoaded, currentAccountId, fetchTrades, setTrades, setCurrentAccountId, setTradesLoaded]);
 
   // Add trade - automatically assigns to active account
   const addTrade = useCallback(async (tradeData: Omit<Trade, 'id' | 'createdAt' | 'updatedAt'>) => {

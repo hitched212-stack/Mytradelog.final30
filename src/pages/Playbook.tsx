@@ -87,15 +87,12 @@ export default function Playbook() {
   const { setups: allSetups = [], isLoading: setupsLoading } = usePlaybook();
 
   // Track if initial load has completed (regardless of whether data exists)
-  const [hasHydrated, setHasHydrated] = useState(() => {
-    return sessionStorage.getItem('playbook-hydrated') === 'true';
-  });
+  const [hasHydrated, setHasHydrated] = useState(false);
   
   useEffect(() => {
     // Mark as hydrated once loading is complete (even if no data exists)
     if (!foldersLoading && !setupsLoading) {
       setHasHydrated(true);
-      sessionStorage.setItem('playbook-hydrated', 'true');
     }
   }, [foldersLoading, setupsLoading]);
 
@@ -125,19 +122,7 @@ export default function Playbook() {
     }
   };
   
-  // Persist expanded folders in localStorage
-  const PLAYBOOK_EXPANDED_KEY = 'playbook-expanded-folders';
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem(PLAYBOOK_EXPANDED_KEY);
-    if (saved) {
-      try {
-        return new Set(JSON.parse(saved));
-      } catch {
-        return new Set();
-      }
-    }
-    return new Set();
-  });
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -202,8 +187,6 @@ export default function Playbook() {
       } else {
         next.add(folderId);
       }
-      // Persist to localStorage
-      localStorage.setItem(PLAYBOOK_EXPANDED_KEY, JSON.stringify([...next]));
       return next;
     });
   };

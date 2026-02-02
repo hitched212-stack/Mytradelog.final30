@@ -54,7 +54,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         .update({ selected_account_id: accountId })
         .eq('user_id', user.id);
     } catch (error) {
-      // Silent failure - localStorage will serve as fallback
+      // Silent failure - selection will be restored on next successful load
       if (import.meta.env.DEV) {
         console.error('Error persisting selected account:', error);
       }
@@ -112,7 +112,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
       setAccounts(userAccounts);
 
-      // Restore active account from database first, then localStorage fallback
+      // Restore active account from database
       const savedAccountId = profileResult.data?.selected_account_id;
       const savedAccount = savedAccountId 
         ? userAccounts.find(a => a.id === savedAccountId)

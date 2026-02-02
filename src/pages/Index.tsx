@@ -30,20 +30,18 @@ export default function Index() {
   // Check if just returned from payment
   useEffect(() => {
     const checkPostPayment = async () => {
-      // Only check if this is the first load after returning from Stripe
-      const isFromStripe = sessionStorage.getItem('from_stripe_checkout');
-      if (isFromStripe === 'true') {
-        sessionStorage.removeItem('from_stripe_checkout');
+      const isFromStripe = searchParams.get('fromStripe') === '1';
+      if (isFromStripe) {
         setIsCheckingPayment(true);
-        
+
         // Poll for subscription registration (max 15 seconds, every 500ms)
         let attempts = 0;
         const maxAttempts = 30;
-        
+
         const checkSubscription = setInterval(async () => {
           attempts++;
           await refetch();
-          
+
           if (attempts >= maxAttempts) {
             clearInterval(checkSubscription);
             setIsCheckingPayment(false);
@@ -51,13 +49,13 @@ export default function Index() {
         }, 500);
       }
     };
-    
+
     checkPostPayment();
-  }, [refetch]);
+  }, [refetch, searchParams]);
 
   // Clear URL params after reading them
   useEffect(() => {
-    if (searchParams.get('new') || searchParams.get('returning')) {
+    if (searchParams.get('new') || searchParams.get('returning') || searchParams.get('fromStripe')) {
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);

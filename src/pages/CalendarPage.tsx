@@ -24,9 +24,6 @@ import { TradeViewDialogContent } from '@/components/trade/TradeViewDialog';
 import { ImageZoomDialog } from '@/components/ui/ImageZoomDialog';
 import { SymbolIcon } from '@/components/ui/SymbolIcon';
 
-// Session storage key for persisting filters across navigation
-const CALENDAR_SESSION_KEY = 'calendar-filters-session';
-
 export default function CalendarPage() {
   const navigate = useNavigate();
   const {
@@ -34,17 +31,7 @@ export default function CalendarPage() {
     setGoalPeriod
   } = usePreferences();
   
-  // Initialize state from sessionStorage
-  const [currentMonth, setCurrentMonth] = useState<Date>(() => {
-    try {
-      const saved = sessionStorage.getItem(CALENDAR_SESSION_KEY);
-      if (saved) {
-        const monthStr = JSON.parse(saved).currentMonth;
-        return monthStr ? new Date(monthStr) : new Date();
-      }
-    } catch {}
-    return new Date();
-  });
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [dayDialogOpen, setDayDialogOpen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
@@ -53,23 +40,11 @@ export default function CalendarPage() {
   const [zoomIndex, setZoomIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'month' | 'year'>(() => {
-    try {
-      const saved = sessionStorage.getItem(CALENDAR_SESSION_KEY);
-      if (saved) return JSON.parse(saved).viewMode || 'month';
-    } catch {}
-    return 'month';
-  });
+  const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
   const isMobile = useIsMobile();
   const goalPeriod = preferences.goalPeriod;
   
-  // Persist filters to sessionStorage
-  useEffect(() => {
-    sessionStorage.setItem(CALENDAR_SESSION_KEY, JSON.stringify({
-      currentMonth: currentMonth.toISOString(),
-      viewMode
-    }));
-  }, [currentMonth, viewMode]);
+  // No browser storage persistence for calendar filters
   const {
     trades,
     getMonthlyPnl,
