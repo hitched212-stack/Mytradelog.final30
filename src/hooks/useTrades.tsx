@@ -110,8 +110,8 @@ export function useTrades() {
   const { activeAccount, isSwitching } = useAccount();
   const { trades, tradesLoaded, currentAccountId, previousTrades, isTransitioning, setTrades, setCurrentAccountId, setTradesLoaded } = useDataStore();
 
-  const getTradesCacheKey = useCallback((userId: string, accountId: string) => {
-    return `trade-log-trades-cache:${userId}:${accountId}`;
+  const getTradesCacheKey = useCallback((userId: string, accountId: string | null) => {
+    return `trade-log-trades-cache:${userId}:${accountId ?? 'all'}`;
   }, []);
 
   // Fetch trades from database for the active account - with fast retry logic
@@ -121,18 +121,20 @@ export function useTrades() {
       return;
     }
 
-    // Don't fetch if no active account yet - wait for account to be set
-    if (!activeAccount) {
-      return;
-    }
+    const accountId = activeAccount?.id ?? null;
 
     try {
       // Optimized query - only select needed fields and use index hints via ordering
-      const { data, error } = await supabase
+      let query = supabase
         .from('trades')
         .select('id,user_id,account_id,symbol,direction,date,entry_time,holding_time,lot_size,performance_grade,entry_price,stop_loss,stop_loss_pips,take_profit,risk_reward_ratio,pnl_amount,pnl_percentage,pre_market_plan,post_market_review,emotional_journal_before,emotional_journal_during,emotional_journal_after,overall_emotions,emotional_state,images,pre_market_images,post_market_images,chart_analysis_notes,pre_market_notes,post_market_notes,strategy,category,forecast_id,followed_rules,followed_rules_list,broken_rules,notes,has_news,news_events,is_paper_trade,no_trade_taken,status,news_type,news_impact,news_time,created_at,updated_at')
-        .eq('user_id', user.id)
-        .eq('account_id', activeAccount.id)
+        .eq('user_id', user.id);
+
+      if (accountId) {
+        query = query.eq('account_id', accountId);
+      }
+
+      const { data, error } = await query
         .order('date', { ascending: false })
         .limit(500); // Limit to prevent timeout on very large datasets
 
@@ -148,10 +150,10 @@ export function useTrades() {
 
       const mappedTrades = (data || []).map(d => mapDbTradeToTrade(d as unknown as DbTrade));
       setTrades(mappedTrades);
-      setCurrentAccountId(activeAccount.id);
+      setCurrentAccountId(accountId ?? 'all');
       if (typeof window !== 'undefined') {
         try {
-          const cacheKey = getTradesCacheKey(user.id, activeAccount.id);
+          const cacheKey = getTradesCacheKey(user.id, accountId);
           localStorage.setItem(cacheKey, JSON.stringify(mappedTrades));
         } catch (error) {
           console.warn('Failed to cache trades locally:', error);
@@ -204,19 +206,20 @@ export function useTrades() {
 
   // Fetch trades immediately when account is available or changes
   useEffect(() => {
-    if (!user || !activeAccount) return;
+    if (!user) return;
     
-    const accountChanged = currentAccountId !== activeAccount.id;
+    const accountId = activeAccount?.id ?? 'all';
+    const accountChanged = currentAccountId !== accountId;
 
     if ((!tradesLoaded || accountChanged) && typeof window !== 'undefined') {
       try {
-        const cacheKey = getTradesCacheKey(user.id, activeAccount.id);
+        const cacheKey = getTradesCacheKey(user.id, activeAccount?.id ?? null);
         const cachedTrades = localStorage.getItem(cacheKey);
         if (cachedTrades) {
           const parsedTrades = JSON.parse(cachedTrades) as Trade[];
           if (parsedTrades.length > 0) {
             setTrades(parsedTrades);
-            setCurrentAccountId(activeAccount.id);
+            setCurrentAccountId(accountId);
             setTradesLoaded(true);
           }
         }

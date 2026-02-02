@@ -185,7 +185,7 @@ export default function Journal() {
   // Filter trades to only show trades for the current active account
   // This prevents showing old account's trades during transitions which causes wrong balance
   const trades = useMemo(() => {
-    if (!activeAccount) return [];
+    if (!activeAccount) return allTrades;
     return allTrades.filter(t => t.accountId === activeAccount.id);
   }, [allTrades, activeAccount?.id]);
   const todayPnl = getDailyPnl(format(new Date(), 'yyyy-MM-dd'));
