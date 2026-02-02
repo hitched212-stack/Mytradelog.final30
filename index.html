@@ -1,6 +1,32 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
+    <!-- Theme initialization script - must run before any content renders -->
+    <script>
+      (function() {
+        try {
+          const stored = localStorage.getItem('preferences');
+          if (stored) {
+            const prefs = JSON.parse(stored);
+            const theme = prefs.theme || 'light';
+            
+            if (theme === 'system') {
+              const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              document.documentElement.classList.add(isDark ? 'dark' : 'light');
+            } else {
+              document.documentElement.classList.add(theme);
+            }
+          } else {
+            // Default to light if no preferences stored
+            document.documentElement.classList.add('light');
+          }
+        } catch (e) {
+          // Fallback to light on error
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
+    
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Trade Log | Professional Trading Journal</title>
