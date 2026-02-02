@@ -110,6 +110,10 @@ export function useTrades() {
   const { activeAccount, isSwitching } = useAccount();
   const { trades, tradesLoaded, currentAccountId, previousTrades, isTransitioning, setTrades, setCurrentAccountId, setTradesLoaded } = useDataStore();
 
+  const getTradesCacheKey = useCallback((userId: string, accountId: string) => {
+    return `trade-log-trades-cache:${userId}:${accountId}`;
+  }, []);
+
   // Fetch trades from database for the active account - with fast retry logic
   const fetchTrades = useCallback(async (retryCount = 0, silent = false): Promise<void> => {
     if (!user) {
@@ -142,8 +146,17 @@ export function useTrades() {
         throw error;
       }
 
-      setTrades((data || []).map(d => mapDbTradeToTrade(d as unknown as DbTrade)));
+      const mappedTrades = (data || []).map(d => mapDbTradeToTrade(d as unknown as DbTrade));
+      setTrades(mappedTrades);
       setCurrentAccountId(activeAccount.id);
+      if (typeof window !== 'undefined') {
+        try {
+          const cacheKey = getTradesCacheKey(user.id, activeAccount.id);
+          localStorage.setItem(cacheKey, JSON.stringify(mappedTrades));
+        } catch (error) {
+          console.warn('Failed to cache trades locally:', error);
+        }
+      }
     } catch (error) {
       console.error('Error fetching trades:', error);
       // Set empty trades so UI shows "No trades yet" instead of infinite loading
@@ -194,13 +207,30 @@ export function useTrades() {
     if (!user || !activeAccount) return;
     
     const accountChanged = currentAccountId !== activeAccount.id;
+
+    if ((!tradesLoaded || accountChanged) && typeof window !== 'undefined') {
+      try {
+        const cacheKey = getTradesCacheKey(user.id, activeAccount.id);
+        const cachedTrades = localStorage.getItem(cacheKey);
+        if (cachedTrades) {
+          const parsedTrades = JSON.parse(cachedTrades) as Trade[];
+          if (parsedTrades.length > 0) {
+            setTrades(parsedTrades);
+            setCurrentAccountId(activeAccount.id);
+            setTradesLoaded(true);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load cached trades:', error);
+      }
+    }
     
     // Fetch immediately without conditions - ensures data loads on first app open
     // Use silent mode on initial load to avoid flashing error messages
     if (!tradesLoaded || accountChanged) {
       fetchTrades(0, true); // Silent initial fetch - retries happen automatically
     }
-  }, [user?.id, activeAccount?.id, tradesLoaded, currentAccountId, fetchTrades]);
+  }, [user?.id, activeAccount?.id, tradesLoaded, currentAccountId, fetchTrades, getTradesCacheKey, setTrades, setCurrentAccountId, setTradesLoaded]);
 
   // Add trade - automatically assigns to active account
   const addTrade = useCallback(async (tradeData: Omit<Trade, 'id' | 'createdAt' | 'updatedAt'>) => {
