@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ export function useTradingPreferences() {
   const [preferences, setPreferencesState] = useState<TradingPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const lastUserIdRef = useRef<string | null>(null);
 
   // Fetch preferences from profile
   const fetchPreferences = useCallback(async () => {
@@ -37,29 +38,43 @@ export function useTradingPreferences() {
       if (error) throw error;
 
       if (data) {
+        const savedTimeframes = (data.selected_timeframes as string[]) || [];
         setPreferencesState({
           tradingRules: (data.trading_rules as string[]) || [],
-          selectedTimeframes: (data.selected_timeframes as string[]) || DEFAULT_TIMEFRAMES,
+          selectedTimeframes: savedTimeframes.length > 0 ? savedTimeframes : DEFAULT_TIMEFRAMES,
+        });
+      } else {
+        // No profile data yet, use defaults
+        setPreferencesState({
+          tradingRules: [],
+          selectedTimeframes: DEFAULT_TIMEFRAMES,
         });
       }
       setIsLoaded(true);
     } catch (error) {
       console.error('Error fetching trading preferences:', error);
+      setIsLoaded(true); // Set loaded even on error to prevent infinite retries
     } finally {
       setIsLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
-    // Reset loaded state whenever user changes
-    setIsLoaded(false);
+    const currentUserId = user?.id ?? null;
+    if (lastUserIdRef.current !== currentUserId) {
+      lastUserIdRef.current = currentUserId;
+      setIsLoaded(false);
+    }
+
     if (!user) {
+      setIsLoading(false);
       return;
     }
-    if (!isLoaded && user) {
+
+    if (!isLoaded) {
       fetchPreferences();
     }
-  }, [user, isLoaded, fetchPreferences]);
+  }, [user?.id, isLoaded, fetchPreferences]);
 
   // Update trading rules
   const setTradingRules = useCallback(async (tradingRules: string[]) => {
@@ -120,28 +135,37 @@ export function useTradingPreferences() {
   }, [user]);
 
   // Toggle a single timeframe
-  const toggleTimeframe = useCallback(async (value: string) => {
-    setPreferencesState(prev => {
-      const isCurrentlySelected = prev.selectedTimeframes.includes(value);
-      const updated = isCurrentlySelected
-        ? prev.selectedTimeframes.filter(tf => tf !== value)
-        : [...prev.selectedTimeframes, value];
-      
-      // Also update DB (fire and forget to avoid blocking UI)
-      if (user) {
-        supabase
-          .from('profiles')
-          .update({ selected_timeframes: updated })
-          .eq('user_id', user.id)
-          .catch(error => {
+  const toggleTimeframe = useCallback((value: string) => {
+    const isCurrentlySelected = preferences.selectedTimeframes.includes(value);
+    const updated = isCurrentlySelected
+      ? preferences.selectedTimeframes.filter(tf => tf !== value)
+      : [...preferences.selectedTimeframes, value];
+    
+    // Update local state immediately
+    setPreferencesState(prev => ({ ...prev, selectedTimeframes: updated }));
+    
+    // Update DB in background
+    if (user && user.id) {
+      supabase
+        .from('profiles')
+        .update({ selected_timeframes: updated })
+        .eq('user_id', user.id)
+        .then(({ error }) => {
+          if (error) {
             console.error('Error updating timeframes:', error);
             toast.error('Failed to save timeframes');
-          });
-      }
-      
-      return { ...prev, selectedTimeframes: updated };
-    });
-  }, [user]);
+          } else {
+            console.log('Timeframes saved successfully:', updated);
+          }
+        })
+        .catch(error => {
+          console.error('Unexpected error updating timeframes:', error);
+          toast.error('Failed to save timeframes');
+        });
+    } else {
+      console.warn('Cannot update timeframes: user not found', user);
+    }
+  }, [preferences.selectedTimeframes, user]);
 
   return {
     tradingRules: preferences.tradingRules,
