@@ -72,6 +72,7 @@ function ProtectedLayout() {
   const { activeAccount, accounts, loading: accountLoading } = useAccount();
   const { setIsHydrating } = useDataStore();
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'active' | 'inactive'>('loading');
+  const [supabaseError, setSupabaseError] = useState<boolean>(false);
 
   // Check subscription status
   useEffect(() => {
@@ -96,13 +97,17 @@ function ProtectedLayout() {
           const now = new Date();
           if (periodEnd > now) {
             setSubscriptionStatus('active');
+            setSupabaseError(false);
             return;
           }
         }
         setSubscriptionStatus('inactive');
+        setSupabaseError(false);
       } catch (error) {
         console.error('Error checking subscription:', error);
+        // Assume inactive on error, but mark that we had a Supabase error
         setSubscriptionStatus('inactive');
+        setSupabaseError(true);
       }
     };
 
@@ -112,21 +117,18 @@ function ProtectedLayout() {
   }, [user, authLoading]);
 
   // Signal data ready immediately when auth and account are loaded
-  // Trades load in parallel - don't block the UI
   useEffect(() => {
     if (!authLoading && !accountLoading && activeAccount && subscriptionStatus !== 'loading') {
-      // Mark hydrating as false immediately so UI renders
       setIsHydrating(false);
     }
   }, [authLoading, accountLoading, activeAccount, subscriptionStatus, setIsHydrating]);
 
-  // Determine what to render - all hooks are called above
-  // If auth has resolved and there's no user, redirect immediately
+  // If auth has resolved and there's no user, redirect to auth
   if (!authLoading && !user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show minimal loading state while auth/account/subscription is loading
+  // Show loading state while checking auth/account/subscription
   if (authLoading || accountLoading || subscriptionStatus === 'loading') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -135,8 +137,15 @@ function ProtectedLayout() {
     );
   }
 
+  // If Supabase failed but we have a user, still allow them to access the app
+  // (subscription check will retry on next load)
+  if (supabaseError && user) {
+    console.warn('Supabase subscription check failed - proceeding with caution');
+    // Continue to app layout but user may need to handle subscription separately
+  }
+
   // Redirect to paywall if no active subscription
-  if (subscriptionStatus === 'inactive') {
+  if (subscriptionStatus === 'inactive' && !supabaseError) {
     return <Navigate to="/paywall" replace />;
   }
 
@@ -145,10 +154,9 @@ function ProtectedLayout() {
     return <Navigate to="/select-account" replace />;
   }
 
-  // For single account users, proceed to layout even if activeAccount is briefly null
-  // The Journal page will show its own skeleton while data loads
+  // Proceed to layout - if there was a Supabase error, we're being lenient
   return <AppLayout />;
-}
+}}
 
 // Root route handler - redirect to auth for guests, journal for authenticated
 function RootRoute() {

@@ -68,13 +68,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      previousUserIdRef.current = session?.user?.id || null;
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // THEN check for existing session - wrapped in error handling
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        previousUserIdRef.current = session?.user?.id || null;
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      })
+      .catch((error) => {
+        // If getting session fails, mark loading as complete to show UI
+        console.debug('Failed to get session:', error);
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+      });
 
     return () => subscription.unsubscribe();
   }, [queryClient]);
