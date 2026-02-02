@@ -293,6 +293,16 @@ function SplashScreenController({
   // This prevents splash screen from getting stuck on auth page after sign out
   const effectiveDataReady = isDataReady || (!loading && !user);
   
+  // Unhide root content when splash is complete
+  useEffect(() => {
+    if (splashComplete) {
+      const root = document.getElementById('root');
+      if (root) {
+        root.style.visibility = 'visible';
+      }
+    }
+  }, [splashComplete]);
+  
   if (!showSplash || splashComplete) {
     return null;
   }
@@ -300,7 +310,7 @@ function SplashScreenController({
   return (
     <SplashScreen 
       onComplete={onSplashComplete} 
-      minDisplayTime={1200}
+      minDisplayTime={600}
       isDataReady={effectiveDataReady}
     />
   );

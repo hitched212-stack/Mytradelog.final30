@@ -14,11 +14,12 @@ interface SplashScreenProps {
   isDataReady?: boolean;
 }
 
-export function SplashScreen({ onComplete, minDisplayTime = 2000, isDataReady = false }: SplashScreenProps) {
+export function SplashScreen({ onComplete, minDisplayTime = 600, isDataReady = false }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
 
+  // Start the min display time timer immediately
   useEffect(() => {
     const timer = setTimeout(() => {
       setMinTimeElapsed(true);
@@ -33,7 +34,7 @@ export function SplashScreen({ onComplete, minDisplayTime = 2000, isDataReady = 
       // Small delay to show completion animation
       const timer = setTimeout(() => {
         setIsLoadingComplete(true);
-      }, 300);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [isDataReady]);
