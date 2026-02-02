@@ -262,10 +262,8 @@ const App = () => {
                   isDataReady={isDataReady}
                   onSplashComplete={handleSplashComplete}
                 />
-                {/* App routes render underneath, allowing data to load */}
-                <div className={showSplash && !splashComplete ? 'invisible' : 'visible'}>
-                  <AppRoutes onDataReady={handleDataReady} />
-                </div>
+                {/* App routes - always visible on desktop, hidden during splash on mobile */}
+                {(!showSplash || splashComplete) && <AppRoutes onDataReady={handleDataReady} />}
               </AccountProvider>
             </PreferencesProvider>
           </AuthProvider>
