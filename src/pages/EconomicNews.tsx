@@ -35,6 +35,16 @@ const IMPACT_FILTERS = [
   { value: 'low', label: 'Low Impact' },
 ];
 
+const PRESET_STORAGE_KEY = 'economic_news_presets_v1';
+
+type NewsPreset = {
+  id: string;
+  name: string;
+  currency: string[];
+  impact: string[];
+  timeRange: 'day' | 'week';
+};
+
 interface NewsEvent {
   id: string;
   title: string;
@@ -123,6 +133,8 @@ export default function EconomicNews() {
   const [dataKey, setDataKey] = useState(0);
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [presets, setPresets] = useState<NewsPreset[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   
   // Cache for prefetched data
   const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
@@ -174,6 +186,22 @@ export default function EconomicNews() {
     loadFiltersFromDB();
   }, [user]);
 
+  useEffect(() => {
+    const stored = localStorage.getItem(PRESET_STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as NewsPreset[];
+        setPresets(parsed);
+      } catch {
+        setPresets([]);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+  }, [presets]);
+
   // Check if current filters match saved filters
   const filtersMatchSaved = JSON.stringify(selectedCurrencies) === JSON.stringify(savedFilters.currency) && JSON.stringify(selectedImpacts) === JSON.stringify(savedFilters.impact) && timeRangeFilter === savedFilters.timeRange;
   const hasActiveFilters = !selectedCurrencies.includes('all') || !selectedImpacts.includes('all') || timeRangeFilter !== 'day';
@@ -222,6 +250,33 @@ export default function EconomicNews() {
     setSelectedImpacts(['all']);
     setTimeRangeFilter('day');
     setSelectedDate(new Date());
+  };
+
+  const applyPreset = (preset: NewsPreset) => {
+    setSelectedCurrencies(preset.currency);
+    setSelectedImpacts(preset.impact);
+    setTimeRangeFilter(preset.timeRange);
+    setSelectedDate(new Date());
+  };
+
+  const handleSelectPreset = (presetId: string) => {
+    setSelectedPresetId(presetId);
+    const preset = presets.find(p => p.id === presetId);
+    if (preset) applyPreset(preset);
+  };
+
+  const handleSavePreset = () => {
+    const name = window.prompt('Name this preset', 'USD High Impact Weekly')?.trim();
+    if (!name) return;
+    const newPreset: NewsPreset = {
+      id: `${Date.now()}`,
+      name,
+      currency: selectedCurrencies,
+      impact: selectedImpacts,
+      timeRange: timeRangeFilter,
+    };
+    setPresets(prev => [newPreset, ...prev]);
+    setSelectedPresetId(newPreset.id);
   };
 
   // Fetch from API (internal, used by fetchNews)
@@ -637,7 +692,7 @@ export default function EconomicNews() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search events, currency, or country"
+                placeholder="Search for news events"
                 className="w-full bg-transparent text-foreground placeholder-gray-500 focus:outline-none"
               />
               {searchQuery && (
@@ -665,6 +720,34 @@ export default function EconomicNews() {
             </PopoverTrigger>
             <PopoverContent className="w-[calc(100vw-2rem)] max-w-sm p-4 rounded-2xl bg-background/95 border border-white/10">
               <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-muted-foreground font-medium">Presets</p>
+                    <button
+                      onClick={handleSavePreset}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Save preset
+                    </button>
+                  </div>
+                  <Select value={selectedPresetId} onValueChange={handleSelectPreset}>
+                    <SelectTrigger className="w-full rounded-xl bg-white/5 border-white/10 text-foreground">
+                      <SelectValue placeholder="Choose a preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {presets.length === 0 && (
+                        <SelectItem value="__empty" disabled>
+                          No presets yet
+                        </SelectItem>
+                      )}
+                      {presets.map(preset => (
+                        <SelectItem key={preset.id} value={preset.id}>
+                          {preset.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-2">Time</p>
                   <div className="flex flex-wrap gap-2">
@@ -832,6 +915,36 @@ export default function EconomicNews() {
               </div>
             </PopoverContent>
           </Popover>
+        </div>
+
+        {/* Presets */}
+        <div className="hidden sm:flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-muted-foreground font-medium">Presets</p>
+            <Select value={selectedPresetId} onValueChange={handleSelectPreset}>
+              <SelectTrigger className="w-56 rounded-full bg-white/5 border-white/10 text-foreground">
+                <SelectValue placeholder="Choose a preset" />
+              </SelectTrigger>
+              <SelectContent>
+                {presets.length === 0 && (
+                  <SelectItem value="__empty" disabled>
+                    No presets yet
+                  </SelectItem>
+                )}
+                {presets.map(preset => (
+                  <SelectItem key={preset.id} value={preset.id}>
+                    {preset.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <button
+            onClick={handleSavePreset}
+            className="px-4 py-2 rounded-full text-xs font-medium bg-white text-black hover:bg-white/90 transition-colors"
+          >
+            Save preset
+          </button>
         </div>
 
         {/* Time Period Buttons */}
