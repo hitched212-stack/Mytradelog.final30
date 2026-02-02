@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Trade, TradeDirection, TradeCategory, TradeStatus, NewsImpact, NewsEvent } from '@/types/trade';
 import { useAuth } from './useAuth';
@@ -109,6 +109,7 @@ export function useTrades() {
   const { user } = useAuth();
   const { activeAccount, isSwitching } = useAccount();
   const { trades, tradesLoaded, currentAccountId, previousTrades, isTransitioning, setTrades, setCurrentAccountId, setTradesLoaded } = useDataStore();
+  const hasFetchedRef = useRef(false);
 
   const getTradesCacheKey = useCallback((userId: string, accountId: string | null) => {
     return `trade-log-trades-cache:${userId}:${accountId ?? 'all'}`;
@@ -230,7 +231,8 @@ export function useTrades() {
     
     // Fetch immediately without conditions - ensures data loads on first app open
     // Use silent mode on initial load to avoid flashing error messages
-    if (!tradesLoaded || accountChanged) {
+    if (!hasFetchedRef.current || !tradesLoaded || accountChanged) {
+      hasFetchedRef.current = true;
       fetchTrades(0, true); // Silent initial fetch - retries happen automatically
     }
   }, [user?.id, activeAccount?.id, tradesLoaded, currentAccountId, fetchTrades, getTradesCacheKey, setTrades, setCurrentAccountId, setTradesLoaded]);

@@ -9,6 +9,11 @@ export function useSettings() {
   const { user } = useAuth();
   const { settings, settingsLoaded, setSettings, setSettingsLoaded } = useDataStore();
   const lastUserIdRef = useRef<string | null>(null);
+  const hasFetchedRef = useRef(false);
+
+  const getSettingsCacheKey = useCallback((userId: string) => {
+    return `trade-log-settings-cache:${userId}`;
+  }, []);
 
   // Fetch settings from profile - optimized with minimal query
   const fetchSettings = useCallback(async () => {
@@ -42,6 +47,26 @@ export function useSettings() {
             yearly: Number(data.yearly_goal) || 120000,
           },
         });
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(getSettingsCacheKey(user.id), JSON.stringify({
+              currency: (data.currency as Currency) || 'USD',
+              accountBalance: Number(data.account_balance) || 0,
+              username: data.username || '',
+              balanceHidden: data.balance_hidden || false,
+              avatarUrl: data.avatar_url || null,
+              hasLoggedInBefore: data.has_logged_in_before || false,
+              goals: {
+                daily: Number(data.daily_goal) || 500,
+                weekly: Number(data.weekly_goal) || 2500,
+                monthly: Number(data.monthly_goal) || 10000,
+                yearly: Number(data.yearly_goal) || 120000,
+              },
+            }));
+          } catch (error) {
+            console.warn('Failed to cache settings locally:', error);
+          }
+        }
         
         // Mark as logged in if this is first login (fire and forget - non-blocking)
         if (isFirstLogin) {
@@ -93,16 +118,30 @@ export function useSettings() {
     if (lastUserIdRef.current !== currentUserId) {
       lastUserIdRef.current = currentUserId;
       setSettingsLoaded(false);
+      hasFetchedRef.current = false;
     }
 
     if (!user) {
       return;
     }
 
-    if (!settingsLoaded) {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(getSettingsCacheKey(user.id));
+        if (cached) {
+          const parsed = JSON.parse(cached) as typeof settings;
+          setSettings(parsed);
+        }
+      } catch (error) {
+        console.warn('Failed to load cached settings:', error);
+      }
+    }
+
+    if (!hasFetchedRef.current || !settingsLoaded) {
+      hasFetchedRef.current = true;
       fetchSettings();
     }
-  }, [user, settingsLoaded, fetchSettings, setSettingsLoaded]);
+  }, [user, settingsLoaded, fetchSettings, setSettingsLoaded, getSettingsCacheKey, setSettings, settings]);
 
   // Update currency
   const setCurrency = useCallback(async (currency: Currency) => {
