@@ -17,10 +17,11 @@ export default function TimeframesSettings() {
   } = useTradingPreferences();
   const { toast } = useToast();
 
-  const handleToggleTimeframe = async (value: string) => {
-    await toggleTimeframe(value);
+  const handleToggleTimeframe = (value: string) => {
+    const isCurrentlySelected = selectedTimeframes.includes(value);
+    toggleTimeframe(value);
     toast({
-      title: selectedTimeframes.includes(value) ? 'Timeframe removed' : 'Timeframe added'
+      title: isCurrentlySelected ? 'Timeframe removed' : 'Timeframe added'
     });
   };
 

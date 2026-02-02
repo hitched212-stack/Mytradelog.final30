@@ -121,11 +121,27 @@ export function useTradingPreferences() {
 
   // Toggle a single timeframe
   const toggleTimeframe = useCallback(async (value: string) => {
-    const updated = preferences.selectedTimeframes.includes(value)
-      ? preferences.selectedTimeframes.filter(tf => tf !== value)
-      : [...preferences.selectedTimeframes, value];
-    await setSelectedTimeframes(updated);
-  }, [preferences.selectedTimeframes, setSelectedTimeframes]);
+    setPreferencesState(prev => {
+      const isCurrentlySelected = prev.selectedTimeframes.includes(value);
+      const updated = isCurrentlySelected
+        ? prev.selectedTimeframes.filter(tf => tf !== value)
+        : [...prev.selectedTimeframes, value];
+      
+      // Also update DB (fire and forget to avoid blocking UI)
+      if (user) {
+        supabase
+          .from('profiles')
+          .update({ selected_timeframes: updated })
+          .eq('user_id', user.id)
+          .catch(error => {
+            console.error('Error updating timeframes:', error);
+            toast.error('Failed to save timeframes');
+          });
+      }
+      
+      return { ...prev, selectedTimeframes: updated };
+    });
+  }, [user]);
 
   return {
     tradingRules: preferences.tradingRules,
