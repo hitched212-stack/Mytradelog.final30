@@ -196,6 +196,75 @@ function getMonthKey(date: Date): string {
   return `${year}-${month}`;
 }
 
+function extractRapidApiItems(data: unknown): unknown[] | null {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return null;
+
+  const obj = data as Record<string, unknown>;
+  const candidates = [
+    obj.data,
+    obj.result,
+    obj.results,
+    obj.events,
+    (obj as Record<string, unknown>).items,
+    (obj as Record<string, unknown>).records,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+    if (candidate && typeof candidate === 'object') {
+      const nested = candidate as Record<string, unknown>;
+      if (Array.isArray(nested.data)) return nested.data;
+      if (Array.isArray(nested.results)) return nested.results;
+      if (Array.isArray(nested.events)) return nested.events;
+    }
+  }
+
+  return null;
+}
+
+function normalizeImpact(value: unknown): 'high' | 'medium' | 'low' {
+  if (typeof value === 'string') {
+    const v = value.toLowerCase();
+    if (v.includes('high')) return 'high';
+    if (v.includes('medium')) return 'medium';
+    if (v.includes('low')) return 'low';
+  }
+
+  if (typeof value === 'number') {
+    if (value >= 3) return 'high';
+    if (value === 2) return 'medium';
+    return 'low';
+  }
+
+  return 'low';
+}
+
+function parseEventDate(value: unknown, fallbackDate: Date): { date: string; time: string } {
+  let date = fallbackDate.toISOString().split('T')[0];
+  let time = 'TBD';
+
+  if (typeof value === 'number') {
+    const ms = value < 1_000_000_000_000 ? value * 1000 : value;
+    const dateObj = new Date(ms);
+    if (!isNaN(dateObj.getTime())) {
+      date = dateObj.toISOString().split('T')[0];
+      time = dateObj.toTimeString().split(' ')[0].substring(0, 5);
+    }
+    return { date, time };
+  }
+
+  if (typeof value === 'string') {
+    const dateObj = new Date(value);
+    if (!isNaN(dateObj.getTime())) {
+      date = dateObj.toISOString().split('T')[0];
+      time = dateObj.toTimeString().split(' ')[0].substring(0, 5);
+    }
+  }
+
+  return { date, time };
+}
+
 async function incrementMonthlyUsage(monthKey: string): Promise<number | null> {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     console.error('Supabase service role configuration missing');
@@ -243,24 +312,26 @@ async function fetchFromRapidAPI(baseDate: Date, range: 'day' | 'week'): Promise
     let queryParams = '';
     
     if (range === 'week') {
-      // Calculate week start (Monday)
-      const refDate = new Date(baseDate);
-      const dayOfWeek = refDate.getDay();
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      const monday = new Date(refDate);
-      monday.setDate(refDate.getDate() + mondayOffset);
-      
-      // Calculate week end (Sunday)
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      
-      const startDate = formatDate(monday);
-      const endDate = formatDate(sunday);
-      
-      endpoint = `/calendar/history/tomorrow`;
-      queryParams = `?from=${startDate}&to=${endDate}`;
-      
-      console.log(`Fetching RapidAPI week data from ${startDate} to ${endDate}`);
+      const now = new Date();
+      const currentMonthKey = getMonthKey(now);
+      const baseMonthKey = getMonthKey(baseDate);
+
+      if (baseMonthKey === currentMonthKey) {
+        endpoint = `/calendar/history/this-month`;
+      } else {
+        const baseMonth = baseDate.getUTCMonth();
+        const baseYear = baseDate.getUTCFullYear();
+        const nowMonth = now.getUTCMonth();
+        const nowYear = now.getUTCFullYear();
+
+        if (baseYear > nowYear || (baseYear === nowYear && baseMonth > nowMonth)) {
+          endpoint = `/calendar/history/next-month`;
+        } else {
+          endpoint = `/calendar/history/last-month`;
+        }
+      }
+
+      console.log(`Fetching RapidAPI week data using endpoint ${endpoint}`);
     } else {
       const dateStr = formatDate(baseDate);
       
@@ -276,13 +347,28 @@ async function fetchFromRapidAPI(baseDate: Date, range: 'day' | 'week'): Promise
       const yesterdayStr = formatDate(yesterday);
       
       if (dateStr === todayStr) {
-        endpoint = `/calendar/history/tomorrow`;
+        endpoint = `/calendar/history/today`;
       } else if (dateStr === tomorrowStr) {
         endpoint = `/calendar/history/tomorrow`;
       } else if (dateStr === yesterdayStr) {
         endpoint = `/calendar/history/yesterday`;
       } else {
-        endpoint = `/calendar/history/last-week`;
+        const currentMonthKey = getMonthKey(today);
+        const baseMonthKey = getMonthKey(baseDate);
+        if (baseMonthKey === currentMonthKey) {
+          endpoint = `/calendar/history/this-month`;
+        } else {
+          const baseMonth = baseDate.getUTCMonth();
+          const baseYear = baseDate.getUTCFullYear();
+          const nowMonth = today.getUTCMonth();
+          const nowYear = today.getUTCFullYear();
+
+          if (baseYear > nowYear || (baseYear === nowYear && baseMonth > nowMonth)) {
+            endpoint = `/calendar/history/next-month`;
+          } else {
+            endpoint = `/calendar/history/last-month`;
+          }
+        }
       }
       
       console.log(`Fetching RapidAPI data for ${dateStr} using endpoint ${endpoint}`);
@@ -305,8 +391,8 @@ async function fetchFromRapidAPI(baseDate: Date, range: 'day' | 'week'): Promise
 
     const data = await response.json();
     
-    // Parse RapidAPI response format
-    if (!data || !Array.isArray(data)) {
+    const items = extractRapidApiItems(data);
+    if (!items) {
       console.error('Invalid RapidAPI response format');
       return null;
     }
@@ -314,38 +400,52 @@ async function fetchFromRapidAPI(baseDate: Date, range: 'day' | 'week'): Promise
     const events: EconomicEvent[] = [];
     let eventIndex = 0;
 
-    for (const item of data) {
+    const dateFilter = formatDate(baseDate);
+    const refDate = new Date(baseDate);
+    const dayOfWeek = refDate.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(refDate);
+    monday.setDate(refDate.getDate() + mondayOffset);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const weekStart = formatDate(monday);
+    const weekEnd = formatDate(sunday);
+
+    for (const item of items) {
+      if (!item || typeof item !== 'object') continue;
+      const record = item as Record<string, unknown>;
+
       // Map RapidAPI fields to our format
-      const currency = item.currency || item.country_code || 'USD';
-      const impact = item.importance === 'high' ? 'high' : 
-                     item.importance === 'medium' ? 'medium' : 'low';
+      const currency = (record.currency || record.country_code || record.currency_code || 'USD') as string;
+      const impact = normalizeImpact(record.importance ?? record.impact ?? record.volatility);
       
-      // Parse date and time
-      let eventDate = baseDate.toISOString().split('T')[0];
-      let eventTime = 'TBD';
+      const dateValue = record.date ?? record.datetime ?? record.date_time ?? record.time ?? record.timestamp;
+      const parsed = parseEventDate(dateValue, baseDate);
+      const eventDate = parsed.date;
+      const eventTime = parsed.time;
       
-      if (item.date) {
-        const dateObj = new Date(item.date);
-        if (!isNaN(dateObj.getTime())) {
-          eventDate = dateObj.toISOString().split('T')[0];
-          eventTime = dateObj.toTimeString().split(' ')[0].substring(0, 5);
-        }
+      if (range === 'day' && eventDate !== dateFilter) {
+        continue;
+      }
+
+      if (range === 'week' && (eventDate < weekStart || eventDate > weekEnd)) {
+        continue;
       }
       
-      const title = item.event || item.title || 'Economic Event';
+      const title = (record.event || record.title || record.name || 'Economic Event') as string;
       const details = getEventDetails(title);
 
       events.push({
         id: `rapidapi-${eventDate}-${eventIndex++}`,
         title,
-        country: currencyCountry[currency] || item.country || currency,
+        country: currencyCountry[currency] || (record.country as string) || currency,
         currency,
         date: eventDate,
         time: eventTime,
         impact: impact,
-        forecast: item.forecast || item.consensus || '-',
-        previous: item.previous || item.prior || '-',
-        actual: item.actual || null,
+        forecast: (record.forecast || record.consensus || record.expected || '-') as string,
+        previous: (record.previous || record.prior || record.prev || '-') as string,
+        actual: (record.actual as string) || null,
         description: details.description,
         whyItMatters: details.whyItMatters,
         higherThanExpected: details.higherThanExpected,
