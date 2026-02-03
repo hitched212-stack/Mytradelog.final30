@@ -7,7 +7,10 @@ export default function AddTrade() {
 
   return (
     <div 
-      className="fixed inset-0 flex flex-col bg-background md:relative md:min-h-screen"
+      className="relative md:fixed md:inset-0 flex flex-col bg-background md:min-h-screen"
+      style={{
+        paddingTop: 'max(0px, env(safe-area-inset-top))'
+      }}
       onClick={(e) => {
         // Prevent clicks on empty space from causing issues
         if (e.target === e.currentTarget) {
