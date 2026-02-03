@@ -190,6 +190,13 @@ function parseImpact(impactClass: string): 'high' | 'medium' | 'low' {
   return 'low';
 }
 
+function parseImpactText(impactText: string): 'high' | 'medium' | 'low' {
+  const normalized = impactText.toLowerCase();
+  if (normalized.includes('high')) return 'high';
+  if (normalized.includes('medium') || normalized.includes('med')) return 'medium';
+  return 'low';
+}
+
 // Convert 12-hour time format to 24-hour format
 function convertTo24Hour(time12: string): string {
   if (!time12 || time12 === 'All Day' || time12 === 'Tentative' || time12 === 'Day 1' || time12 === 'Day 2') {
@@ -223,6 +230,116 @@ function convertTo24Hour(time12: string): string {
   return `${hours.toString().padStart(2, '0')}:${minutes}`;
 }
 
+function toISODateString(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+function parseFeedDate(dateText: string, fallbackYear: number): Date | null {
+  const trimmed = dateText.trim();
+  if (!trimmed) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const parsed = new Date(trimmed);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+    const [part1, part2, part3] = trimmed.split('-').map(Number);
+    if (Number.isNaN(part1) || Number.isNaN(part2) || Number.isNaN(part3)) return null;
+    const monthFirst = part1 <= 12;
+    const month = monthFirst ? part1 : part2;
+    const day = monthFirst ? part2 : part1;
+    const parsed = new Date(Date.UTC(part3, month - 1, day));
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  const parsed = new Date(trimmed);
+  if (!isNaN(parsed.getTime())) return parsed;
+
+  const withYear = new Date(`${trimmed} ${fallbackYear}`);
+  return isNaN(withYear.getTime()) ? null : withYear;
+}
+
+async function fetchForexFactoryCalendarFeed(referenceDate: Date): Promise<Map<string, EconomicEvent[]>> {
+  const eventsByDate = new Map<string, EconomicEvent[]>();
+
+  try {
+    const response = await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.xml', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/xml,text/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Forex Factory feed HTTP error: ${response.status}`);
+      return eventsByDate;
+    }
+
+    const xml = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'application/xml');
+
+    if (!doc) {
+      console.error('Failed to parse Forex Factory XML feed');
+      return eventsByDate;
+    }
+
+    const items = doc.querySelectorAll('event');
+    let eventIndex = 0;
+
+    for (const item of items) {
+      const event = item as Element;
+      const title = event.querySelector('title')?.textContent?.trim() || '';
+      const currency = (event.querySelector('currency')?.textContent || event.querySelector('country')?.textContent || '').trim();
+      const dateText = event.querySelector('date')?.textContent?.trim() || '';
+      const timeText = event.querySelector('time')?.textContent?.trim() || '';
+      const impactText = event.querySelector('impact')?.textContent?.trim() || '';
+      const forecast = event.querySelector('forecast')?.textContent?.trim() || '';
+      const previous = event.querySelector('previous')?.textContent?.trim() || '';
+      const actual = event.querySelector('actual')?.textContent?.trim() || '';
+
+      if (!title || !currency || !dateText) continue;
+
+      const parsedDate = parseFeedDate(dateText, referenceDate.getFullYear());
+      if (!parsedDate) continue;
+
+      const dateKey = toISODateString(parsedDate);
+      const details = getEventDetails(title);
+      const eventTime = convertTo24Hour(timeText) || 'TBD';
+
+      const normalizedEvent: EconomicEvent = {
+        id: `${dateKey}-feed-${eventIndex++}`,
+        title,
+        country: currencyCountry[currency] || currency,
+        currency,
+        date: dateKey,
+        time: eventTime,
+        impact: parseImpactText(impactText),
+        forecast: forecast || '-',
+        previous: previous || '-',
+        actual: actual && actual !== '' ? actual : null,
+        description: details.description,
+        whyItMatters: details.whyItMatters,
+        higherThanExpected: details.higherThanExpected,
+        asExpected: details.asExpected,
+        lowerThanExpected: details.lowerThanExpected,
+      };
+
+      const existing = eventsByDate.get(dateKey) || [];
+      existing.push(normalizedEvent);
+      eventsByDate.set(dateKey, existing);
+    }
+  } catch (error) {
+    console.error('Error fetching Forex Factory XML feed:', error);
+  }
+
+  return eventsByDate;
+}
+
 async function fetchForexFactoryCalendar(baseDate: Date): Promise<EconomicEvent[]> {
   const events: EconomicEvent[] = [];
   
@@ -241,6 +358,7 @@ async function fetchForexFactoryCalendar(baseDate: Date): Promise<EconomicEvent[
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
       },
@@ -419,6 +537,13 @@ serve(async (req) => {
     console.log('Fetching economic calendar for date:', baseDate.toISOString(), 'range:', range);
     
     let events: EconomicEvent[] = [];
+    let feedEventsByDate: Map<string, EconomicEvent[]> | null = null;
+    const getFeedEventsForDate = async (dateValue: Date): Promise<EconomicEvent[]> => {
+      if (!feedEventsByDate) {
+        feedEventsByDate = await fetchForexFactoryCalendarFeed(dateValue);
+      }
+      return feedEventsByDate.get(toISODateString(dateValue)) || [];
+    };
     
     if (isWeekView) {
       // For week view, calculate current week (Mon-Sun) based on the passed date
@@ -439,13 +564,21 @@ serve(async (req) => {
         
         console.log(`Fetching day ${i}: ${dayDate.toISOString().split('T')[0]}`);
         
-        // Fetch from Forex Factory - always use real data
+        // Fetch from Forex Factory - fallback to XML feed if HTML scraping fails
         const dayEvents = await fetchForexFactoryCalendar(dayDate);
-        events.push(...dayEvents);
+        if (dayEvents.length > 0) {
+          events.push(...dayEvents);
+        } else {
+          const feedEvents = await getFeedEventsForDate(dayDate);
+          events.push(...feedEvents);
+        }
       }
     } else {
       // For day view, fetch single day - always use real data
       events = await fetchForexFactoryCalendar(baseDate);
+      if (events.length === 0) {
+        events = await getFeedEventsForDate(baseDate);
+      }
     }
     
     // Sort events by date then time

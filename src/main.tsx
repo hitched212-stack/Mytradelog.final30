@@ -3,25 +3,10 @@ import App from "./App.tsx";
 import "./index.css";
 import { supabase } from "./integrations/supabase/client";
 
-// Keep session alive in PWA mode - wrapped in error handling
-if ('serviceWorker' in navigator) {
-  // Refresh auth token when app becomes visible (user returns to app)
-  document.addEventListener('visibilitychange', async () => {
-    if (!document.hidden) {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await supabase.auth.refreshSession();
-        }
-      } catch (error) {
-        // Silently handle errors - user will be prompted to log in if needed
-        console.debug('Session refresh failed:', error);
-      }
-    }
-  });
-
-  // Also refresh on focus
-  window.addEventListener('focus', async () => {
+// Keep session alive in all environments (web, PWA, mobile, tablet)
+// Refresh auth token when app becomes visible (user returns to app tab/window)
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -29,7 +14,34 @@ if ('serviceWorker' in navigator) {
       }
     } catch (error) {
       // Silently handle errors - user will be prompted to log in if needed
-      console.debug('Session refresh on focus failed:', error);
+      console.debug('Session refresh on visibility change failed:', error);
+    }
+  }
+});
+
+// Also refresh on window focus (helps across browsers and tabs)
+window.addEventListener('focus', async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await supabase.auth.refreshSession();
+    }
+  } catch (error) {
+    // Silently handle errors - user will be prompted to log in if needed
+    console.debug('Session refresh on focus failed:', error);
+  }
+});
+
+// Handle page/app resume for mobile web apps
+if (document.addEventListener) {
+  document.addEventListener('resume', async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.auth.refreshSession();
+      }
+    } catch (error) {
+      console.debug('Session refresh on resume failed:', error);
     }
   });
 }

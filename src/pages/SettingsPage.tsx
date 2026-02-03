@@ -2,10 +2,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
-import { useState, useRef } from 'react';
-import { ChevronRight, User, Palette, LogOut, Camera, KeyRound, CreditCard, ShieldAlert, Trash2, Eye, EyeOff, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronRight, User, Palette, LogOut, KeyRound, CreditCard, ShieldAlert, Eye, EyeOff, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,11 +78,10 @@ function SettingsSection({ title, children, isGlassEnabled, patternId }: { title
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
-  const { settings, setUsername, refetch } = useSettings();
+  const { settings, setUsername } = useSettings();
   const { preferences } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const navigate = useNavigate();
-  const [uploading, setUploading] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [usernameInput, setUsernameInput] = useState(settings.username || '');
   const [showPasswordReset, setShowPasswordReset] = useState(false);
@@ -95,66 +93,6 @@ export default function SettingsPage() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showAvatarRemoveConfirm, setShowAvatarRemoveConfirm] = useState(false);
-
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
-      await refetch();
-      toast.success('Profile picture updated');
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      toast.error('Failed to upload profile picture');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleRemoveAvatar = async () => {
-    if (!user || !settings.avatarUrl) return;
-
-    setUploading(true);
-    try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: null })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
-      await refetch();
-      toast.success('Profile picture removed');
-    } catch (error) {
-      console.error('Error removing avatar:', error);
-      toast.error('Failed to remove profile picture');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSaveUsername = async () => {
     const saved = await setUsername(usernameInput);
@@ -241,47 +179,10 @@ export default function SettingsPage() {
       {/* Profile Header */}
       <header className="px-4 pt-8 pb-6 md:px-6 lg:px-8">
         <div className="flex flex-col items-center text-center">
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept="image/*"
-            onChange={handleAvatarUpload}
-            className="hidden"
-          />
           <div className="relative mb-4">
-            <button
-              onClick={() => {
-                if (settings.avatarUrl) {
-                  setShowAvatarRemoveConfirm(true);
-                } else {
-                  fileInputRef.current?.click();
-                }
-              }}
-              disabled={uploading}
-              className="relative h-24 w-24 rounded-full bg-muted flex items-center justify-center border-2 border-border overflow-hidden group"
-            >
-              {settings.avatarUrl ? (
-                <img 
-                  src={settings.avatarUrl} 
-                  alt="Profile" 
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <User className="h-12 w-12 text-foreground/50" strokeWidth={1.5} />
-              )}
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {settings.avatarUrl ? (
-                  <Trash2 className="h-6 w-6 text-white" />
-                ) : (
-                  <Camera className="h-6 w-6 text-white" />
-                )}
-              </div>
-              {uploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <div className="h-6 w-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-            </button>
+            <div className="relative h-24 w-24 rounded-full bg-muted flex items-center justify-center border-2 border-border overflow-hidden">
+              <User className="h-12 w-12 text-foreground/50" strokeWidth={1.5} />
+            </div>
           </div>
           
           {isEditingUsername ? (
@@ -464,39 +365,6 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      {/* Avatar Remove Confirmation */}
-      <AlertDialog open={showAvatarRemoveConfirm} onOpenChange={setShowAvatarRemoveConfirm}>
-        <AlertDialogContent className="rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Profile Picture</AlertDialogTitle>
-            <AlertDialogDescription>
-              Would you like to remove your profile picture or upload a new one?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowAvatarRemoveConfirm(false);
-                fileInputRef.current?.click();
-              }}
-              className="rounded-xl"
-            >
-              Upload New
-            </Button>
-            <AlertDialogAction 
-              onClick={() => {
-                handleRemoveAvatar();
-                setShowAvatarRemoveConfirm(false);
-              }} 
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

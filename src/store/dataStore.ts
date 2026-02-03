@@ -8,7 +8,6 @@ interface Settings {
   accountBalance: number;
   username: string;
   balanceHidden: boolean;
-  avatarUrl: string | null;
   hasLoggedInBefore: boolean;
 }
 
@@ -49,7 +48,6 @@ const defaultSettings: Settings = {
   accountBalance: 0,
   username: '',
   balanceHidden: false,
-  avatarUrl: null,
   hasLoggedInBefore: false,
 };
 

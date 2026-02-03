@@ -33,7 +33,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    let sessionRefreshTimeout: NodeJS.Timeout;
+
+    const initializeAuth = async () => {
+      try {
+        // Get existing session from localStorage
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Verify session is still valid by attempting to refresh
+          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError || !refreshedSession) {
+            console.debug('Session refresh failed, clearing invalid session');
+            setSession(null);
+            setUser(null);
+          } else {
+            previousUserIdRef.current = refreshedSession.user?.id || null;
+            setSession(refreshedSession);
+            setUser(refreshedSession.user ?? null);
+          }
+        }
+      } catch (error) {
+        console.debug('Failed to initialize session:', error);
+      }
+      setLoading(false);
+    };
+
+    // Initialize session immediately
+    initializeAuth();
+
+    // Set up auth state listener for real-time changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         const newUserId = session?.user?.id || null;
@@ -48,7 +78,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Reset the global data store synchronously BEFORE updating auth state
           useDataStore.getState().resetAll();
           
-          
           // Invalidate React Query cache if available
           if (queryClient) {
             queryClient.clear();
@@ -61,27 +90,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Now update auth state - this will trigger re-renders with clean data
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
       }
     );
 
-    // THEN check for existing session - wrapped in error handling
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        previousUserIdRef.current = session?.user?.id || null;
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      })
-      .catch((error) => {
-        // If getting session fails, mark loading as complete to show UI
-        console.debug('Failed to get session:', error);
-        setSession(null);
-        setUser(null);
-        setLoading(false);
-      });
+    // Periodically refresh session to keep it alive (every 50 minutes)
+    // This prevents token expiration during active app use
+    sessionRefreshTimeout = setInterval(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase.auth.refreshSession();
+        }
+      } catch (error) {
+        console.debug('Periodic session refresh failed:', error);
+      }
+    }, 50 * 60 * 1000);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(sessionRefreshTimeout);
+    };
   }, [queryClient]);
 
   const signUp = async (email: string, password: string, username?: string) => {

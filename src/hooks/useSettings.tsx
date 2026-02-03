@@ -20,7 +20,7 @@ export function useSettings() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('currency,account_balance,daily_goal,weekly_goal,monthly_goal,yearly_goal,username,balance_hidden,avatar_url,has_logged_in_before')
+        .select('currency,account_balance,daily_goal,weekly_goal,monthly_goal,yearly_goal,username,balance_hidden,has_logged_in_before')
         .eq('user_id', user.id)
         .maybeSingle(); // Use maybeSingle to avoid errors when profile doesn't exist yet
 
@@ -34,7 +34,6 @@ export function useSettings() {
           accountBalance: Number(data.account_balance) || 0,
           username: data.username || '',
           balanceHidden: data.balance_hidden || false,
-          avatarUrl: data.avatar_url || null,
           hasLoggedInBefore: data.has_logged_in_before || false,
           goals: {
             daily: Number(data.daily_goal) || 500,
@@ -58,7 +57,6 @@ export function useSettings() {
           accountBalance: 0,
           username: '',
           balanceHidden: false,
-          avatarUrl: null,
           hasLoggedInBefore: false,
           goals: {
             daily: 500,
@@ -76,7 +74,6 @@ export function useSettings() {
         accountBalance: 0,
         username: '',
         balanceHidden: false,
-        avatarUrl: null,
         hasLoggedInBefore: false,
         goals: {
           daily: 500,
