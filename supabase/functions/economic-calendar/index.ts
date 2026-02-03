@@ -1,12 +1,18 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { DOMParser, Element } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// RapidAPI configuration from environment variables
+const RAPIDAPI_KEY = Deno.env.get('RAPIDAPI_KEY');
+const RAPIDAPI_HOST = Deno.env.get('RAPIDAPI_HOST') || 'economic-calendar-api.p.rapidapi.com';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const MONTHLY_RAPIDAPI_LIMIT = 100;
 
 // Input validation schema
 const RequestSchema = z.object({
@@ -184,186 +190,177 @@ function getEventDetails(title: string): EventDetail {
   };
 }
 
-function parseImpact(impactClass: string): 'high' | 'medium' | 'low' {
-  if (impactClass.includes('high') || impactClass.includes('red')) return 'high';
-  if (impactClass.includes('medium') || impactClass.includes('ora') || impactClass.includes('yel')) return 'medium';
-  return 'low';
+function getMonthKey(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
 }
 
-// Convert 12-hour time format to 24-hour format
-function convertTo24Hour(time12: string): string {
-  if (!time12 || time12 === 'All Day' || time12 === 'Tentative' || time12 === 'Day 1' || time12 === 'Day 2') {
-    return time12;
+async function incrementMonthlyUsage(monthKey: string): Promise<number | null> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Supabase service role configuration missing');
+    return null;
   }
-  
-  // Remove any extra whitespace
-  time12 = time12.trim();
-  
-  // Check if it's already in 24-hour format (e.g., "14:30")
-  if (/^\d{1,2}:\d{2}$/.test(time12) && !time12.toLowerCase().includes('am') && !time12.toLowerCase().includes('pm')) {
-    return time12;
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_rapidapi_usage`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+    body: JSON.stringify({ p_month: monthKey }),
+  });
+
+  if (!response.ok) {
+    console.error(`Failed to increment RapidAPI usage: ${response.status}`);
+    return null;
   }
-  
-  // Match patterns like "8:30am", "10:00pm", "2:15 PM"
-  const match = time12.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
-  if (!match) {
-    return time12; // Return original if pattern doesn't match
+
+  const data = await response.json();
+  if (typeof data === 'number') {
+    return data;
   }
-  
-  let hours = parseInt(match[1], 10);
-  const minutes = match[2];
-  const period = match[3].toLowerCase();
-  
-  if (period === 'pm' && hours !== 12) {
-    hours += 12;
-  } else if (period === 'am' && hours === 12) {
-    hours = 0;
-  }
-  
-  return `${hours.toString().padStart(2, '0')}:${minutes}`;
+  return null;
 }
 
-async function fetchForexFactoryCalendar(baseDate: Date): Promise<EconomicEvent[]> {
-  const events: EconomicEvent[] = [];
-  
+// Fetch from RapidAPI Economic Calendar
+async function fetchFromRapidAPI(baseDate: Date, range: 'day' | 'week'): Promise<EconomicEvent[] | null> {
+  if (!RAPIDAPI_KEY) {
+    console.log('RapidAPI key not configured');
+    return null;
+  }
+
   try {
-    // Format date for Forex Factory URL
-    const month = baseDate.toLocaleString('en-US', { month: 'short' }).toLowerCase();
-    const day = baseDate.getDate();
-    const year = baseDate.getFullYear();
+    const formatDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    let endpoint = '';
+    let queryParams = '';
     
-    console.log(`Fetching Forex Factory calendar for ${month}${day}.${year}`);
-    
-    const url = `https://www.forexfactory.com/calendar?day=${month}${day}.${year}`;
+    if (range === 'week') {
+      // Calculate week start (Monday)
+      const refDate = new Date(baseDate);
+      const dayOfWeek = refDate.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(refDate);
+      monday.setDate(refDate.getDate() + mondayOffset);
+      
+      // Calculate week end (Sunday)
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      
+      const startDate = formatDate(monday);
+      const endDate = formatDate(sunday);
+      
+      endpoint = `/calendar/history/tomorrow`;
+      queryParams = `?from=${startDate}&to=${endDate}`;
+      
+      console.log(`Fetching RapidAPI week data from ${startDate} to ${endDate}`);
+    } else {
+      const dateStr = formatDate(baseDate);
+      
+      // Check if it's today, tomorrow, or yesterday for optimized endpoints
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      
+      const todayStr = formatDate(today);
+      const tomorrowStr = formatDate(tomorrow);
+      const yesterdayStr = formatDate(yesterday);
+      
+      if (dateStr === todayStr) {
+        endpoint = `/calendar/history/tomorrow`;
+      } else if (dateStr === tomorrowStr) {
+        endpoint = `/calendar/history/tomorrow`;
+      } else if (dateStr === yesterdayStr) {
+        endpoint = `/calendar/history/yesterday`;
+      } else {
+        endpoint = `/calendar/history/last-week`;
+      }
+      
+      console.log(`Fetching RapidAPI data for ${dateStr} using endpoint ${endpoint}`);
+    }
+
+    const url = `https://${RAPIDAPI_HOST}${endpoint}${queryParams}`;
     
     const response = await fetch(url, {
+      method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
+        'X-RapidAPI-Key': RAPIDAPI_KEY,
+        'X-RapidAPI-Host': RAPIDAPI_HOST,
       },
     });
-    
+
     if (!response.ok) {
-      console.error(`HTTP error: ${response.status}`);
-      throw new Error(`HTTP error: ${response.status}`);
+      console.error(`RapidAPI HTTP error: ${response.status}`);
+      return null;
     }
+
+    const data = await response.json();
     
-    const html = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    
-    if (!doc) {
-      console.error('Failed to parse HTML');
-      throw new Error('Failed to parse HTML');
+    // Parse RapidAPI response format
+    if (!data || !Array.isArray(data)) {
+      console.error('Invalid RapidAPI response format');
+      return null;
     }
-    
-    // Parse calendar rows
-    const rows = doc.querySelectorAll('.calendar__row');
-    let currentDate = baseDate.toISOString().split('T')[0];
-    let currentTime = '';
+
+    const events: EconomicEvent[] = [];
     let eventIndex = 0;
-    
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i] as Element;
+
+    for (const item of data) {
+      // Map RapidAPI fields to our format
+      const currency = item.currency || item.country_code || 'USD';
+      const impact = item.importance === 'high' ? 'high' : 
+                     item.importance === 'medium' ? 'medium' : 'low';
       
-      // Check for date cell (spans multiple rows)
-      const dateCell = row.querySelector('.calendar__date');
-      if (dateCell) {
-        const dateText = dateCell.textContent?.trim();
-        if (dateText && dateText.length > 0) {
-          // Parse the date from the cell - format is like "Mon Dec 30"
-          const parts = dateText.split(/\s+/);
-          if (parts.length >= 3) {
-            const dayNum = parseInt(parts[2]);
-            if (!isNaN(dayNum)) {
-              const tempDate = new Date(baseDate);
-              tempDate.setDate(dayNum);
-              currentDate = tempDate.toISOString().split('T')[0];
-            }
-          } else if (parts.length >= 2) {
-            const dayNum = parseInt(parts[1]);
-            if (!isNaN(dayNum)) {
-              const tempDate = new Date(baseDate);
-              tempDate.setDate(dayNum);
-              currentDate = tempDate.toISOString().split('T')[0];
-            }
-          }
+      // Parse date and time
+      let eventDate = baseDate.toISOString().split('T')[0];
+      let eventTime = 'TBD';
+      
+      if (item.date) {
+        const dateObj = new Date(item.date);
+        if (!isNaN(dateObj.getTime())) {
+          eventDate = dateObj.toISOString().split('T')[0];
+          eventTime = dateObj.toTimeString().split(' ')[0].substring(0, 5);
         }
       }
       
-      // Get time cell - time applies to subsequent rows until a new time is found
-      const timeCell = row.querySelector('.calendar__time');
-      if (timeCell) {
-        const timeText = timeCell.textContent?.trim();
-        if (timeText && timeText.length > 0) {
-          // Convert to 24-hour format
-          currentTime = convertTo24Hour(timeText);
-        }
-      }
-      
-      const currencyCell = row.querySelector('.calendar__currency');
-      const impactCell = row.querySelector('.calendar__impact span');
-      const eventCell = row.querySelector('.calendar__event');
-      const actualCell = row.querySelector('.calendar__actual');
-      const forecastCell = row.querySelector('.calendar__forecast');
-      const previousCell = row.querySelector('.calendar__previous');
-      
-      if (eventCell && currencyCell) {
-        const title = eventCell.textContent?.trim() || '';
-        const currency = currencyCell.textContent?.trim() || '';
-        const impactClass = impactCell?.className || '';
-        const actual = actualCell?.textContent?.trim() || null;
-        const forecast = forecastCell?.textContent?.trim() || '';
-        const previous = previousCell?.textContent?.trim() || '';
-        
-        if (title && currency) {
-          const details = getEventDetails(title);
-          
-          // Determine the time to use
-          let eventTime = currentTime;
-          if (!eventTime || eventTime === '') {
-            // Check if this is an all-day event type
-            const lowerTitle = title.toLowerCase();
-            if (lowerTitle.includes('holiday') || lowerTitle.includes('bank') || 
-                lowerTitle.includes('day ') || lowerTitle.includes('speaks') ||
-                lowerTitle.includes('meeting') || lowerTitle.includes('summit')) {
-              eventTime = 'All Day';
-            } else {
-              eventTime = 'TBD';
-            }
-          }
-          
-          events.push({
-            id: `${currentDate}-${eventIndex++}`,
-            title,
-            country: currencyCountry[currency] || currency,
-            currency,
-            date: currentDate,
-            time: eventTime,
-            impact: parseImpact(impactClass),
-            forecast: forecast || '-',
-            previous: previous || '-',
-            actual: actual && actual !== '' ? actual : null,
-            description: details.description,
-            whyItMatters: details.whyItMatters,
-            higherThanExpected: details.higherThanExpected,
-            asExpected: details.asExpected,
-            lowerThanExpected: details.lowerThanExpected,
-          });
-        }
-      }
+      const title = item.event || item.title || 'Economic Event';
+      const details = getEventDetails(title);
+
+      events.push({
+        id: `rapidapi-${eventDate}-${eventIndex++}`,
+        title,
+        country: currencyCountry[currency] || item.country || currency,
+        currency,
+        date: eventDate,
+        time: eventTime,
+        impact: impact,
+        forecast: item.forecast || item.consensus || '-',
+        previous: item.previous || item.prior || '-',
+        actual: item.actual || null,
+        description: details.description,
+        whyItMatters: details.whyItMatters,
+        higherThanExpected: details.higherThanExpected,
+        asExpected: details.asExpected,
+        lowerThanExpected: details.lowerThanExpected,
+      });
     }
-    
-    console.log(`Parsed ${events.length} events from HTML`);
-    
+
+    console.log(`RapidAPI returned ${events.length} events`);
+    return events;
+
   } catch (error) {
-    console.error('Error fetching Forex Factory:', error);
+    console.error('Error fetching from RapidAPI:', error);
+    return null;
   }
-  
-  return events;
 }
 
 serve(async (req) => {
@@ -414,38 +411,57 @@ serve(async (req) => {
       baseDate = new Date();
     }
     
-    const isWeekView = range === 'week';
-    
     console.log('Fetching economic calendar for date:', baseDate.toISOString(), 'range:', range);
     
-    let events: EconomicEvent[] = [];
+    const monthKey = getMonthKey(baseDate);
+    const usageCount = await incrementMonthlyUsage(monthKey);
+    if (usageCount === null) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'RapidAPI usage tracking is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
+          data: [],
+          lastUpdated: new Date().toISOString()
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    if (usageCount > MONTHLY_RAPIDAPI_LIMIT) {
+      console.log(`RapidAPI monthly limit exceeded: ${usageCount}/${MONTHLY_RAPIDAPI_LIMIT}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: `RapidAPI monthly request limit exceeded (${MONTHLY_RAPIDAPI_LIMIT}).`,
+          data: [],
+          lastUpdated: new Date().toISOString()
+        }),
+        { 
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Fetch from RapidAPI
+    const events = await fetchFromRapidAPI(baseDate, range);
     
-    if (isWeekView) {
-      // For week view, calculate current week (Mon-Sun) based on the passed date
-      const refDate = new Date(baseDate);
-      const dayOfWeek = refDate.getDay();
-      // If Sunday (0), go back 6 days to get Monday. Otherwise go back (dayOfWeek - 1) days
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      
-      const monday = new Date(refDate);
-      monday.setDate(refDate.getDate() + mondayOffset);
-      monday.setHours(0, 0, 0, 0);
-      
-      console.log(`Week view: Reference date is ${refDate.toISOString().split('T')[0]}, Monday is ${monday.toISOString().split('T')[0]}`);
-      
-      for (let i = 0; i < 7; i++) {
-        const dayDate = new Date(monday);
-        dayDate.setDate(monday.getDate() + i);
-        
-        console.log(`Fetching day ${i}: ${dayDate.toISOString().split('T')[0]}`);
-        
-        // Fetch from Forex Factory - always use real data
-        const dayEvents = await fetchForexFactoryCalendar(dayDate);
-        events.push(...dayEvents);
-      }
-    } else {
-      // For day view, fetch single day - always use real data
-      events = await fetchForexFactoryCalendar(baseDate);
+    if (!events || events.length === 0) {
+      console.log('No data returned from RapidAPI');
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Unable to fetch economic calendar data. Please check your API configuration.',
+          data: [],
+          lastUpdated: new Date().toISOString()
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
     
     // Sort events by date then time
@@ -472,15 +488,15 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error fetching economic calendar:', error);
     
-    // Return empty data on error - no fallback fake data
     return new Response(
       JSON.stringify({ 
-        success: true, 
+        success: false, 
         data: [],
         lastUpdated: new Date().toISOString(),
-        error: 'An unexpected error occurred'
+        error: 'An unexpected error occurred while fetching calendar data'
       }),
       { 
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
