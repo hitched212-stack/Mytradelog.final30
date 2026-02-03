@@ -573,9 +573,34 @@ export default function EconomicNews() {
           </div>
 
           {/* Description */}
-          <p className="text-xs text-foreground/80 dark:text-muted-foreground leading-relaxed line-clamp-2">
+          <p className="text-xs text-foreground/80 dark:text-muted-foreground leading-relaxed line-clamp-2 mb-3">
             {event.description}
           </p>
+
+          {/* Forecast and Actual */}
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/50 dark:border-white/10">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xs text-foreground/60 dark:text-muted-foreground">Actual:</span>
+              <span className={cn(
+                "text-sm font-semibold",
+                event.actual 
+                  ? getActualVsForecast(event.actual, event.forecast) === 'better'
+                    ? "text-pnl-positive"
+                    : getActualVsForecast(event.actual, event.forecast) === 'worse'
+                      ? "text-pnl-negative"
+                      : "text-foreground dark:text-white"
+                  : "text-foreground/40 dark:text-muted-foreground"
+              )}>
+                {event.actual || '-'}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xs text-foreground/60 dark:text-muted-foreground">Forecast:</span>
+              <span className="text-sm font-semibold text-foreground dark:text-white">
+                {event.forecast}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -924,25 +949,62 @@ export default function EconomicNews() {
           </Popover>
         </div>
 
-        {/* Presets */}
+        {/* Presets and Time Period Selector */}
         <div className="hidden sm:flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Presets</p>
-            <Select value={selectedPresetId} onValueChange={handleSelectPreset}>
-              <SelectTrigger className="w-56 rounded-full bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10">
-                <SelectValue placeholder="Choose a preset" />
+          <div className="flex items-center gap-6">
+            {/* Presets */}
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Presets</p>
+              <Select value={selectedPresetId} onValueChange={handleSelectPreset}>
+                <SelectTrigger className="w-56 rounded-xl bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10 h-10">
+                  <SelectValue placeholder="Choose a preset" />
+                </SelectTrigger>
+                <SelectContent>
+                  {presets.length === 0 && (
+                    <SelectItem value="__empty" disabled>
+                      No presets yet
+                    </SelectItem>
+                  )}
+                  {presets.map(preset => (
+                    <SelectItem key={preset.id} value={preset.id}>
+                      {preset.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Time Period */}
+            <Select 
+              value={
+                isSameDay(selectedDate, new Date()) ? 'today' :
+                isSameDay(selectedDate, subDays(new Date(), 1)) ? 'yesterday' :
+                isSameDay(selectedDate, addDays(new Date(), 1)) ? 'tomorrow' :
+                timeRangeFilter === 'week' ? 'week' : 'custom'
+              } 
+              onValueChange={(value) => {
+                if (value === 'today') {
+                  setSelectedDate(new Date());
+                  setTimeRangeFilter('day');
+                } else if (value === 'yesterday') {
+                  setSelectedDate(subDays(new Date(), 1));
+                  setTimeRangeFilter('day');
+                } else if (value === 'tomorrow') {
+                  setSelectedDate(addDays(new Date(), 1));
+                  setTimeRangeFilter('day');
+                } else if (value === 'week') {
+                  setTimeRangeFilter('week');
+                }
+              }}
+            >
+              <SelectTrigger className="w-48 rounded-xl bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10 h-10">
+                <SelectValue placeholder="Select time period" />
               </SelectTrigger>
               <SelectContent>
-                {presets.length === 0 && (
-                  <SelectItem value="__empty" disabled>
-                    No presets yet
-                  </SelectItem>
-                )}
-                {presets.map(preset => (
-                  <SelectItem key={preset.id} value={preset.id}>
-                    {preset.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -951,65 +1013,6 @@ export default function EconomicNews() {
             className="px-4 py-2 rounded-full text-xs font-medium bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-white/90 transition-colors"
           >
             Save preset
-          </button>
-        </div>
-
-        {/* Time Period Buttons */}
-        <div className="hidden sm:flex gap-2 sm:gap-3 mb-6 justify-center flex-wrap">
-          <button
-            onClick={() => handleTimeRangeChange('day')}
-            className={cn(
-              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
-              timeRangeFilter === 'day'
-                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
-                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-            )}
-          >
-            Day
-          </button>
-          <button
-            onClick={() => setSelectedDate(subDays(new Date(), 1))}
-            className={cn(
-              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
-              isSameDay(selectedDate, subDays(new Date(), 1))
-                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
-                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-            )}
-          >
-            Yesterday
-          </button>
-          <button
-            onClick={() => setSelectedDate(new Date())}
-            className={cn(
-              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
-              isSameDay(selectedDate, new Date())
-                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
-                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-            )}
-          >
-            Today
-          </button>
-          <button
-            onClick={() => setSelectedDate(addDays(new Date(), 1))}
-            className={cn(
-              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
-              isSameDay(selectedDate, addDays(new Date(), 1))
-                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
-                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-            )}
-          >
-            Tomorrow
-          </button>
-          <button
-            onClick={() => handleTimeRangeChange('week')}
-            className={cn(
-              "px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
-              timeRangeFilter === 'week'
-                ? "bg-foreground text-background shadow dark:bg-white dark:text-black"
-                : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-            )}
-          >
-            Week
           </button>
         </div>
 
@@ -1184,127 +1187,153 @@ export default function EconomicNews() {
 
       {/* Event Detail Dialog */}
       <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <span className="text-2xl">{selectedEvent && getCurrencyFlag(selectedEvent.currency)}</span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span>{selectedEvent?.title}</span>
-                  {selectedEvent && (
-                    <Badge 
-                      variant="outline" 
-                      className={cn("text-[10px] uppercase font-bold", getImpactColor(selectedEvent.impact))}
-                    >
-                      {selectedEvent.impact}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm font-normal text-muted-foreground mt-1">
-                  {selectedEvent?.country} • {selectedEvent?.currency}
-                </p>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-
+        <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden rounded-3xl border-0 bg-background p-0">
           {selectedEvent && (
-            <div className="space-y-5 mt-2">
-              {/* Event Details Grid */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 rounded-lg bg-muted/50 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Forecast</p>
-                  <p className="font-semibold text-foreground">{selectedEvent.forecast}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-muted/50 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Previous</p>
-                  <p className="font-semibold text-foreground">{selectedEvent.previous}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-muted/50 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Actual</p>
-                  <p className={cn(
-                    "font-semibold",
-                    selectedEvent.actual 
-                      ? getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'better'
-                        ? "text-pnl-positive"
-                        : getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'worse'
-                          ? "text-pnl-negative"
-                          : "text-foreground"
-                      : "text-muted-foreground"
-                  )}>
-                    {selectedEvent.actual || 'Pending'}
-                  </p>
-                </div>
-              </div>
-
-              {/* What This News Is */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Info className="h-4 w-4 text-primary" />
-                  What This News Is
-                </h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedEvent.description}
-                </p>
-              </div>
-
-              {/* Why It Matters */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
-                  Why It Matters
-                </h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedEvent.whyItMatters || selectedEvent.marketImpact || 'This data provides insight into economic conditions and can influence market sentiment.'}
-                </p>
-              </div>
-
-              {/* Possible Outcomes */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">Possible Outcomes</h4>
-                
-                {/* Higher Than Expected */}
-                <div className="p-3 rounded-lg bg-pnl-positive/10 border border-pnl-positive/20">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <TrendingUp className="h-4 w-4 text-pnl-positive" />
-                    <span className="text-xs font-semibold text-pnl-positive">Higher Than Expected</span>
+            <div className="relative flex flex-col max-h-[95vh]">
+              {/* Header with gradient background */}
+              <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-muted/80 via-muted/40 to-background p-5 pb-6">
+                <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
+                <div className="relative">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="h-10 w-10 rounded-xl bg-background/80 backdrop-blur-sm flex items-center justify-center text-xl shadow-lg flex-shrink-0">
+                      {getCurrencyFlag(selectedEvent.currency)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <h2 className="text-lg font-bold text-foreground">
+                          {selectedEvent.title}
+                        </h2>
+                        <Badge 
+                          className={cn(
+                            "text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full flex-shrink-0",
+                            selectedEvent.impact === 'high' 
+                              ? "bg-red-500/20 text-red-600 border border-red-500/30 dark:text-red-400" 
+                              : selectedEvent.impact === 'medium'
+                                ? "bg-orange-500/20 text-orange-600 border border-orange-500/30 dark:text-orange-400"
+                                : "bg-yellow-500/20 text-yellow-700 border border-yellow-500/30 dark:text-yellow-400"
+                          )}
+                        >
+                          {selectedEvent.impact}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {selectedEvent.country} • {selectedEvent.currency}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {selectedEvent.higherThanExpected || 'A better-than-expected result often signals economic strength and can be positive for the currency.'}
-                  </p>
-                </div>
 
-                {/* As Expected */}
-                <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Minus className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs font-semibold text-muted-foreground">About As Expected</span>
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-xl bg-background/60 backdrop-blur-sm p-3 text-center border border-border/50">
+                      <p className="text-[10px] font-medium text-muted-foreground mb-1">Forecast</p>
+                      <p className="text-xl font-bold text-foreground">{selectedEvent.forecast}</p>
+                    </div>
+                    <div className="rounded-xl bg-background/60 backdrop-blur-sm p-3 text-center border border-border/50">
+                      <p className="text-[10px] font-medium text-muted-foreground mb-1">Previous</p>
+                      <p className="text-xl font-bold text-foreground">{selectedEvent.previous}</p>
+                    </div>
+                    <div className="rounded-xl bg-background/60 backdrop-blur-sm p-3 text-center border border-border/50">
+                      <p className="text-[10px] font-medium text-muted-foreground mb-1">Actual</p>
+                      <p className={cn(
+                        "text-xl font-bold",
+                        selectedEvent.actual 
+                          ? getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'better'
+                            ? "text-pnl-positive"
+                            : getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'worse'
+                              ? "text-pnl-negative"
+                              : "text-foreground"
+                          : "text-muted-foreground"
+                      )}>
+                        {selectedEvent.actual || 'Pending'}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {selectedEvent.asExpected || 'When data matches expectations, markets may show limited reaction as the result was already priced in.'}
-                  </p>
-                </div>
-
-                {/* Lower Than Expected */}
-                <div className="p-3 rounded-lg bg-pnl-negative/10 border border-pnl-negative/20">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <TrendingDown className="h-4 w-4 text-pnl-negative" />
-                    <span className="text-xs font-semibold text-pnl-negative">Lower Than Expected</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {selectedEvent.lowerThanExpected || 'A weaker-than-expected result may signal economic challenges and can lead to currency weakness.'}
-                  </p>
                 </div>
               </div>
 
-              {/* Timing */}
-              <div className="flex items-center gap-4 pt-2 border-t border-border text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>{format(new Date(selectedEvent.date), 'EEEE, MMMM d, yyyy')}</span>
+              {/* Content - Scrollable only if needed */}
+              <div className="p-5 space-y-4 overflow-y-auto">
+                {/* What This News Is */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                      <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">What This News Is</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed pl-9">
+                    {selectedEvent.description}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>{selectedEvent.time} UTC</span>
+
+                {/* Why It Matters */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                      <Star className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">Why It Matters</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed pl-9">
+                    {selectedEvent.whyItMatters || selectedEvent.marketImpact || 'This data provides insight into economic conditions and can influence market sentiment.'}
+                  </p>
+                </div>
+
+                {/* Possible Outcomes */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-foreground">Possible Outcomes</h3>
+                  
+                  {/* Higher Than Expected */}
+                  <div className="rounded-xl bg-gradient-to-br from-pnl-positive/5 to-pnl-positive/10 border border-pnl-positive/20 p-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-6 w-6 rounded-lg bg-pnl-positive/20 flex items-center justify-center flex-shrink-0">
+                        <TrendingUp className="h-3.5 w-3.5 text-pnl-positive" />
+                      </div>
+                      <span className="text-xs font-bold text-pnl-positive">Higher Than Expected</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
+                      {selectedEvent.higherThanExpected || 'Signals economic strength, potentially positive for currency.'}
+                    </p>
+                  </div>
+
+                  {/* As Expected */}
+                  <div className="rounded-xl bg-gradient-to-br from-muted/30 to-muted/50 border border-border/50 p-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center flex-shrink-0">
+                        <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                      <span className="text-xs font-bold text-foreground">About As Expected</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
+                      {selectedEvent.asExpected || 'Limited market reaction as result was already priced in.'}
+                    </p>
+                  </div>
+
+                  {/* Lower Than Expected */}
+                  <div className="rounded-xl bg-gradient-to-br from-pnl-negative/5 to-pnl-negative/10 border border-pnl-negative/20 p-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-6 w-6 rounded-lg bg-pnl-negative/20 flex items-center justify-center flex-shrink-0">
+                        <TrendingDown className="h-3.5 w-3.5 text-pnl-negative" />
+                      </div>
+                      <span className="text-xs font-bold text-pnl-negative">Lower Than Expected</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
+                      {selectedEvent.lowerThanExpected || 'May signal economic challenges and potential currency weakness.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Timing Footer */}
+                <div className="flex items-center justify-center gap-4 pt-3 border-t border-border/50">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    <span>{format(new Date(selectedEvent.date), 'MMM d, yyyy')}</span>
+                  </div>
+                  <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>{selectedEvent.time} UTC</span>
+                  </div>
                 </div>
               </div>
             </div>
