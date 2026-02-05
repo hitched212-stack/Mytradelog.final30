@@ -354,9 +354,9 @@ export default function CalendarPage() {
         <div className="flex flex-col gap-4">
           {/* Main Calendar Section - Full width on desktop */}
           <div className="w-full space-y-3">
-            {/* Goal Progress Card */}
+            {/* Goal Progress Card - Professional Design */}
             <div className={cn(
-              "rounded-xl border p-4 relative overflow-hidden transition-all duration-300",
+              "rounded-2xl border relative overflow-hidden transition-all duration-300",
               preferences.liquidGlassEnabled
                 ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
                 : "border-border/50 bg-card"
@@ -372,35 +372,47 @@ export default function CalendarPage() {
                   <rect width="100%" height="100%" fill="url(#calendar-dots)" />
                 </svg>
               )}
-              <div className="relative">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-muted-foreground">{format(currentMonth, 'MMMM yyyy')}</span>
-                  <div className="flex gap-1">
-                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('w-7 h-7 rounded text-xs font-medium transition-colors', goalPeriod === period ? 'bg-foreground/10 text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5')}>
+              <div className="relative p-5">
+                {/* Header with Month and Period Filters */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                      {format(currentMonth, 'MMMM yyyy')}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">{goalLabel}</p>
+                  </div>
+                  <div className="flex gap-1 p-1 bg-muted/30 rounded-lg border border-border/30">
+                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                         {period}
                       </button>)}
                   </div>
                 </div>
                 
-                {/* Stats Row */}
-                <div className="flex items-end justify-between mb-3">
-                  <div>
-                    <span className={cn('text-3xl font-bold font-display', currentPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
-                      {formatPnlWithK(currentPnl)}
-                    </span>
-                  </div>
-                  
+                {/* P&L Display */}
+                <div className="mb-4">
+                  <span className={cn('text-4xl font-bold font-display tabular-nums', currentPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                    {formatPnlWithK(currentPnl)}
+                  </span>
                 </div>
                 
-                {/* Progress Bar */}
-                <div className="h-2 rounded-full bg-muted overflow-hidden mb-2">
-                  <div className={cn('h-full rounded-full transition-all duration-300', currentPnl >= 0 ? 'bg-pnl-positive' : 'bg-pnl-negative')} style={{
-                  width: `${Math.max(0, goalProgress)}%`
-                }} />
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{goalLabel}</span>
-                  <span className="font-display font-bold tabular-nums">{currentPnl < 0 ? `${currencySymbol}0` : formatPnlWithK(currentPnl, false)} / {formatPnlWithK(currentGoal, false)}</span>
+                {/* Progress Bar - Enhanced */}
+                <div className="space-y-2">
+                  <div className="h-3 rounded-full bg-muted/40 overflow-hidden border border-border/30">
+                    <div className={cn('h-full rounded-full transition-all duration-500 relative overflow-hidden', currentPnl >= 0 ? 'bg-pnl-positive' : 'bg-pnl-negative')} style={{
+                    width: `${Math.max(0, Math.min(goalProgress, 100))}%`
+                  }}>
+                      {/* Shimmer effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-muted-foreground font-medium">
+                      {Math.round(goalProgress)}% of Goal
+                    </span>
+                    <span className="font-display font-bold tabular-nums text-muted-foreground">
+                      {currentPnl < 0 ? `${currencySymbol}0` : formatPnlWithK(currentPnl, false)} <span className="text-muted-foreground/60">/</span> {formatPnlWithK(currentGoal, false)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
