@@ -1296,28 +1296,10 @@ export function TradeForm({
                 </div>
               </div>
 
-              {/* Before Trade Emotions */}
-              <div className="p-4 rounded-xl border border-border/50 bg-card">
-                <span className="text-xs font-medium text-muted-foreground mb-3 block">Before Trade</span>
-                <Textarea name="emotionalJournalBefore" value={formData.emotionalJournalBefore} onChange={handleChange} placeholder="Describe your emotions before taking this trade..." rows={3} className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
-              </div>
-
-              {/* During Trade Emotions */}
-              <div className="p-4 rounded-xl border border-border/50 bg-card">
-                <span className="text-xs font-medium text-muted-foreground mb-3 block">During Trade</span>
-                <Textarea name="emotionalJournalDuring" value={formData.emotionalJournalDuring} onChange={handleChange} placeholder="What were you thinking during the trade?" rows={3} className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
-              </div>
-
-              {/* After Trade Emotions */}
-              <div className="p-4 rounded-xl border border-border/50 bg-card">
-                <span className="text-xs font-medium text-muted-foreground mb-3 block">After Trade</span>
-                <Textarea name="emotionalJournalAfter" value={formData.emotionalJournalAfter} onChange={handleChange} placeholder="How did you feel after the trade?" rows={3} className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
-              </div>
-
               {/* Overall Emotions */}
               <div className="p-4 rounded-xl border border-border/50 bg-card">
                 <span className="text-xs font-medium text-muted-foreground mb-3 block">Overall Emotions</span>
-                <Textarea name="overallEmotions" value={formData.overallEmotions} onChange={handleChange} placeholder="Summarize your overall emotional experience for this trade..." rows={3} className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
+                <Textarea name="overallEmotions" value={formData.overallEmotions} onChange={handleChange} placeholder="Describe your emotions and thoughts about this trade..." rows={4} className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
               </div>
             </div>}
 

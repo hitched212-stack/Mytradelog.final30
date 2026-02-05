@@ -194,9 +194,9 @@ serve(async (req) => {
       }
 
       // Determine plan type from invoice line items
-      let planType = 'monthly';
+      let planType: 'monthly' | 'annual' = 'monthly';
       if (invoice.lines?.data?.[0]?.price?.recurring?.interval === 'year') {
-        planType = 'yearly';
+        planType = 'annual';
       }
 
       // Capture the amount in cents from the invoice
@@ -227,12 +227,22 @@ serve(async (req) => {
       const subscription = event.data.object;
       const status = subscription.status === 'active' ? 'active' : 'canceled';
 
+      // Get the amount from the subscription items
+      const amountInCents = subscription.items?.data?.[0]?.price?.unit_amount || null;
+
+      const updateData: any = {
+        status,
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      };
+
+      // Only update amount if we have it
+      if (amountInCents !== null) {
+        updateData.amount = amountInCents;
+      }
+
       const { error } = await supabase
         .from('subscriptions')
-        .update({
-          status,
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-        })
+        .update(updateData)
         .eq('stripe_subscription_id', subscription.id);
 
       if (error) {

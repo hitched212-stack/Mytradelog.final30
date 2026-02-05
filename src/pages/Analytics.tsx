@@ -32,7 +32,7 @@ export default function Analytics() {
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('Month');
   const [equityChartView, setEquityChartView] = useState<ChartViewType>('line');
   const [activeBarIndex, setActiveBarIndex] = useState<number | undefined>(undefined);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const {
     trades
   } = useTrades();
@@ -66,11 +66,16 @@ export default function Analytics() {
     // First filter out paper trades and no trade taken - they should never count in analytics
     let realTrades = trades.filter(trade => !trade.isPaperTrade && !trade.noTradeTaken);
 
-    // If exact date is selected, filter by that date only
-    if (selectedDate) {
+    // If date range is selected, filter by that range
+    if (dateRange.from) {
       return realTrades.filter(trade => {
         const tradeDate = new Date(trade.date);
-        return format(tradeDate, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+        tradeDate.setHours(0, 0, 0, 0);
+        const fromDate = new Date(dateRange.from!);
+        fromDate.setHours(0, 0, 0, 0);
+        const toDate = dateRange.to ? new Date(dateRange.to) : fromDate;
+        toDate.setHours(23, 59, 59, 999);
+        return tradeDate >= fromDate && tradeDate <= toDate;
       });
     }
 
@@ -97,7 +102,7 @@ export default function Analytics() {
       // Year
       return tradeDate.getFullYear() === now.getFullYear();
     });
-  }, [trades, timeFrame, selectedDate]);
+  }, [trades, timeFrame, dateRange]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -230,6 +235,59 @@ export default function Analytics() {
     };
   }, [filteredTrades]);
 
+  // Performance Consistency - based on performance grade stability
+  const performanceConsistency = useMemo(() => {
+    // Filter trades that have a performance grade
+    const tradesWithGrade = filteredTrades.filter(t => t.performanceGrade);
+    
+    if (tradesWithGrade.length === 0) {
+      return {
+        score: 0,
+        label: 'No Data',
+        avgGrade: 0,
+        stdDev: 0,
+        gradeDistribution: { grade1: 0, grade2: 0, grade3: 0 },
+        description: 'No performance grades recorded'
+      };
+    }
+
+    // Calculate average grade
+    const avgGrade = tradesWithGrade.reduce((sum, t) => sum + (t.performanceGrade || 0), 0) / tradesWithGrade.length;
+    
+    // Calculate standard deviation of grades
+    const variance = tradesWithGrade.reduce((sum, t) => {
+      const diff = (t.performanceGrade || 0) - avgGrade;
+      return sum + (diff * diff);
+    }, 0) / tradesWithGrade.length;
+    const stdDev = Math.sqrt(variance);
+    
+    // Calculate consistency score (lower std dev = higher consistency)
+    // Max std dev for grades 1-3 is ~0.816 (equal distribution), so we normalize
+    const consistencyScore = Math.max(0, 100 - (stdDev / 0.816) * 100);
+    
+    // Grade distribution
+    const gradeDistribution = {
+      grade1: tradesWithGrade.filter(t => t.performanceGrade === 1).length,
+      grade2: tradesWithGrade.filter(t => t.performanceGrade === 2).length,
+      grade3: tradesWithGrade.filter(t => t.performanceGrade === 3).length
+    };
+    
+    // Determine label based on consistency score
+    let label = 'Inconsistent';
+    if (consistencyScore >= 80) label = 'Very Consistent';
+    else if (consistencyScore >= 60) label = 'Consistent';
+    else if (consistencyScore >= 40) label = 'Moderate';
+    
+    return {
+      score: consistencyScore,
+      label,
+      avgGrade,
+      stdDev,
+      gradeDistribution,
+      description: `${label} performance with avg grade ${avgGrade.toFixed(1)}/3`
+    };
+  }, [filteredTrades]);
+
   // Holding time by day of week - for grouped bar chart
   const holdingTimeByDay = useMemo(() => {
     const parseHoldingTime = (time: string): number => {
@@ -358,12 +416,34 @@ export default function Analytics() {
   // Strategy profitability data - horizontal stacked bar
   const strategyProfitabilityData = useMemo(() => {
     const strategyMap = new Map<string, number>();
+    const strategyNameMap = new Map<string, string>(); // Map normalized name to original display name
     let totalProfit = 0;
     
     filteredTrades.forEach(trade => {
-      const strategy = trade.strategy || 'No Strategy';
-      const currentPnl = strategyMap.get(strategy) || 0;
-      strategyMap.set(strategy, currentPnl + trade.pnlAmount);
+      const originalStrategy = trade.strategy || 'No Strategy';
+      // Normalize strategy name aggressively:
+      // 1. Convert to lowercase
+      // 2. Trim whitespace
+      // 3. Replace multiple spaces with single space
+      // 4. Remove special characters
+      // 5. Remove trailing 's' for plurals
+      let normalizedStrategy = originalStrategy
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+        .replace(/[^\w\s]/g, '') // Remove special characters
+        .replace(/s\s*$/i, ''); // Remove trailing 's' for plurals
+      
+      // Additional cleanup - remove extra spaces after processing
+      normalizedStrategy = normalizedStrategy.trim();
+      
+      // Keep the first occurrence's original name for display
+      if (!strategyNameMap.has(normalizedStrategy)) {
+        strategyNameMap.set(normalizedStrategy, originalStrategy);
+      }
+      
+      const currentPnl = strategyMap.get(normalizedStrategy) || 0;
+      strategyMap.set(normalizedStrategy, currentPnl + trade.pnlAmount);
       if (trade.pnlAmount > 0) {
         totalProfit += trade.pnlAmount;
       }
@@ -378,8 +458,8 @@ export default function Analytics() {
     // Calculate percentages
     const totalProfitable = sortedStrategies.reduce((sum, [_, pnl]) => sum + pnl, 0);
     
-    return sortedStrategies.map(([name, pnl], index) => ({
-      name,
+    return sortedStrategies.map(([normalizedName, pnl], index) => ({
+      name: strategyNameMap.get(normalizedName) || normalizedName, // Use original display name
       pnl,
       percentage: totalProfitable > 0 ? (pnl / totalProfitable) * 100 : 0,
       color: [
@@ -781,23 +861,36 @@ export default function Analytics() {
           <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
           
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Date Picker */}
+            {/* Date Range Picker */}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="secondary" className={cn("h-9 text-sm border-0 gap-2", selectedDate ? "text-foreground" : "text-muted-foreground")}>
+                <Button variant="secondary" className={cn("h-9 text-sm border-0 gap-2", dateRange.from ? "text-foreground" : "text-muted-foreground")}>
                   <CalendarIcon className="h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'MMM dd, yyyy') : 'Pick date'}
+                  {dateRange.from ? (
+                    dateRange.to ? (
+                      `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd, yyyy')}`
+                    ) : (
+                      format(dateRange.from, 'MMM dd, yyyy')
+                    )
+                  ) : 'Pick date range'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-                <Calendar mode="single" selected={selectedDate} onSelect={date => {
-                setSelectedDate(date);
-                if (date) {
-                  setTimeFrame('Daily');
-                }
-              }} initialFocus className="p-3 pointer-events-auto" />
-                {selectedDate && <div className="p-3 border-t border-border">
-                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setSelectedDate(undefined)}>
+                <Calendar 
+                  mode="range" 
+                  selected={dateRange}
+                  onSelect={(range) => {
+                    setDateRange(range || { from: undefined, to: undefined });
+                    if (range?.from) {
+                      setTimeFrame('Daily');
+                    }
+                  }} 
+                  numberOfMonths={2}
+                  initialFocus 
+                  className="p-3 pointer-events-auto" 
+                />
+                {dateRange.from && <div className="p-3 border-t border-border">
+                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setDateRange({ from: undefined, to: undefined })}>
                       Clear date filter
                     </Button>
                   </div>}
@@ -806,7 +899,7 @@ export default function Analytics() {
             
             <Select value={timeFrame} onValueChange={(v: TimeFrame) => {
             setTimeFrame(v);
-            setSelectedDate(undefined);
+            setDateRange({ from: undefined, to: undefined });
           }}>
               <SelectTrigger className="w-[110px] h-9 text-sm bg-secondary border-0">
                 <SelectValue />
@@ -1266,6 +1359,92 @@ export default function Analytics() {
           <MetricCard label="Avg. Stop Loss" value={stats.avgStopLossPips > 0 ? `${stats.avgStopLossPips.toFixed(1)} pips` : '—'} icon={<Target className="h-4 w-4" />} />
           <MetricCard label="Trades" value={stats.totalTrades.toString()} icon={<BarChart3 className="h-4 w-4" />} />
         </div>
+
+        {/* Performance Grade Consistency Card */}
+        <GlassCardWrapper patternId="consistency-dots" className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-medium flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+              Performance Consistency
+            </h3>
+            <span className={cn(
+              "text-lg font-display font-bold tabular-nums",
+              performanceConsistency.score >= 80 ? "text-pnl-positive" :
+              performanceConsistency.score >= 60 ? "text-emerald-500" :
+              performanceConsistency.score >= 40 ? "text-amber-500" : "text-pnl-negative"
+            )}>
+              {performanceConsistency.score.toFixed(0)}%
+            </span>
+          </div>
+          
+          {filteredTrades.filter(t => t.performanceGrade).length === 0 ? (
+            <div className="h-32 flex items-center justify-center">
+              <p className="text-sm text-muted-foreground">No performance grades recorded yet</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Consistency Score Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{performanceConsistency.label}</span>
+                  <span>Avg: {performanceConsistency.avgGrade.toFixed(1)}/3</span>
+                </div>
+                <div className="h-3 bg-muted/30 rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full transition-all duration-500 rounded-full",
+                      performanceConsistency.score >= 80 ? "bg-pnl-positive" :
+                      performanceConsistency.score >= 60 ? "bg-emerald-500" :
+                      performanceConsistency.score >= 40 ? "bg-amber-500" : "bg-pnl-negative"
+                    )}
+                    style={{ width: `${performanceConsistency.score}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Grade Distribution */}
+              <div className="space-y-2 pt-3 border-t border-border/50">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Grade Distribution</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground mb-1">Grade 1</p>
+                    <p className="text-xl font-display font-bold tabular-nums text-red-400">
+                      {performanceConsistency.gradeDistribution.grade1}
+                    </p>
+                  </div>
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground mb-1">Grade 2</p>
+                    <p className="text-xl font-display font-bold tabular-nums text-amber-400">
+                      {performanceConsistency.gradeDistribution.grade2}
+                    </p>
+                  </div>
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground mb-1">Grade 3</p>
+                    <p className="text-xl font-display font-bold tabular-nums text-emerald-400">
+                      {performanceConsistency.gradeDistribution.grade3}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Insights */}
+              <div className="space-y-2 pt-3 border-t border-border/50">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Insight</p>
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-xs text-foreground">
+                    {performanceConsistency.score >= 80 
+                      ? "Excellent! Your performance grades are very stable, showing consistent execution."
+                      : performanceConsistency.score >= 60
+                      ? "Good consistency. Your trades follow a relatively stable pattern."
+                      : performanceConsistency.score >= 40
+                      ? "Moderate consistency. Work on maintaining a more stable performance grade."
+                      : "Low consistency detected. Focus on following your trading rules more uniformly."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </GlassCardWrapper>
 
         {/* Holding Time & Entry Analysis */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

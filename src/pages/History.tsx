@@ -101,7 +101,7 @@ export default function History() {
   const [zoomIndex, setZoomIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [deleteTradeId, setDeleteTradeId] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
 
   const currency = (activeAccount?.currency || settings.currency) as Currency;
   const currencySymbol = getCurrencySymbol(currency);
@@ -110,11 +110,16 @@ export default function History() {
   const filteredTrades = useMemo(() => {
     let result = [...trades];
 
-    // Date filter
-    if (selectedDate) {
+    // Date range filter
+    if (dateRange.from) {
       result = result.filter(trade => {
         const tradeDate = new Date(trade.date);
-        return format(tradeDate, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+        tradeDate.setHours(0, 0, 0, 0);
+        const fromDate = new Date(dateRange.from!);
+        fromDate.setHours(0, 0, 0, 0);
+        const toDate = dateRange.to ? new Date(dateRange.to) : fromDate;
+        toDate.setHours(23, 59, 59, 999);
+        return tradeDate >= fromDate && tradeDate <= toDate;
       });
     }
 
@@ -142,7 +147,7 @@ export default function History() {
     });
 
     return result;
-  }, [trades, searchQuery, sortField, sortDirection, selectedDate]);
+  }, [trades, searchQuery, sortField, sortDirection, dateRange]);
 
   // Pagination
   const totalPages = Math.ceil(filteredTrades.length / itemsPerPage);
@@ -251,39 +256,46 @@ export default function History() {
             />
           </div>
           
-          {/* Date Picker */}
+          {/* Date Range Picker */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
                   "h-10 gap-2",
-                  selectedDate ? "text-foreground" : "text-muted-foreground"
+                  dateRange.from ? "text-foreground" : "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="h-4 w-4" />
-                {selectedDate ? format(selectedDate, 'MMM dd') : 'Date'}
+                {dateRange.from ? (
+                  dateRange.to ? (
+                    `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                  ) : (
+                    format(dateRange.from, 'MMM dd')
+                  )
+                ) : 'Date Range'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
               <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  setSelectedDate(date);
+                mode="range"
+                selected={dateRange}
+                onSelect={(range) => {
+                  setDateRange(range || { from: undefined, to: undefined });
                   setCurrentPage(1);
                 }}
+                numberOfMonths={2}
                 initialFocus
                 className="p-3 pointer-events-auto"
               />
-              {selectedDate && (
+              {dateRange.from && (
                 <div className="p-3 border-t border-border">
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     className="w-full text-muted-foreground"
                     onClick={() => {
-                      setSelectedDate(undefined);
+                      setDateRange({ from: undefined, to: undefined });
                       setCurrentPage(1);
                     }}
                   >
@@ -491,7 +503,7 @@ export default function History() {
         )}
       </div>
 
-      {/* Desktop Table View */}
+      {/* Desktop Table View - Professional Binance-style */}
       <div className={cn(
         "hidden md:block rounded-xl border overflow-hidden relative",
         isGlassEnabled
@@ -512,142 +524,155 @@ export default function History() {
         <div className="overflow-x-auto relative">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead className="w-[80px]">Status</TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => handleSort('symbol')}
-                >
-                  <div className="flex items-center gap-1">
-                    Symbol
-                    <ArrowUpDown className="h-3.5 w-3.5" />
+              <TableRow className="border-b border-border/50 hover:bg-transparent">
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 w-[70px]">Status</TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3">
+                  <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-foreground/80 transition-colors"
+                    onClick={() => handleSort('symbol')}
+                  >
+                    Pair
+                    <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => handleSort('date')}
-                >
-                  <div className="flex items-center gap-1">
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3">Side</TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">
+                  <div 
+                    className="flex items-center justify-center gap-2 cursor-pointer hover:text-foreground/80 transition-colors"
+                    onClick={() => handleSort('date')}
+                  >
                     Date
-                    <ArrowUpDown className="h-3.5 w-3.5" />
+                    <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[70px]">Entry</TableHead>
-                <TableHead className="w-[70px]">Exit</TableHead>
-                <TableHead className="w-[80px]">Side</TableHead>
-                <TableHead className="w-[80px]">Holding</TableHead>
-                <TableHead className="w-[50px] text-center">News</TableHead>
-                <TableHead className="w-[100px]">Rules</TableHead>
-                <TableHead className="w-[60px] text-center">Grade</TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3">Entry • Exit</TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">Duration</TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">Strategy</TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">Rules</TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">Grade</TableHead>
                 <TableHead 
-                  className="cursor-pointer hover:text-foreground transition-colors text-right w-[120px]"
+                  className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-right cursor-pointer hover:text-foreground/80 transition-colors"
                   onClick={() => handleSort('pnl')}
                 >
-                  <div className="flex items-center justify-end gap-1">
+                  <div className="flex items-center justify-end gap-2">
                     P&L
-                    <ArrowUpDown className="h-3.5 w-3.5" />
+                    <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 w-[40px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedTrades.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center py-12 text-muted-foreground">
-                    {searchQuery ? 'No trades match your search' : 'No trades recorded yet'}
+                  <TableCell colSpan={10} className="text-center py-16 text-muted-foreground">
+                    <div className="space-y-2">
+                      <p className="text-sm">{searchQuery ? 'No trades match your search' : 'No trades recorded yet'}</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedTrades.map((trade) => (
+                paginatedTrades.map((trade, idx) => (
                   <TableRow 
-                    key={trade.id} 
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    key={trade.id}
+                    className={cn(
+                      "border-b border-border/30 hover:bg-muted/40 transition-colors cursor-pointer h-14",
+                      idx % 2 === 0 ? "bg-transparent" : "bg-muted/10"
+                    )}
                     onClick={() => handleViewTrade(trade)}
                   >
-                    {/* Status - Always show Open/Closed */}
-                    <TableCell>
+                    {/* Status */}
+                    <TableCell className="px-4">
                       {trade.status === 'open' ? (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full border-[1.5px] border-pnl-positive" />
-                          <span className="text-xs font-medium text-pnl-positive">Open</span>
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-pnl-positive/10 border border-pnl-positive/30">
+                          <div className="w-1.5 h-1.5 rounded-full bg-pnl-positive animate-pulse" />
+                          <span className="text-xs font-semibold text-pnl-positive">OPEN</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-                          <span className="text-xs font-medium text-muted-foreground">Closed</span>
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/50 border border-muted/50">
+                          <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
+                          <span className="text-xs font-semibold text-muted-foreground">CLOSED</span>
                         </div>
                       )}
                     </TableCell>
-                    
-                    {/* Symbol */}
-                    <TableCell className="font-medium">{trade.symbol}</TableCell>
-                    
-                    {/* Date */}
-                    <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(trade.date), 'MM/dd/yy')}
-                    </TableCell>
-                    
-                    {/* Entry Time */}
-                    <TableCell className="text-xs text-muted-foreground">
-                      {trade.entryTime || '—'}
-                    </TableCell>
-                    
-                    {/* Exit Time */}
-                    <TableCell className="text-xs text-muted-foreground">
-                      {calculateExitTime(trade.entryTime, trade.holdingTime)}
+
+                    {/* Pair - Symbol with icon */}
+                    <TableCell className="font-semibold text-foreground px-4">
+                      <div className="flex items-center gap-2">
+                        <SymbolIcon symbol={trade.symbol} size="sm" />
+                        <span className="text-sm font-medium">{trade.symbol}</span>
+                      </div>
                     </TableCell>
                     
                     {/* Side */}
-                    <TableCell>
+                    <TableCell className="px-4">
                       <Badge 
-                        variant="outline"
                         className={cn(
-                          "text-[10px] font-medium px-2 py-0.5 rounded-full",
+                          "text-[11px] font-semibold px-2.5 py-1 rounded-md border-0",
                           trade.direction === 'long' 
-                            ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/30" 
-                            : "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/30"
+                            ? "bg-pnl-positive/15 text-pnl-positive" 
+                            : "bg-pnl-negative/15 text-pnl-negative"
                         )}
                       >
-                        {trade.direction === 'long' ? 'Long' : 'Short'}
+                        {trade.direction === 'long' ? 'LONG' : 'SHORT'}
                       </Badge>
                     </TableCell>
                     
-                    {/* Holding Time */}
-                    <TableCell className="text-xs text-muted-foreground">
-                      {trade.holdingTime || '—'}
+                    {/* Date */}
+                    <TableCell className="px-4 text-center text-sm text-muted-foreground">
+                      {format(new Date(trade.date), 'MMM dd')}
                     </TableCell>
                     
-                    {/* News */}
-                    <TableCell className="text-center">
-                      {trade.hasNews ? (
-                        <Check className="h-4 w-4 text-pnl-positive mx-auto" />
+                    {/* Entry • Exit Time */}
+                    <TableCell className="px-4 text-sm">
+                      <div className="space-y-0.5">
+                        <div className="font-medium text-foreground text-xs">{trade.entryTime || '—'}</div>
+                        <div className="text-xs text-muted-foreground">{calculateExitTime(trade.entryTime, trade.holdingTime)}</div>
+                      </div>
+                    </TableCell>
+                    
+                    {/* Duration */}
+                    <TableCell className="px-4 text-center">
+                      <span className="text-sm text-muted-foreground font-medium">
+                        {trade.holdingTime || '—'}
+                      </span>
+                    </TableCell>
+                    
+                    {/* Strategy */}
+                    <TableCell className="px-4 text-center">
+                      {trade.strategy ? (
+                        <span className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded inline-block max-w-[120px] truncate">
+                          {trade.strategy}
+                        </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     
-                    {/* Rules */}
-                    <TableCell>
+                    {/* Rules Status */}
+                    <TableCell className="px-4 text-center">
                       {trade.brokenRules && trade.brokenRules.length > 0 ? (
-                        <div className="flex items-center gap-1 text-pnl-negative">
-                          <XCircle className="h-3.5 w-3.5" />
-                          <span className="text-[10px]">{trade.brokenRules.length} broken</span>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-pnl-negative/60"></div>
+                          <span className="text-xs font-medium text-pnl-negative">{trade.brokenRules.length}</span>
                         </div>
                       ) : trade.followedRulesList && trade.followedRulesList.length > 0 ? (
-                        <Check className="h-4 w-4 text-pnl-positive mx-auto" />
+                        <div className="flex items-center justify-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-pnl-positive/60"></div>
+                          <span className="text-xs font-medium text-pnl-positive">✓</span>
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     
                     {/* Performance Grade */}
-                    <TableCell className="text-center">
+                    <TableCell className="px-4 text-center">
                       {trade.performanceGrade ? (
                         <span className={cn(
-                          "text-xs font-medium",
-                          trade.performanceGrade >= 3 ? "text-pnl-positive" :
-                          trade.performanceGrade >= 2 ? "text-amber-500" : "text-pnl-negative"
+                          "text-xs font-semibold px-2 py-1 rounded-md",
+                          trade.performanceGrade >= 3 ? "bg-pnl-positive/15 text-pnl-positive" :
+                          trade.performanceGrade >= 2 ? "bg-amber-500/15 text-amber-500" : "bg-pnl-negative/15 text-pnl-negative"
                         )}>
                           {trade.performanceGrade}/3
                         </span>
@@ -656,20 +681,14 @@ export default function History() {
                       )}
                     </TableCell>
                     
-                    {/* P&L - Show Paper/No Trade badge here */}
-                    <TableCell className="text-right">
+                    {/* P&L */}
+                    <TableCell className="px-4 text-right">
                       {trade.isPaperTrade ? (
-                        <Badge 
-                          variant="outline" 
-                          className="text-[10px] font-medium bg-muted/50 text-muted-foreground"
-                        >
+                        <Badge variant="outline" className="text-[10px] font-semibold bg-muted/50 text-muted-foreground border-muted/50">
                           Paper
                         </Badge>
                       ) : trade.noTradeTaken ? (
-                        <Badge 
-                          variant="outline" 
-                          className="text-[10px] font-medium bg-muted/50 text-muted-foreground"
-                        >
+                        <Badge variant="outline" className="text-[10px] font-semibold bg-muted/50 text-muted-foreground border-muted/50">
                           No Trade
                         </Badge>
                       ) : (
@@ -681,13 +700,15 @@ export default function History() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>
+
+                    {/* Actions */}
+                    <TableCell className="px-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 hover:bg-transparent active:bg-transparent"
+                            className="h-8 w-8 hover:bg-muted/50 active:bg-muted/50 rounded-md"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreHorizontal className="h-4 w-4 text-muted-foreground" />

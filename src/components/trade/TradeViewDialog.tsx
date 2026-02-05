@@ -787,27 +787,6 @@ export function TradeViewDialogContent({
                   </div>
                 </div>}
 
-              {trade.emotionalJournalBefore ? <div className="space-y-1.5">
-                  <span className="text-sm font-semibold text-foreground">Before Trade</span>
-                  <div className="rounded-lg border border-border bg-muted/50 p-3">
-                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{trade.emotionalJournalBefore}</p>
-                  </div>
-                </div> : null}
-
-              {trade.emotionalJournalDuring ? <div className="space-y-1.5">
-                  <span className="text-sm font-semibold text-foreground">During Trade</span>
-                  <div className="rounded-lg border border-border bg-muted/50 p-3">
-                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{trade.emotionalJournalDuring}</p>
-                  </div>
-                </div> : null}
-
-              {trade.emotionalJournalAfter ? <div className="space-y-1.5">
-                  <span className="text-sm font-semibold text-foreground">After Trade</span>
-                  <div className="rounded-lg border border-border bg-muted/50 p-3">
-                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{trade.emotionalJournalAfter}</p>
-                  </div>
-                </div> : null}
-
               {trade.overallEmotions ? <div className="space-y-1.5">
                   <span className="text-sm font-semibold text-foreground">Overall Emotions</span>
                   <div className="rounded-lg border border-border bg-muted/50 p-3">
@@ -815,7 +794,7 @@ export function TradeViewDialogContent({
                   </div>
                 </div> : null}
 
-              {!trade.emotionalJournalBefore && !trade.emotionalJournalDuring && !trade.emotionalJournalAfter && !trade.overallEmotions && <div className="text-center py-12 text-muted-foreground">
+              {!trade.overallEmotions && <div className="text-center py-12 text-muted-foreground">
                   <p className="text-sm">No emotional notes recorded</p>
                 </div>}
             </div>}
