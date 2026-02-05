@@ -672,7 +672,7 @@ export function TradeForm({
           variant: 'success'
         });
       }
-      navigate('/dashboard');
+      navigate(-1);
     } catch (error) {
       console.error('Error saving trade:', error);
       toast({
@@ -721,7 +721,7 @@ export function TradeForm({
             </h2>
             <Button type="button" variant="ghost" size="icon" onClick={() => {
               dismissAllToasts();
-              navigate('/dashboard');
+              navigate(-1);
             }} className="h-8 w-8 text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </Button>

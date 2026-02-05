@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Calendar as CalendarIcon, Clock, RefreshCw, TrendingUp, TrendingDown, Minus, CalendarX2, Star, Info, Save, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { format, addDays, subDays, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from 'date-fns';
+import { format, addDays, subDays, startOfWeek, endOfWeek, isWithinInterval, isSameDay, eachDayOfInterval } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -95,6 +95,11 @@ export default function EconomicNews() {
   
   const [timeRangeFilter, setTimeRangeFilter] = useState<'day' | 'week'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [isDateRangeMode, setIsDateRangeMode] = useState(false);
   
   const [newsEvents, setNewsEvents] = useState<NewsEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -246,6 +251,8 @@ export default function EconomicNews() {
     setSelectedImpacts(['all']);
     setTimeRangeFilter('day');
     setSelectedDate(new Date());
+    setIsDateRangeMode(false);
+    setDateRange({ from: undefined, to: undefined });
   };
 
   const applyPreset = (preset: NewsPreset) => {
@@ -377,8 +384,36 @@ export default function EconomicNews() {
 
   // Fetch when date/range changes - no auto-refresh, only manual refresh
   useEffect(() => {
-    fetchNews(selectedDate, timeRangeFilter, false);
-  }, [selectedDate, timeRangeFilter, fetchNews]);
+    if (isDateRangeMode && dateRange.from && dateRange.to) {
+      // When in date range mode, fetch all data for the range
+      const fetchDateRange = async () => {
+        setIsLoading(true);
+        const allEvents: NewsEvent[] = [];
+        
+        // Fetch data for each day in the range
+        const startDate = dateRange.from!;
+        const endDate = dateRange.to!;
+        let currentDate = new Date(startDate);
+        
+        while (currentDate <= endDate) {
+          const data = await fetchFromAPI(currentDate, 'day');
+          if (data) {
+            allEvents.push(...data);
+          }
+          currentDate = addDays(currentDate, 1);
+        }
+        
+        setNewsEvents(allEvents);
+        setLastUpdated(new Date());
+        setDataKey(prev => prev + 1);
+        setIsLoading(false);
+      };
+      
+      fetchDateRange();
+    } else {
+      fetchNews(selectedDate, timeRangeFilter, false);
+    }
+  }, [selectedDate, timeRangeFilter, fetchNews, isDateRangeMode, dateRange, fetchFromAPI]);
 
   const handleRefresh = () => {
     // Clear cache for current view to force fresh fetch
@@ -391,6 +426,7 @@ export default function EconomicNews() {
   // Handle time range change
   const handleTimeRangeChange = (range: 'day' | 'week') => {
     setTimeRangeFilter(range);
+    setIsDateRangeMode(false); // Disable custom date range when switching to day/week view
     if (range === 'day') {
       setSelectedDate(new Date());
     }
@@ -438,7 +474,10 @@ export default function EconomicNews() {
       
       // Time range filter
       let matchesTimeRange = true;
-      if (timeRangeFilter === 'day') {
+      if (isDateRangeMode && dateRange.from && dateRange.to) {
+        // Custom date range mode
+        matchesTimeRange = isWithinInterval(eventDate, { start: dateRange.from, end: dateRange.to });
+      } else if (timeRangeFilter === 'day') {
         matchesTimeRange = isSameDay(eventDate, selectedDate);
       } else if (timeRangeFilter === 'week') {
         const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -453,7 +492,7 @@ export default function EconomicNews() {
       if (dateCompare !== 0) return dateCompare;
       return a.time.localeCompare(b.time);
     });
-  }, [newsEvents, selectedCurrencies, selectedImpacts, timeRangeFilter, selectedDate, searchQuery]);
+  }, [newsEvents, selectedCurrencies, selectedImpacts, timeRangeFilter, selectedDate, searchQuery, isDateRangeMode, dateRange]);
 
   // Group events by date for display
   const groupedEvents = useMemo(() => {
@@ -692,7 +731,12 @@ export default function EconomicNews() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
-                  if (timeRangeFilter === 'week') {
+                  if (isDateRangeMode) {
+                    setIsDateRangeMode(false);
+                    setDateRange({ from: undefined, to: undefined });
+                    setTimeRangeFilter('day');
+                    setSelectedDate(new Date());
+                  } else if (timeRangeFilter === 'week') {
                     setSelectedDate(subDays(selectedDate, 7));
                   } else {
                     setSelectedDate(subDays(selectedDate, 1));
@@ -700,13 +744,27 @@ export default function EconomicNews() {
                   }
                 }}
                 className="px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
+                disabled={isDateRangeMode}
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               
-              {timeRangeFilter === 'week' ? (
+              {isDateRangeMode && dateRange.from && dateRange.to ? (
+                <button
+                  onClick={() => {
+                    setIsDateRangeMode(false);
+                    setDateRange({ from: undefined, to: undefined });
+                    setTimeRangeFilter('day');
+                    setSelectedDate(new Date());
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-white/20 text-white backdrop-blur-sm transition-all flex items-center gap-2"
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  {format(dateRange.from, 'MMM d, yyyy')} - {format(dateRange.to, 'MMM d, yyyy')}
+                </button>
+              ) : timeRangeFilter === 'week' ? (
                 <button
                   onClick={() => handleTimeRangeChange('week')}
                   className="px-4 py-2 rounded-lg text-sm font-medium bg-white/20 text-white backdrop-blur-sm transition-all"
@@ -749,7 +807,12 @@ export default function EconomicNews() {
               
               <button
                 onClick={() => {
-                  if (timeRangeFilter === 'week') {
+                  if (isDateRangeMode) {
+                    setIsDateRangeMode(false);
+                    setDateRange({ from: undefined, to: undefined });
+                    setTimeRangeFilter('day');
+                    setSelectedDate(new Date());
+                  } else if (timeRangeFilter === 'week') {
                     setSelectedDate(addDays(selectedDate, 7));
                   } else {
                     setSelectedDate(addDays(selectedDate, 1));
@@ -757,6 +820,7 @@ export default function EconomicNews() {
                   }
                 }}
                 className="px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
+                disabled={isDateRangeMode}
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -766,6 +830,67 @@ export default function EconomicNews() {
 
             {/* Right Side - Search and Actions */}
             <div className="flex items-center gap-2">
+              {/* Date Range Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "h-9 px-3 rounded-lg text-sm font-medium transition-all justify-start text-left",
+                      isDateRangeMode && dateRange.from
+                        ? "bg-white/20 text-white hover:bg-white/30"
+                        : "text-white/70 hover:text-white hover:bg-white/10"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {isDateRangeMode && dateRange.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd, yyyy")}
+                        </>
+                      ) : (
+                        format(dateRange.from, "MMM dd, yyyy")
+                      )
+                    ) : (
+                      "Date Range"
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-background/95 border border-border/60 dark:border-white/10" align="end">
+                  <Calendar
+                    mode="range"
+                    selected={{
+                      from: dateRange.from,
+                      to: dateRange.to,
+                    }}
+                    onSelect={(range) => {
+                      if (range?.from || range?.to) {
+                        setDateRange({
+                          from: range?.from,
+                          to: range?.to,
+                        });
+                        setIsDateRangeMode(true);
+                      }
+                    }}
+                    numberOfMonths={2}
+                    initialFocus
+                  />
+                  <div className="p-3 border-t border-border/60 dark:border-white/10 flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsDateRangeMode(false);
+                        setDateRange({ from: undefined, to: undefined });
+                      }}
+                      className="flex-1"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               {/* View Mode Selector */}
               <Select 
                 value={timeRangeFilter} 
@@ -933,6 +1058,67 @@ export default function EconomicNews() {
                       Week
                     </button>
                   </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Custom Date Range</p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal rounded-xl",
+                          isDateRangeMode && dateRange.from && "border-foreground/50 dark:border-white/50"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {isDateRangeMode && dateRange.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd, yyyy")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "MMM dd, yyyy")
+                          )
+                        ) : (
+                          "Pick a date range"
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        selected={{
+                          from: dateRange.from,
+                          to: dateRange.to,
+                        }}
+                        onSelect={(range) => {
+                          if (range?.from || range?.to) {
+                            setDateRange({
+                              from: range?.from,
+                              to: range?.to,
+                            });
+                            setIsDateRangeMode(true);
+                          }
+                        }}
+                        numberOfMonths={1}
+                        initialFocus
+                      />
+                      <div className="p-3 border-t border-border/60 dark:border-white/10 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsDateRangeMode(false);
+                            setDateRange({ from: undefined, to: undefined });
+                          }}
+                          className="flex-1"
+                        >
+                          Clear
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div>
