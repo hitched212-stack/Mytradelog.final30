@@ -480,10 +480,15 @@ export function TradeForm({
   const handlePnlAmountChange = (value: string) => {
     setFormData(prev => {
       const pnlAmount = parseFloat(value) || 0;
-      const accountBalance = settings.accountBalance || 0;
       let pnlPercentage = prev.pnlPercentage;
-      if (accountBalance > 0 && value !== '') {
-        pnlPercentage = (pnlAmount / accountBalance * 100).toFixed(2);
+      
+      // Calculate percentage based on entry cost (entryPrice * lotSize)
+      const entryPrice = parseFloat(prev.entryPrice) || 0;
+      const lotSize = parseFloat(prev.lotSize) || 0;
+      const entryCost = entryPrice * lotSize;
+      
+      if (entryCost > 0 && value !== '') {
+        pnlPercentage = (pnlAmount / entryCost * 100).toFixed(2);
       }
       return {
         ...prev,
@@ -501,6 +506,29 @@ export function TradeForm({
       handlePnlAmountChange(value);
       return;
     }
+    
+    // Recalculate pnlPercentage when entry price or lot size changes
+    if ((name === 'entryPrice' || name === 'lotSize') && formData.pnlAmount) {
+      setFormData(prev => {
+        const pnlAmount = parseFloat(prev.pnlAmount) || 0;
+        const newEntryPrice = name === 'entryPrice' ? parseFloat(value) || 0 : parseFloat(prev.entryPrice) || 0;
+        const newLotSize = name === 'lotSize' ? parseFloat(value) || 0 : parseFloat(prev.lotSize) || 0;
+        const entryCost = newEntryPrice * newLotSize;
+        let pnlPercentage = prev.pnlPercentage;
+        
+        if (entryCost > 0) {
+          pnlPercentage = (pnlAmount / entryCost * 100).toFixed(2);
+        }
+        
+        return {
+          ...prev,
+          [name]: value,
+          pnlPercentage
+        };
+      });
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -527,6 +555,18 @@ export function TradeForm({
     // Always save timeframe markers for charts with images, even if no notes (same pattern as beforeCharts/afterCharts)
     const allPreMarketNotes = preMarketCharts.filter(c => c.images.length > 0 || c.notes.trim()).map(c => `[${getTimeframeLabel(c.timeframe)}]\n${c.notes}`).join('\n\n');
     const allPostMarketNotes = postMarketCharts.filter(c => c.images.length > 0 || c.notes.trim()).map(c => `[${getTimeframeLabel(c.timeframe)}]\n${c.notes}`).join('\n\n');
+    
+    // Calculate pnlPercentage based on entry cost if not already set
+    const pnlAmount = parseFloat(formData.pnlAmount) || 0;
+    const entryPrice = parseFloat(formData.entryPrice) || 0;
+    const lotSize = parseFloat(formData.lotSize) || 0;
+    const entryCost = entryPrice * lotSize;
+    let calculatedPnlPercentage = parseFloat(formData.pnlPercentage) || 0;
+    
+    if (entryCost > 0 && (formData.pnlPercentage === '' || formData.pnlPercentage === '0')) {
+      calculatedPnlPercentage = (pnlAmount / entryCost * 100);
+    }
+    
     const tradeData = {
       symbol: formData.symbol.toUpperCase().trim(),
       direction: formData.direction,
@@ -540,8 +580,8 @@ export function TradeForm({
       stopLossPips: formData.stopLossPips ? parseFloat(formData.stopLossPips) : undefined,
       takeProfit: parseFloat(formData.takeProfit) || 0,
       riskRewardRatio: formData.riskRewardRatio,
-      pnlAmount: parseFloat(formData.pnlAmount) || 0,
-      pnlPercentage: parseFloat(formData.pnlPercentage) || 0,
+      pnlAmount: pnlAmount,
+      pnlPercentage: calculatedPnlPercentage,
       preMarketPlan: formData.preMarketPlan,
       postMarketReview: formData.postMarketReview,
       emotionalJournalBefore: formData.emotionalJournalBefore,
