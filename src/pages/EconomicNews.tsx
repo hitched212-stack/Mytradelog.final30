@@ -684,49 +684,154 @@ export default function EconomicNews() {
 
   return (
     <div className="min-h-screen pb-24 animate-in fade-in duration-300">
-      {/* Header with title and refresh */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-foreground/20 dark:border-white/10">
-        <div className="flex items-center justify-between px-4 py-4">
-          <h1 className="text-lg font-semibold text-foreground">Economic Calendar</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="h-9 w-9"
-          >
-            <RefreshCw className={cn("h-5 w-5", isLoading && "animate-spin")} />
-          </Button>
+      {/* Modern Header with Tabs */}
+      <div className="sticky top-0 z-20 bg-background">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            {/* Left Side - Date Navigation Tabs */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (timeRangeFilter === 'week') {
+                    setSelectedDate(subDays(selectedDate, 7));
+                  } else {
+                    setSelectedDate(subDays(selectedDate, 1));
+                    setTimeRangeFilter('day');
+                  }
+                }}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              {timeRangeFilter === 'week' ? (
+                <button
+                  onClick={() => handleTimeRangeChange('week')}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-white/20 text-white backdrop-blur-sm transition-all"
+                >
+                  {format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'MMM d, yyyy')} - {format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setSelectedDate(new Date());
+                      setTimeRangeFilter('day');
+                    }}
+                    className={cn(
+                      "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                      isSameDay(selectedDate, new Date())
+                        ? "bg-white/20 text-white backdrop-blur-sm"
+                        : "text-white/70 hover:text-white hover:bg-white/10"
+                    )}
+                  >
+                    Today: {format(new Date(), 'MMM d')}
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setSelectedDate(addDays(new Date(), 1));
+                      setTimeRangeFilter('day');
+                    }}
+                    className={cn(
+                      "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                      isSameDay(selectedDate, addDays(new Date(), 1))
+                        ? "bg-white/20 text-white backdrop-blur-sm"
+                        : "text-white/70 hover:text-white hover:bg-white/10"
+                    )}
+                  >
+                    Up Next
+                  </button>
+                </>
+              )}
+              
+              <button
+                onClick={() => {
+                  if (timeRangeFilter === 'week') {
+                    setSelectedDate(addDays(selectedDate, 7));
+                  } else {
+                    setSelectedDate(addDays(selectedDate, 1));
+                    setTimeRangeFilter('day');
+                  }
+                }}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Right Side - Search and Actions */}
+            <div className="flex items-center gap-2">
+              {/* View Mode Selector */}
+              <Select 
+                value={timeRangeFilter} 
+                onValueChange={(value: 'day' | 'week') => handleTimeRangeChange(value)}
+              >
+                <SelectTrigger className="w-32 h-9 rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Day View</SelectItem>
+                  <SelectItem value="week">Week View</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Search Events Button */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Search Events
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-3 rounded-xl bg-background/95 border border-border/60 dark:border-white/10 mt-2" align="end">
+                  <div className="relative">
+                    <div className="relative flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 dark:border-white/10 dark:bg-white/5">
+                      <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search for news events..."
+                        className="w-full bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none"
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="h-6 w-6 rounded-full bg-muted/40 hover:bg-muted/60 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center"
+                        >
+                          <X className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Refresh Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className="h-9 w-9 text-white/70 hover:text-white hover:bg-white/10"
+              >
+                <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="px-4 py-6">
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 dark:from-white/10 dark:via-white/5 dark:to-white/10 opacity-60" />
-            <div className="relative flex items-center gap-2 rounded-2xl border border-foreground/25 bg-muted/40 px-4 py-3 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] focus-within:border-foreground/40 dark:focus-within:border-white/30">
-              <svg className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for news events"
-                className="w-full bg-transparent text-foreground placeholder-muted-foreground focus:outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="h-8 w-8 rounded-full bg-muted/40 hover:bg-muted/60 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* Mobile Filters Dropdown */}
         <div className="mb-6 sm:hidden">
@@ -949,95 +1054,7 @@ export default function EconomicNews() {
           </Popover>
         </div>
 
-        {/* Presets and Time Period Selector */}
-        <div className="hidden sm:flex items-center justify-between mb-6">
-          <div className="flex items-center gap-6">
-            {/* Presets */}
-            <div className="flex items-center gap-3">
-              <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Presets</p>
-              <Select value={selectedPresetId} onValueChange={handleSelectPreset}>
-                <SelectTrigger className="w-56 rounded-xl bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10 h-10">
-                  <SelectValue placeholder="Choose a preset" />
-                </SelectTrigger>
-                <SelectContent>
-                  {presets.length === 0 && (
-                    <SelectItem value="__empty" disabled>
-                      No presets yet
-                    </SelectItem>
-                  )}
-                  {presets.map(preset => (
-                    <SelectItem key={preset.id} value={preset.id}>
-                      {preset.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            {/* Time Period */}
-            <Select 
-              value={
-                isSameDay(selectedDate, new Date()) ? 'today' :
-                isSameDay(selectedDate, subDays(new Date(), 1)) ? 'yesterday' :
-                isSameDay(selectedDate, addDays(new Date(), 1)) ? 'tomorrow' :
-                timeRangeFilter === 'week' ? 'week' : 'custom'
-              } 
-              onValueChange={(value) => {
-                if (value === 'today') {
-                  setSelectedDate(new Date());
-                  setTimeRangeFilter('day');
-                } else if (value === 'yesterday') {
-                  setSelectedDate(subDays(new Date(), 1));
-                  setTimeRangeFilter('day');
-                } else if (value === 'tomorrow') {
-                  setSelectedDate(addDays(new Date(), 1));
-                  setTimeRangeFilter('day');
-                } else if (value === 'week') {
-                  setTimeRangeFilter('week');
-                }
-              }}
-            >
-              <SelectTrigger className="w-48 rounded-xl bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10 h-10">
-                <SelectValue placeholder="Select time period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="yesterday">Yesterday</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <button
-            onClick={handleSavePreset}
-            className="px-4 py-2 rounded-full text-xs font-medium bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-white/90 transition-colors"
-          >
-            Save preset
-          </button>
-        </div>
-
-        {/* Week Day Selector - always show */}
-        <div className="hidden sm:flex mb-8 gap-1.5 sm:gap-2 justify-center overflow-x-auto pb-2 px-2 scrollbar-hide">
-          {Array.from({ length: 7 }, (_, i) => {
-            const day = addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), i);
-            const isSelected = isSameDay(day, selectedDate);
-            return (
-              <button
-                key={format(day, 'yyyy-MM-dd')}
-                onClick={() => setSelectedDate(day)}
-                className={cn(
-                  "h-14 sm:h-16 min-w-[60px] sm:min-w-[70px] rounded-2xl flex flex-col items-center justify-center transition-all flex-shrink-0",
-                  isSelected 
-                    ? "border-2 border-foreground/50 bg-muted text-foreground dark:border-white dark:bg-white/10 dark:text-white"
-                    : "border border-border/60 bg-muted/40 text-foreground/70 hover:text-foreground dark:border-white/5 dark:bg-white/5 dark:text-gray-400"
-                )}
-              >
-                <span className="text-xs font-medium mb-0.5 sm:mb-1">{format(day, 'EEE')}</span>
-                <span className="text-xl sm:text-2xl font-medium">{format(day, 'd')}</span>
-              </button>
-            );
-          })}
-        </div>
 
         {/* Impact Filter Pills */}
         <div className="hidden sm:flex mb-6 items-center gap-4">

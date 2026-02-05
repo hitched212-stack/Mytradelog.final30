@@ -17,7 +17,7 @@ export function AppLayout() {
       <div className="flex-1 flex flex-col relative min-w-0 w-full" style={{ zIndex: 2 }}>
         <MobileHeader />
         <main className="flex-1 overflow-x-hidden overflow-y-auto w-full pb-24 md:pb-0">
-          <PageTransition>
+          <PageTransition key={location.pathname}>
             <Outlet />
           </PageTransition>
         </main>

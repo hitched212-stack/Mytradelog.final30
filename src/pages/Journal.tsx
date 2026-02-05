@@ -485,7 +485,7 @@ export default function Journal() {
         </div>
       </div>;
   }
-  return <div className="min-h-screen animate-in fade-in duration-300">
+  return <div className="min-h-screen">
       {/* Header - Static greeting and account selector */}
       <div className="px-4 py-6 md:px-6 lg:px-8">
         <div className="mb-6 flex items-start justify-between">
