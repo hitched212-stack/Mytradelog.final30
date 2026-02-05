@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Check, LogOut, Shield, Tag } from 'lucide-react';
+import { Check, LogOut, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,7 +15,6 @@ export default function Paywall() {
   const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
   const [isLoading, setIsLoading] = useState(false);
-  const [promoCode, setPromoCode] = useState('');
   
   // Stripe Price IDs - replace these with your actual price IDs
   const priceIds: Record<PlanType, string> = {
@@ -46,7 +45,6 @@ export default function Paywall() {
           userId: user.id,
           planType: selectedPlanType,
           userEmail: user.email,
-          promoCode: promoCode.trim() || undefined,
         },
       });
 
@@ -207,28 +205,6 @@ export default function Paywall() {
                 {selectedPlan === 'monthly' && <Check className="h-3 w-3" style={{ color: '#000000' }} />}
               </div>
             </button>
-
-            {/* Promo Code Input */}
-            <div className="mt-4">
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <Tag className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
-                </div>
-                <Input
-                  type="text"
-                  placeholder="Promo code (optional)"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                  className="h-12 pl-12 pr-4 rounded-xl border text-sm"
-                  style={{ 
-                    backgroundColor: 'rgba(255,255,255,0.05)',
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    color: '#ffffff'
-                  }}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
 
             {/* Mobile CTA Button */}
             <Button
@@ -397,28 +373,6 @@ export default function Paywall() {
                 </Button>
               </div>
             </button>
-          </div>
-
-          {/* Promo Code Input - Desktop */}
-          <div className="hidden sm:block mt-6">
-            <div className="relative max-w-md mx-auto">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                <Tag className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
-              </div>
-              <Input
-                type="text"
-                placeholder="Have a promo code? Enter it here"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                className="h-12 pl-12 pr-4 rounded-xl border text-sm text-center"
-                style={{ 
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                  borderColor: 'rgba(255,255,255,0.1)',
-                  color: '#ffffff'
-                }}
-                disabled={isLoading}
-              />
-            </div>
           </div>
 
           {/* Trust Signals */}
