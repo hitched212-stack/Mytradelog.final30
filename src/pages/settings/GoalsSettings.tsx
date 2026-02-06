@@ -47,59 +47,80 @@ export default function GoalsSettings() {
 
   const goalPeriods = [{
     key: 'daily' as const,
-    label: 'Daily Goal'
+    label: 'Daily Goal',
+    description: 'Target profit per trading day'
   }, {
     key: 'weekly' as const,
-    label: 'Weekly Goal'
+    label: 'Weekly Goal',
+    description: 'Target profit per week'
   }, {
     key: 'monthly' as const,
-    label: 'Monthly Goal'
+    label: 'Monthly Goal',
+    description: 'Target profit per month'
   }, {
     key: 'yearly' as const,
-    label: 'Yearly Goal'
+    label: 'Yearly Goal',
+    description: 'Target profit per year'
   }];
 
   return (
     <div className="min-h-screen pb-24">
-      <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">P&L Goals</h1>
-            <p className="text-sm text-muted-foreground">Set your trading targets</p>
-          </div>
+      {/* Header */}
+      <header className="px-4 pt-6 pb-4 md:px-6 lg:px-8">
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold text-foreground">P&L Goals</h1>
+          <p className="text-sm text-muted-foreground">Set your trading targets</p>
         </div>
       </header>
 
-      <div className="px-4 md:px-6 lg:px-8 space-y-4">
-        {goalPeriods.map(({ key, label }) => (
-          <div key={key} className="rounded-xl bg-card border border-border/50 p-4">
-            <label className="text-sm font-medium text-foreground mb-3 block">
-              {label}
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-display font-bold tabular-nums text-sm">
-                {currencySymbol}
-              </span>
-              <Input
-                type="number"
-                value={goals[key]}
-                onChange={(e) => setGoalsLocal((prev) => ({
-                  ...prev,
-                  [key]: e.target.value
-                }))}
-                className="pl-9 h-11 font-display font-bold tabular-nums bg-muted/30 border-border/50 text-base"
-                placeholder="0"
-              />
-            </div>
-          </div>
-        ))}
+      <div className="px-4 md:px-6 lg:px-8 space-y-6">
+        {/* Goal Settings */}
+        <div className="space-y-4">
+          {goalPeriods.map(({ key, label, description }) => (
+            <div 
+              key={key} 
+              className="rounded-2xl bg-card border border-border/50 overflow-hidden hover:border-border transition-colors"
+            >
+              <div className="p-5">
+                {/* Header */}
+                <div className="mb-4">
+                  <label className="text-sm font-semibold text-foreground block">
+                    {label}
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+                </div>
 
-        <Button
-          onClick={handleSave}
-          className="w-full h-11 bg-foreground text-background hover:bg-foreground/90 mt-6"
-        >
-          Save Changes
-        </Button>
+                {/* Input */}
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-display font-bold tabular-nums text-base">
+                    {currencySymbol}
+                  </span>
+                  <Input
+                    type="number"
+                    value={goals[key]}
+                    onChange={(e) => setGoalsLocal((prev) => ({
+                      ...prev,
+                      [key]: e.target.value
+                    }))}
+                    className="pl-10 h-12 font-display font-bold tabular-nums bg-muted/30 border-border/50 text-lg rounded-xl focus:ring-2 focus:ring-primary/20"
+                    placeholder="0.00"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Save Button */}
+        <div className="sticky bottom-20 md:bottom-6 pt-4">
+          <Button
+            onClick={handleSave}
+            className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-lg font-semibold"
+          >
+            Save Goals
+          </Button>
+        </div>
       </div>
     </div>
   );

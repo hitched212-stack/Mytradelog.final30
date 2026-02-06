@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Calendar as CalendarIcon, Clock, RefreshCw, TrendingUp, TrendingDown, Minus, CalendarX2, Star, Info, Save, Check, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, RefreshCw, TrendingUp, TrendingDown, Minus, CalendarX2, Star, Info, Save, Check, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, startOfWeek, endOfWeek, isWithinInterval, isSameDay, eachDayOfInterval } from 'date-fns';
@@ -725,233 +725,77 @@ export default function EconomicNews() {
     <div className="min-h-screen pb-24 animate-in fade-in duration-300">
       {/* Modern Header with Tabs */}
       <div className="sticky top-0 z-20 bg-background">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
-            {/* Left Side - Date Navigation Tabs */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (isDateRangeMode) {
-                    setIsDateRangeMode(false);
-                    setDateRange({ from: undefined, to: undefined });
-                    setTimeRangeFilter('day');
-                    setSelectedDate(new Date());
-                  } else if (timeRangeFilter === 'week') {
-                    setSelectedDate(subDays(selectedDate, 7));
-                  } else {
-                    setSelectedDate(subDays(selectedDate, 1));
-                    setTimeRangeFilter('day');
-                  }
-                }}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
-                disabled={isDateRangeMode}
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              {isDateRangeMode && dateRange.from && dateRange.to ? (
-                <button
-                  onClick={() => {
-                    setIsDateRangeMode(false);
-                    setDateRange({ from: undefined, to: undefined });
-                    setTimeRangeFilter('day');
-                    setSelectedDate(new Date());
-                  }}
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-white/20 text-white backdrop-blur-sm transition-all flex items-center gap-2"
-                >
-                  <CalendarIcon className="h-4 w-4" />
+        <div className="px-3 py-2 sm:px-4 sm:py-3">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+            {/* Left Arrow */}
+            <button
+              onClick={() => {
+                if (isDateRangeMode) {
+                  setIsDateRangeMode(false);
+                  setDateRange({ from: undefined, to: undefined });
+                  setTimeRangeFilter('day');
+                  setSelectedDate(new Date());
+                } else if (timeRangeFilter === 'week') {
+                  setSelectedDate(subDays(selectedDate, 7));
+                } else {
+                  setSelectedDate(subDays(selectedDate, 1));
+                  setTimeRangeFilter('day');
+                }
+              }}
+              className="px-2.5 py-2 sm:px-3 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors active:scale-95"
+              disabled={isDateRangeMode}
+            >
+              <svg className="h-4 w-4 text-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            {/* Date Display */}
+            {isDateRangeMode && dateRange.from && dateRange.to ? (
+              <div className="px-3 py-2 sm:px-6 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 justify-center">
+                <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">
                   {format(dateRange.from, 'MMM d, yyyy')} - {format(dateRange.to, 'MMM d, yyyy')}
-                </button>
-              ) : timeRangeFilter === 'week' ? (
-                <button
-                  onClick={() => handleTimeRangeChange('week')}
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-white/20 text-white backdrop-blur-sm transition-all"
-                >
+                </span>
+              </div>
+            ) : timeRangeFilter === 'week' ? (
+              <div className="px-3 py-2 sm:px-6 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 text-xs sm:text-sm font-medium text-foreground min-w-0 flex-1 text-center">
+                <span className="block truncate">
                   {format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'MMM d, yyyy')} - {format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => {
-                      setSelectedDate(new Date());
-                      setTimeRangeFilter('day');
-                    }}
-                    className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                      isSameDay(selectedDate, new Date())
-                        ? "bg-white/20 text-white backdrop-blur-sm"
-                        : "text-white/70 hover:text-white hover:bg-white/10"
-                    )}
-                  >
-                    Today: {format(new Date(), 'MMM d')}
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedDate(addDays(new Date(), 1));
-                      setTimeRangeFilter('day');
-                    }}
-                    className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                      isSameDay(selectedDate, addDays(new Date(), 1))
-                        ? "bg-white/20 text-white backdrop-blur-sm"
-                        : "text-white/70 hover:text-white hover:bg-white/10"
-                    )}
-                  >
-                    Up Next
-                  </button>
-                </>
-              )}
-              
-              <button
-                onClick={() => {
-                  if (isDateRangeMode) {
-                    setIsDateRangeMode(false);
-                    setDateRange({ from: undefined, to: undefined });
-                    setTimeRangeFilter('day');
-                    setSelectedDate(new Date());
-                  } else if (timeRangeFilter === 'week') {
-                    setSelectedDate(addDays(selectedDate, 7));
-                  } else {
-                    setSelectedDate(addDays(selectedDate, 1));
-                    setTimeRangeFilter('day');
-                  }
-                }}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
-                disabled={isDateRangeMode}
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Right Side - Search and Actions */}
-            <div className="flex items-center gap-2">
-              {/* Date Range Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "h-9 px-3 rounded-lg text-sm font-medium transition-all justify-start text-left",
-                      isDateRangeMode && dateRange.from
-                        ? "bg-white/20 text-white hover:bg-white/30"
-                        : "text-white/70 hover:text-white hover:bg-white/10"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {isDateRangeMode && dateRange.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd, yyyy")}
-                        </>
-                      ) : (
-                        format(dateRange.from, "MMM dd, yyyy")
-                      )
-                    ) : (
-                      "Date Range"
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-background/95 border border-border/60 dark:border-white/10" align="end">
-                  <Calendar
-                    mode="range"
-                    selected={{
-                      from: dateRange.from,
-                      to: dateRange.to,
-                    }}
-                    onSelect={(range) => {
-                      if (range?.from || range?.to) {
-                        setDateRange({
-                          from: range?.from,
-                          to: range?.to,
-                        });
-                        setIsDateRangeMode(true);
-                      }
-                    }}
-                    numberOfMonths={2}
-                    initialFocus
-                  />
-                  <div className="p-3 border-t border-border/60 dark:border-white/10 flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setIsDateRangeMode(false);
-                        setDateRange({ from: undefined, to: undefined });
-                      }}
-                      className="flex-1"
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* View Mode Selector */}
-              <Select 
-                value={timeRangeFilter} 
-                onValueChange={(value: 'day' | 'week') => handleTimeRangeChange(value)}
-              >
-                <SelectTrigger className="w-32 h-9 rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Day View</SelectItem>
-                  <SelectItem value="week">Week View</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Search Events Button */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    Search Events
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-3 rounded-xl bg-background/95 border border-border/60 dark:border-white/10 mt-2" align="end">
-                  <div className="relative">
-                    <div className="relative flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 dark:border-white/10 dark:bg-white/5">
-                      <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search for news events..."
-                        className="w-full bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none"
-                      />
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery('')}
-                          className="h-6 w-6 rounded-full bg-muted/40 hover:bg-muted/60 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center"
-                        >
-                          <X className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* Refresh Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="h-9 w-9 text-white/70 hover:text-white hover:bg-white/10"
-              >
-                <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-              </Button>
-            </div>
+                </span>
+              </div>
+            ) : (
+              <div className="px-3 py-2 sm:px-6 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 text-xs sm:text-sm font-medium text-foreground min-w-0 flex-1 text-center">
+                <span className="block truncate">
+                  {isSameDay(selectedDate, new Date()) 
+                    ? `Today: ${format(new Date(), 'MMM d, yyyy')}`
+                    : format(selectedDate, 'MMM d, yyyy')}
+                </span>
+              </div>
+            )}
+            
+            {/* Right Arrow */}
+            <button
+              onClick={() => {
+                if (isDateRangeMode) {
+                  setIsDateRangeMode(false);
+                  setDateRange({ from: undefined, to: undefined });
+                  setTimeRangeFilter('day');
+                  setSelectedDate(new Date());
+                } else if (timeRangeFilter === 'week') {
+                  setSelectedDate(addDays(selectedDate, 7));
+                } else {
+                  setSelectedDate(addDays(selectedDate, 1));
+                  setTimeRangeFilter('day');
+                }
+              }}
+              className="px-2.5 py-2 sm:px-3 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors active:scale-95"
+              disabled={isDateRangeMode}
+            >
+              <svg className="h-4 w-4 text-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -1148,45 +992,55 @@ export default function EconomicNews() {
 
                 <div>
                   <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Impact</p>
-                  <div className="flex flex-wrap gap-2">
-                    {IMPACT_FILTERS.map(filter => {
-                      const isSelected = filter.value === 'all' 
-                        ? selectedImpacts.includes('all')
-                        : selectedImpacts.includes(filter.value);
-                      const selectedClass = filter.value === 'high'
-                        ? "bg-red-500/20 text-red-600 border border-red-500/40 dark:text-red-300"
-                        : filter.value === 'medium'
-                          ? "bg-orange-500/20 text-orange-600 border border-orange-500/40 dark:text-orange-300"
-                          : filter.value === 'low'
-                            ? "bg-yellow-500/20 text-yellow-700 border border-yellow-500/40 dark:text-yellow-300"
-                            : "bg-foreground text-background dark:bg-white dark:text-black";
-                      return (
-                        <button
-                          key={filter.value}
-                          onClick={() => {
-                            if (filter.value === 'all') {
-                              setSelectedImpacts(['all']);
-                            } else if (selectedImpacts.includes('all')) {
-                              setSelectedImpacts([filter.value]);
-                            } else if (isSelected) {
-                              const updated = selectedImpacts.filter(v => v !== filter.value);
-                              setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
-                            } else {
-                              setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
-                            }
-                          }}
-                          className={cn(
-                            "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                            isSelected
-                              ? selectedClass
-                              : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                          )}
-                        >
-                          {filter.label.split(' ')[0]}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="w-full px-4 py-2.5 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 flex items-center justify-between text-sm hover:bg-muted/60 transition-colors">
+                        <span className="text-foreground/80">
+                          {selectedImpacts.includes('all') 
+                            ? 'All Impact' 
+                            : `${selectedImpacts.length} selected`}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2 rounded-xl" align="start">
+                      <div className="space-y-1">
+                        {IMPACT_FILTERS.map(filter => {
+                          const isSelected = filter.value === 'all' 
+                            ? selectedImpacts.includes('all')
+                            : selectedImpacts.includes(filter.value);
+                          return (
+                            <button
+                              key={filter.value}
+                              onClick={() => {
+                                if (filter.value === 'all') {
+                                  setSelectedImpacts(['all']);
+                                } else if (selectedImpacts.includes('all')) {
+                                  setSelectedImpacts([filter.value]);
+                                } else if (isSelected) {
+                                  const updated = selectedImpacts.filter(v => v !== filter.value);
+                                  setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
+                                } else {
+                                  setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
+                                }
+                              }}
+                              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
+                            >
+                              <div className={cn(
+                                "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
+                                isSelected 
+                                  ? "bg-primary border-primary" 
+                                  : "border-border/60 dark:border-white/20"
+                              )}>
+                                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                              </div>
+                              <span className="text-sm font-medium text-foreground">{filter.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div>
@@ -1201,39 +1055,56 @@ export default function EconomicNews() {
                       </button>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {['All', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD', 'CNY'].map((curr) => {
-                      const isSelected = curr === 'All'
-                        ? selectedCurrencies.includes('all')
-                        : selectedCurrencies.includes(curr);
-                      return (
-                        <button
-                          key={curr}
-                          onClick={() => {
-                            if (curr === 'All') {
-                              setSelectedCurrencies(['all']);
-                            } else if (selectedCurrencies.includes('all')) {
-                              setSelectedCurrencies([curr]);
-                            } else if (isSelected) {
-                              const updated = selectedCurrencies.filter(v => v !== curr);
-                              setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
-                            } else {
-                              setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
-                            }
-                          }}
-                          className={cn(
-                            "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
-                            isSelected
-                              ? "bg-foreground text-background dark:bg-white dark:text-black"
-                              : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                          )}
-                        >
-                          {curr !== 'All' && <span className="text-sm">{getCurrencyFlag(curr)}</span>}
-                          {curr}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="w-full px-4 py-2.5 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 flex items-center justify-between text-sm hover:bg-muted/60 transition-colors">
+                        <span className="text-foreground/80">
+                          {selectedCurrencies.includes('all') 
+                            ? 'All Currencies' 
+                            : `${selectedCurrencies.length} selected`}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2 rounded-xl" align="start">
+                      <div className="space-y-1">
+                        {['All', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD', 'CNY'].map((curr) => {
+                          const isSelected = curr === 'All'
+                            ? selectedCurrencies.includes('all')
+                            : selectedCurrencies.includes(curr);
+                          return (
+                            <button
+                              key={curr}
+                              onClick={() => {
+                                if (curr === 'All') {
+                                  setSelectedCurrencies(['all']);
+                                } else if (selectedCurrencies.includes('all')) {
+                                  setSelectedCurrencies([curr]);
+                                } else if (isSelected) {
+                                  const updated = selectedCurrencies.filter(v => v !== curr);
+                                  setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
+                                } else {
+                                  setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
+                                }
+                              }}
+                              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
+                            >
+                              <div className={cn(
+                                "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
+                                isSelected 
+                                  ? "bg-primary border-primary" 
+                                  : "border-border/60 dark:border-white/20"
+                              )}>
+                                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                              </div>
+                              {curr !== 'All' && <span className="text-base">{getCurrencyFlag(curr)}</span>}
+                              <span className="text-sm font-medium text-foreground">{curr}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </PopoverContent>
@@ -1242,96 +1113,238 @@ export default function EconomicNews() {
 
 
 
-        {/* Impact Filter Pills */}
-        <div className="hidden sm:flex mb-6 items-center gap-4">
-          <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium min-w-fit">Impact</p>
-          <div className="flex gap-2">
-            {IMPACT_FILTERS.map(filter => {
-              const isSelected = filter.value === 'all' 
-                ? selectedImpacts.includes('all')
-                : selectedImpacts.includes(filter.value);
-              const selectedClass = filter.value === 'high'
-                ? "bg-red-500/20 text-red-600 border border-red-500/40 dark:text-red-300"
-                : filter.value === 'medium'
-                  ? "bg-orange-500/20 text-orange-600 border border-orange-500/40 dark:text-orange-300"
-                  : filter.value === 'low'
-                    ? "bg-yellow-500/20 text-yellow-700 border border-yellow-500/40 dark:text-yellow-300"
-                    : "bg-foreground text-background dark:bg-white dark:text-black";
-              return (
-                <button
-                  key={filter.value}
-                  onClick={() => {
-                    if (filter.value === 'all') {
-                      setSelectedImpacts(['all']);
-                    } else if (selectedImpacts.includes('all')) {
-                      setSelectedImpacts([filter.value]);
-                    } else if (isSelected) {
-                      const updated = selectedImpacts.filter(v => v !== filter.value);
-                      setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
-                    } else {
-                      setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
+        {/* Impact and Currency Filters - Same Row */}
+        <div className="hidden sm:flex mb-8 items-center gap-3 flex-wrap">
+          {/* Date Range Picker */}
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium whitespace-nowrap">Date Range</p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 flex items-center gap-2 text-sm hover:bg-muted/60 transition-colors">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-foreground/80 truncate max-w-[140px]">
+                    {isDateRangeMode && dateRange.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd")}
+                        </>
+                      ) : (
+                        format(dateRange.from, "MMM dd")
+                      )
+                    ) : (
+                      "Select dates"
+                    )}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-background/95 border border-border/60 dark:border-white/10" align="start">
+                <Calendar
+                  mode="range"
+                  selected={{
+                    from: dateRange.from,
+                    to: dateRange.to,
+                  }}
+                  onSelect={(range) => {
+                    if (range?.from || range?.to) {
+                      setDateRange({
+                        from: range?.from,
+                        to: range?.to,
+                      });
+                      setIsDateRangeMode(true);
                     }
                   }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                    isSelected
-                      ? selectedClass
-                      : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                  )}
-                >
-                  {filter.label.split(' ')[0]}
-                </button>
-              );
-            })}
+                  numberOfMonths={2}
+                  initialFocus
+                />
+                <div className="p-3 border-t border-border/60 dark:border-white/10 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsDateRangeMode(false);
+                      setDateRange({ from: undefined, to: undefined });
+                    }}
+                    className="flex-1"
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-        </div>
 
-        {/* Currency Filter Pills */}
-        <div className="hidden sm:flex mb-8 items-center gap-4">
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium">Currency</p>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Clear filters
-              </button>
-            )}
+          {/* View Mode Selector */}
+          <div className="flex items-center gap-3">
+            <Select 
+              value={timeRangeFilter} 
+              onValueChange={(value: 'day' | 'week') => handleTimeRangeChange(value)}
+            >
+              <SelectTrigger className="w-32 px-3 py-2 h-auto rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 text-sm hover:bg-muted/60 transition-colors">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="day">Day View</SelectItem>
+                <SelectItem value="week">Week View</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {['All', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD', 'CNY'].map((curr) => {
-              const isSelected = curr === 'All'
-                ? selectedCurrencies.includes('all')
-                : selectedCurrencies.includes(curr);
-              return (
-                <button
-                  key={curr}
-                  onClick={() => {
-                    if (curr === 'All') {
-                      setSelectedCurrencies(['all']);
-                    } else if (selectedCurrencies.includes('all')) {
-                      setSelectedCurrencies([curr]);
-                    } else if (isSelected) {
-                      const updated = selectedCurrencies.filter(v => v !== curr);
-                      setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
-                    } else {
-                      setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
-                    }
-                  }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
-                    isSelected
-                      ? "bg-foreground text-background dark:bg-white dark:text-black"
-                      : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                  )}
-                >
-                  {curr !== 'All' && <span className="text-sm">{getCurrencyFlag(curr)}</span>}
-                  {curr}
+
+          {/* Search Events */}
+          <div className="flex items-center gap-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 flex items-center gap-2 text-sm hover:bg-muted/60 transition-colors">
+                  <svg className="h-4 w-4 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span className="text-foreground/80 whitespace-nowrap">Search</span>
                 </button>
-              );
-            })}
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3 rounded-xl bg-background/95 border border-border/60 dark:border-white/10" align="start">
+                <div className="relative">
+                  <div className="relative flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 dark:border-white/10 dark:bg-white/5">
+                    <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search for news events..."
+                      className="w-full bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="h-6 w-6 rounded-full bg-muted/40 hover:bg-muted/60 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center"
+                      >
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
+
+          {/* Impact Filter */}
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium whitespace-nowrap">Impact</p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 flex items-center gap-2 text-sm hover:bg-muted/60 transition-colors min-w-[120px]">
+                  <span className="text-foreground/80">
+                    {selectedImpacts.includes('all') 
+                      ? 'All Impact' 
+                      : `${selectedImpacts.length} selected`}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground ml-auto" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2 rounded-xl" align="start">
+                <div className="space-y-1">
+                  {IMPACT_FILTERS.map(filter => {
+                    const isSelected = filter.value === 'all' 
+                      ? selectedImpacts.includes('all')
+                      : selectedImpacts.includes(filter.value);
+                    return (
+                      <button
+                        key={filter.value}
+                        onClick={() => {
+                          if (filter.value === 'all') {
+                            setSelectedImpacts(['all']);
+                          } else if (selectedImpacts.includes('all')) {
+                            setSelectedImpacts([filter.value]);
+                          } else if (isSelected) {
+                            const updated = selectedImpacts.filter(v => v !== filter.value);
+                            setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
+                          } else {
+                            setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
+                          }
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <div className={cn(
+                          "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
+                          isSelected 
+                            ? "bg-primary border-primary" 
+                            : "border-border/60 dark:border-white/20"
+                        )}>
+                          {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        <span className="text-sm font-medium text-foreground">{filter.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Currency Filter */}
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium whitespace-nowrap">Currency</p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 flex items-center gap-2 text-sm hover:bg-muted/60 transition-colors min-w-[120px]">
+                  <span className="text-foreground/80">
+                    {selectedCurrencies.includes('all') 
+                      ? 'All Currencies' 
+                      : `${selectedCurrencies.length} selected`}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground ml-auto" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2 rounded-xl" align="start">
+                <div className="space-y-1">
+                  {['All', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD', 'CNY'].map((curr) => {
+                    const isSelected = curr === 'All'
+                      ? selectedCurrencies.includes('all')
+                      : selectedCurrencies.includes(curr);
+                    return (
+                      <button
+                        key={curr}
+                        onClick={() => {
+                          if (curr === 'All') {
+                            setSelectedCurrencies(['all']);
+                          } else if (selectedCurrencies.includes('all')) {
+                            setSelectedCurrencies([curr]);
+                          } else if (isSelected) {
+                            const updated = selectedCurrencies.filter(v => v !== curr);
+                            setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
+                          } else {
+                            setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
+                          }
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <div className={cn(
+                          "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
+                          isSelected 
+                            ? "bg-primary border-primary" 
+                            : "border-border/60 dark:border-white/20"
+                        )}>
+                          {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        {curr !== 'All' && <span className="text-base">{getCurrencyFlag(curr)}</span>}
+                        <span className="text-sm font-medium text-foreground">{curr}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
 
         {/* News Events Timeline */}
