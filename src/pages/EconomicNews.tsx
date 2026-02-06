@@ -905,16 +905,32 @@ export default function EconomicNews() {
                           return (
                             <button
                               key={filter.value}
-                              onClick={() => {
+                              onClick={async () => {
+                                let newImpacts: string[];
                                 if (filter.value === 'all') {
-                                  setSelectedImpacts(['all']);
+                                  newImpacts = ['all'];
                                 } else if (selectedImpacts.includes('all')) {
-                                  setSelectedImpacts([filter.value]);
+                                  newImpacts = [filter.value];
                                 } else if (isSelected) {
                                   const updated = selectedImpacts.filter(v => v !== filter.value);
-                                  setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
+                                  newImpacts = updated.length === 0 ? ['all'] : updated;
                                 } else {
-                                  setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
+                                  newImpacts = [...selectedImpacts.filter(v => v !== 'all'), filter.value];
+                                }
+                                setSelectedImpacts(newImpacts);
+                                
+                                // Save to database
+                                if (user) {
+                                  await supabase
+                                    .from('profiles')
+                                    .update({ 
+                                      news_filters: { 
+                                        currency: selectedCurrencies, 
+                                        impact: newImpacts,
+                                        timeRange: timeRangeFilter 
+                                      } 
+                                    })
+                                    .eq('user_id', user.id);
                                 }
                               }}
                               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
@@ -968,16 +984,32 @@ export default function EconomicNews() {
                           return (
                             <button
                               key={curr}
-                              onClick={() => {
+                              onClick={async () => {
+                                let newCurrencies: string[];
                                 if (curr === 'All') {
-                                  setSelectedCurrencies(['all']);
+                                  newCurrencies = ['all'];
                                 } else if (selectedCurrencies.includes('all')) {
-                                  setSelectedCurrencies([curr]);
+                                  newCurrencies = [curr];
                                 } else if (isSelected) {
                                   const updated = selectedCurrencies.filter(v => v !== curr);
-                                  setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
+                                  newCurrencies = updated.length === 0 ? ['all'] : updated;
                                 } else {
-                                  setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
+                                  newCurrencies = [...selectedCurrencies.filter(v => v !== 'all'), curr];
+                                }
+                                setSelectedCurrencies(newCurrencies);
+                                
+                                // Save to database
+                                if (user) {
+                                  await supabase
+                                    .from('profiles')
+                                    .update({ 
+                                      news_filters: { 
+                                        currency: newCurrencies, 
+                                        impact: selectedImpacts,
+                                        timeRange: timeRangeFilter 
+                                      } 
+                                    })
+                                    .eq('user_id', user.id);
                                 }
                               }}
                               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
@@ -1143,16 +1175,32 @@ export default function EconomicNews() {
                     return (
                       <button
                         key={filter.value}
-                        onClick={() => {
+                        onClick={async () => {
+                          let newImpacts: string[];
                           if (filter.value === 'all') {
-                            setSelectedImpacts(['all']);
+                            newImpacts = ['all'];
                           } else if (selectedImpacts.includes('all')) {
-                            setSelectedImpacts([filter.value]);
+                            newImpacts = [filter.value];
                           } else if (isSelected) {
                             const updated = selectedImpacts.filter(v => v !== filter.value);
-                            setSelectedImpacts(updated.length === 0 ? ['all'] : updated);
+                            newImpacts = updated.length === 0 ? ['all'] : updated;
                           } else {
-                            setSelectedImpacts([...selectedImpacts.filter(v => v !== 'all'), filter.value]);
+                            newImpacts = [...selectedImpacts.filter(v => v !== 'all'), filter.value];
+                          }
+                          setSelectedImpacts(newImpacts);
+                          
+                          // Save to database
+                          if (user) {
+                            await supabase
+                              .from('profiles')
+                              .update({ 
+                                news_filters: { 
+                                  currency: selectedCurrencies, 
+                                  impact: newImpacts,
+                                  timeRange: timeRangeFilter 
+                                } 
+                              })
+                              .eq('user_id', user.id);
                           }
                         }}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
@@ -1197,16 +1245,32 @@ export default function EconomicNews() {
                     return (
                       <button
                         key={curr}
-                        onClick={() => {
+                        onClick={async () => {
+                          let newCurrencies: string[];
                           if (curr === 'All') {
-                            setSelectedCurrencies(['all']);
+                            newCurrencies = ['all'];
                           } else if (selectedCurrencies.includes('all')) {
-                            setSelectedCurrencies([curr]);
+                            newCurrencies = [curr];
                           } else if (isSelected) {
                             const updated = selectedCurrencies.filter(v => v !== curr);
-                            setSelectedCurrencies(updated.length === 0 ? ['all'] : updated);
+                            newCurrencies = updated.length === 0 ? ['all'] : updated;
                           } else {
-                            setSelectedCurrencies([...selectedCurrencies.filter(v => v !== 'all'), curr]);
+                            newCurrencies = [...selectedCurrencies.filter(v => v !== 'all'), curr];
+                          }
+                          setSelectedCurrencies(newCurrencies);
+                          
+                          // Save to database
+                          if (user) {
+                            await supabase
+                              .from('profiles')
+                              .update({ 
+                                news_filters: { 
+                                  currency: newCurrencies, 
+                                  impact: selectedImpacts,
+                                  timeRange: timeRangeFilter 
+                                } 
+                              })
+                              .eq('user_id', user.id);
                           }
                         }}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors"
@@ -1308,152 +1372,146 @@ export default function EconomicNews() {
 
       {/* Event Detail Dialog */}
       <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
-        <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden rounded-3xl border-0 bg-background p-0">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0">
           {selectedEvent && (
-            <div className="relative flex flex-col max-h-[95vh]">
-              {/* Header with gradient background */}
-              <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-muted/80 via-muted/40 to-background p-5 pb-6">
-                <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
-                <div className="relative">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="h-10 w-10 rounded-xl bg-background/80 backdrop-blur-sm flex items-center justify-center text-xl shadow-lg flex-shrink-0">
+            <div className="flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="p-6 pb-5 border-b border-border/50">
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <div className="text-2xl flex-shrink-0">
                       {getCurrencyFlag(selectedEvent.currency)}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <h2 className="text-lg font-bold text-foreground">
-                          {selectedEvent.title}
-                        </h2>
-                        <Badge 
-                          className={cn(
-                            "text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full flex-shrink-0",
-                            selectedEvent.impact === 'high' 
-                              ? "bg-red-500/20 text-red-600 border border-red-500/30 dark:text-red-400" 
-                              : selectedEvent.impact === 'medium'
-                                ? "bg-orange-500/20 text-orange-600 border border-orange-500/30 dark:text-orange-400"
-                                : "bg-yellow-500/20 text-yellow-700 border border-yellow-500/30 dark:text-yellow-400"
-                          )}
-                        >
-                          {selectedEvent.impact}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedEvent.country} • {selectedEvent.currency}
-                      </p>
-                    </div>
+                    <h2 className="text-xl font-semibold text-foreground">
+                      {selectedEvent.title}
+                    </h2>
+                    <Badge 
+                      className={cn(
+                        "text-xs font-semibold uppercase px-3 py-1 rounded-md flex-shrink-0",
+                        selectedEvent.impact === 'high' 
+                          ? "bg-red-500/10 text-red-600 border border-red-500/20 dark:text-red-400" 
+                          : selectedEvent.impact === 'medium'
+                            ? "bg-amber-500/10 text-amber-600 border border-amber-500/20 dark:text-amber-400"
+                            : "bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 dark:text-yellow-400"
+                      )}
+                    >
+                      {selectedEvent.impact}
+                    </Badge>
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEvent.country} · {selectedEvent.currency}
+                  </p>
+                </div>
 
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="rounded-xl bg-background/60 backdrop-blur-sm p-3 text-center border border-border/50">
-                      <p className="text-[10px] font-medium text-muted-foreground mb-1">Forecast</p>
-                      <p className="text-xl font-bold text-foreground">{selectedEvent.forecast}</p>
-                    </div>
-                    <div className="rounded-xl bg-background/60 backdrop-blur-sm p-3 text-center border border-border/50">
-                      <p className="text-[10px] font-medium text-muted-foreground mb-1">Previous</p>
-                      <p className="text-xl font-bold text-foreground">{selectedEvent.previous}</p>
-                    </div>
-                    <div className="rounded-xl bg-background/60 backdrop-blur-sm p-3 text-center border border-border/50">
-                      <p className="text-[10px] font-medium text-muted-foreground mb-1">Actual</p>
-                      <p className={cn(
-                        "text-xl font-bold",
-                        selectedEvent.actual 
-                          ? getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'better'
-                            ? "text-pnl-positive"
-                            : getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'worse'
-                              ? "text-pnl-negative"
-                              : "text-foreground"
-                          : "text-muted-foreground"
-                      )}>
-                        {selectedEvent.actual || 'Pending'}
-                      </p>
-                    </div>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center p-3 rounded-lg border border-border/50 bg-muted/30">
+                    <p className="text-xs text-muted-foreground mb-1.5">Forecast</p>
+                    <p className="text-2xl font-semibold text-foreground">{selectedEvent.forecast}</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg border border-border/50 bg-muted/30">
+                    <p className="text-xs text-muted-foreground mb-1.5">Previous</p>
+                    <p className="text-2xl font-semibold text-foreground">{selectedEvent.previous}</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg border border-border/50 bg-muted/30">
+                    <p className="text-xs text-muted-foreground mb-1.5">Actual</p>
+                    <p className={cn(
+                      "text-2xl font-semibold",
+                      selectedEvent.actual 
+                        ? getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'better'
+                          ? "text-pnl-positive"
+                          : getActualVsForecast(selectedEvent.actual, selectedEvent.forecast) === 'worse'
+                            ? "text-pnl-negative"
+                            : "text-foreground"
+                        : "text-muted-foreground"
+                    )}>
+                      {selectedEvent.actual || '—'}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Content - Scrollable only if needed */}
-              <div className="p-5 space-y-4 overflow-y-auto">
+              {/* Content */}
+              <div className="p-6 space-y-5 overflow-y-auto">
                 {/* What This News Is */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                      <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                    </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Info className="h-4 w-4 text-muted-foreground" />
                     <h3 className="text-sm font-semibold text-foreground">What This News Is</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed pl-9">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {selectedEvent.description}
                   </p>
                 </div>
 
                 {/* Why It Matters */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                      <Star className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                    </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Star className="h-4 w-4 text-muted-foreground" />
                     <h3 className="text-sm font-semibold text-foreground">Why It Matters</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed pl-9">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {selectedEvent.whyItMatters || selectedEvent.marketImpact || 'This data provides insight into economic conditions and can influence market sentiment.'}
                   </p>
                 </div>
 
                 {/* Possible Outcomes */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground">Possible Outcomes</h3>
-                  
-                  {/* Higher Than Expected */}
-                  <div className="rounded-xl bg-gradient-to-br from-pnl-positive/5 to-pnl-positive/10 border border-pnl-positive/20 p-3">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="h-6 w-6 rounded-lg bg-pnl-positive/20 flex items-center justify-center flex-shrink-0">
-                        <TrendingUp className="h-3.5 w-3.5 text-pnl-positive" />
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Possible Outcomes</h3>
+                  <div className="space-y-2.5">
+                    {/* Higher Than Expected */}
+                    <div className="p-3.5 rounded-lg border border-border/50 bg-muted/20">
+                      <div className="flex items-start gap-2.5">
+                        <TrendingUp className="h-4 w-4 text-pnl-positive mt-0.5 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground mb-1">Higher Than Expected</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {selectedEvent.higherThanExpected || 'PMI above expectations signals stronger growth ahead, typically bullish for the currency.'}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-xs font-bold text-pnl-positive">Higher Than Expected</span>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
-                      {selectedEvent.higherThanExpected || 'Signals economic strength, potentially positive for currency.'}
-                    </p>
-                  </div>
 
-                  {/* As Expected */}
-                  <div className="rounded-xl bg-gradient-to-br from-muted/30 to-muted/50 border border-border/50 p-3">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center flex-shrink-0">
-                        <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                    {/* As Expected */}
+                    <div className="p-3.5 rounded-lg border border-border/50 bg-muted/20">
+                      <div className="flex items-start gap-2.5">
+                        <Minus className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground mb-1">About As Expected</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {selectedEvent.asExpected || 'PMI meeting forecasts confirms the current economic trajectory is on track.'}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-xs font-bold text-foreground">About As Expected</span>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
-                      {selectedEvent.asExpected || 'Limited market reaction as result was already priced in.'}
-                    </p>
-                  </div>
 
-                  {/* Lower Than Expected */}
-                  <div className="rounded-xl bg-gradient-to-br from-pnl-negative/5 to-pnl-negative/10 border border-pnl-negative/20 p-3">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="h-6 w-6 rounded-lg bg-pnl-negative/20 flex items-center justify-center flex-shrink-0">
-                        <TrendingDown className="h-3.5 w-3.5 text-pnl-negative" />
+                    {/* Lower Than Expected */}
+                    <div className="p-3.5 rounded-lg border border-border/50 bg-muted/20">
+                      <div className="flex items-start gap-2.5">
+                        <TrendingDown className="h-4 w-4 text-pnl-negative mt-0.5 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground mb-1">Lower Than Expected</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {selectedEvent.lowerThanExpected || 'Weaker PMI may signal a slowdown, potentially causing currency weakness.'}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-xs font-bold text-pnl-negative">Lower Than Expected</span>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
-                      {selectedEvent.lowerThanExpected || 'May signal economic challenges and potential currency weakness.'}
-                    </p>
                   </div>
                 </div>
+              </div>
 
-                {/* Timing Footer */}
-                <div className="flex items-center justify-center gap-4 pt-3 border-t border-border/50">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <CalendarIcon className="h-3.5 w-3.5" />
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-border/50 bg-muted/20">
+                <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <CalendarIcon className="h-4 w-4" />
                     <span>{format(new Date(selectedEvent.date), 'MMM d, yyyy')}</span>
                   </div>
-                  <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{selectedEvent.time} UTC</span>
+                  <span>·</span>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-4 w-4" />
+                    <span>{selectedEvent.time}</span>
                   </div>
                 </div>
               </div>
