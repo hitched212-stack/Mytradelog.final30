@@ -23,7 +23,7 @@ export default function Index() {
   const { trades, isLoading: tradesLoading, getDailyPnl } = useTrades();
   const { settings, isLoading: settingsLoading } = useSettings();
   const { activeAccount, loading: accountLoading, isSwitching } = useAccount();
-  const { isHydrating, isTransitioning, previousStartingBalance } = useDataStore();
+  const { isHydrating, isTransitioning, previousStartingBalance, previousTrades } = useDataStore();
   const { subscription, loading: subscriptionLoading, refetch } = useSubscription();
   const currencySymbol = activeAccount?.currency ? getCurrencySymbol(activeAccount.currency as any) : getCurrencySymbol(settings.currency);
   const todayPnl = getDailyPnl(format(new Date(), 'yyyy-MM-dd'));
@@ -240,8 +240,11 @@ export default function Index() {
     );
   }
 
+  const hasCachedData = trades.length > 0 || previousTrades.length > 0 || !settingsLoading || !!activeAccount;
+  const showSkeleton = isLoading && !hasCachedData;
+
   // Show splash screen on mobile to replace loading state, skeleton on desktop
-  if (isLoading) {
+  if (showSkeleton) {
     if (isMobile) {
       return <SplashScreen />;
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar as CalendarIcon, Clock, RefreshCw, TrendingUp, TrendingDown, Minus, CalendarX2, Star, Info, Save, Check, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { usePreferences } from '@/hooks/usePreferences';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Currency pair groups for filtering
 const CURRENCY_FILTERS = [
@@ -67,22 +68,8 @@ interface NewsEvent {
 const DEFAULT_FILTERS = { currency: 'all', impact: 'all', timeRange: 'day' as 'day' | 'week' };
 
 
-interface CacheEntry {
-  data: NewsEvent[];
-  timestamp: number;
-}
-
 // Cache expiry time (5 minutes)
 const CACHE_EXPIRY = 5 * 60 * 1000;
-
-// Generate cache key for a date/range combination
-const getCacheKey = (date: Date, range: 'day' | 'week'): string => {
-  if (range === 'week') {
-    const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-    return `week-${format(weekStart, 'yyyy-MM-dd')}`;
-  }
-  return `day-${format(date, 'yyyy-MM-dd')}`;
-};
 
 export default function EconomicNews() {
   const { toast } = useToast();
@@ -101,21 +88,15 @@ export default function EconomicNews() {
   });
   const [isDateRangeMode, setIsDateRangeMode] = useState(false);
   
-  const [newsEvents, setNewsEvents] = useState<NewsEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFetching, setIsFetching] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const queryClient = useQueryClient();
   const [selectedEvent, setSelectedEvent] = useState<NewsEvent | null>(null);
   const [filtersSaved, setFiltersSaved] = useState(false);
-  const [dataKey, setDataKey] = useState(0);
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [presets, setPresets] = useState<NewsPreset[]>([]);
   const [presetsLoaded, setPresetsLoaded] = useState(false);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   
-  // Cache for prefetched data
-  const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
 
   // Load saved filters from database on mount
   useEffect(() => {
@@ -307,120 +288,83 @@ export default function EconomicNews() {
     }
   }, []);
 
-  // Prefetch adjacent dates in the background
-  const prefetchAdjacent = useCallback(async (currentDate: Date, range: 'day' | 'week') => {
-    const adjacentDates: Date[] = [];
-    
-    if (range === 'day') {
-      adjacentDates.push(addDays(currentDate, 1), subDays(currentDate, 1));
-    } else {
-      adjacentDates.push(addDays(currentDate, 7), subDays(currentDate, 7));
+  const queryKey = useMemo(() => {
+    if (isDateRangeMode && dateRange.from && dateRange.to) {
+      return ['economic-news', 'range', format(dateRange.from, 'yyyy-MM-dd'), format(dateRange.to, 'yyyy-MM-dd')];
+    }
+    return ['economic-news', timeRangeFilter, format(selectedDate, 'yyyy-MM-dd')];
+  }, [isDateRangeMode, dateRange.from, dateRange.to, selectedDate, timeRangeFilter]);
+
+  const fetchNewsQuery = useCallback(async () => {
+    if (isDateRangeMode && dateRange.from && dateRange.to) {
+      const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
+      const results = await Promise.all(days.map(day => fetchFromAPI(day, 'day')));
+      return results.flatMap(data => data ?? []);
     }
 
-    for (const date of adjacentDates) {
-      const key = getCacheKey(date, range);
-      const cached = cacheRef.current.get(key);
-      
-      // Skip if already cached and not expired
-      if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
-        continue;
-      }
+    const data = await fetchFromAPI(selectedDate, timeRangeFilter);
+    return data ?? [];
+  }, [isDateRangeMode, dateRange.from, dateRange.to, selectedDate, timeRangeFilter, fetchFromAPI]);
 
-      // Prefetch in background
-      const data = await fetchFromAPI(date, range);
-      if (data) {
-        cacheRef.current.set(key, { data, timestamp: Date.now() });
-      }
-    }
-  }, [fetchFromAPI]);
+  const {
+    data: newsEvents = [],
+    isLoading,
+    isFetching,
+    dataUpdatedAt,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey,
+    queryFn: fetchNewsQuery,
+    enabled: !isLoadingFilters && (!isDateRangeMode || (dateRange.from && dateRange.to)),
+    staleTime: CACHE_EXPIRY,
+    gcTime: CACHE_EXPIRY * 6,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    refetchOnMount: true,
+    retry: 1,
+    placeholderData: (previous) => previous,
+  });
 
-  // Fetch economic calendar data with caching
-  const fetchNews = useCallback(async (dateToFetch: Date, range: 'day' | 'week', isRefresh = false) => {
-    const cacheKey = getCacheKey(dateToFetch, range);
-    const cached = cacheRef.current.get(cacheKey);
-    
-    // Use cache if available and not expired (unless refreshing)
-    if (!isRefresh && cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
-      setNewsEvents(cached.data);
-      setLastUpdated(new Date(cached.timestamp));
-      setDataKey(prev => prev + 1);
-      setIsLoading(false);
-      setIsFetching(false);
-      
-      // Prefetch adjacent in background
-      prefetchAdjacent(dateToFetch, range);
-      return;
-    }
-    
-    // Set loading only if no cache
-    if (!cached && !isRefresh) {
-      setIsLoading(true);
-    }
-    setIsFetching(true);
-    
-    const data = await fetchFromAPI(dateToFetch, range);
-    
-    if (data) {
-      // Update cache
-      cacheRef.current.set(cacheKey, { data, timestamp: Date.now() });
-      
-      setNewsEvents(data);
-      setLastUpdated(new Date());
-      setDataKey(prev => prev + 1);
-      
-      // Prefetch adjacent in background
-      prefetchAdjacent(dateToFetch, range);
-    } else if (!isRefresh) {
+  const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt) : new Date();
+
+  useEffect(() => {
+    if (isError && newsEvents.length === 0) {
+      console.error('Economic news fetch error:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch economic calendar data',
         variant: 'destructive',
       });
     }
-    
-    setIsLoading(false);
-    setIsFetching(false);
-  }, [fetchFromAPI, prefetchAdjacent, toast]);
+  }, [isError, error, newsEvents.length, toast]);
 
-  // Fetch when date/range changes - no auto-refresh, only manual refresh
   useEffect(() => {
-    if (isDateRangeMode && dateRange.from && dateRange.to) {
-      // When in date range mode, fetch all data for the range
-      const fetchDateRange = async () => {
-        setIsLoading(true);
-        const allEvents: NewsEvent[] = [];
-        
-        // Fetch data for each day in the range
-        const startDate = dateRange.from!;
-        const endDate = dateRange.to!;
-        let currentDate = new Date(startDate);
-        
-        while (currentDate <= endDate) {
-          const data = await fetchFromAPI(currentDate, 'day');
-          if (data) {
-            allEvents.push(...data);
-          }
-          currentDate = addDays(currentDate, 1);
-        }
-        
-        setNewsEvents(allEvents);
-        setLastUpdated(new Date());
-        setDataKey(prev => prev + 1);
-        setIsLoading(false);
-      };
-      
-      fetchDateRange();
-    } else {
-      fetchNews(selectedDate, timeRangeFilter, false);
-    }
-  }, [selectedDate, timeRangeFilter, fetchNews, isDateRangeMode, dateRange, fetchFromAPI]);
+    if (isDateRangeMode) return;
 
-  const handleRefresh = () => {
-    // Clear cache for current view to force fresh fetch
-    const cacheKey = getCacheKey(selectedDate, timeRangeFilter);
-    cacheRef.current.delete(cacheKey);
-    setIsLoading(true);
-    fetchNews(selectedDate, timeRangeFilter, true);
+    const range: 'day' | 'week' = timeRangeFilter;
+    const adjacentDates: Date[] = [];
+
+    if (range === 'day') {
+      adjacentDates.push(addDays(selectedDate, 1), subDays(selectedDate, 1));
+    } else {
+      adjacentDates.push(addDays(selectedDate, 7), subDays(selectedDate, 7));
+    }
+
+    adjacentDates.forEach(date => {
+      queryClient.prefetchQuery({
+        queryKey: ['economic-news', range, format(date, 'yyyy-MM-dd')],
+        queryFn: async () => (await fetchFromAPI(date, range)) ?? [],
+        staleTime: CACHE_EXPIRY,
+        gcTime: CACHE_EXPIRY * 6,
+      });
+    });
+  }, [isDateRangeMode, selectedDate, timeRangeFilter, queryClient, fetchFromAPI]);
+
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey });
+    refetch();
   };
 
   // Handle time range change
@@ -506,6 +450,9 @@ export default function EconomicNews() {
     return groups;
   }, [filteredEvents]);
 
+  const hasCachedData = newsEvents.length > 0;
+  const showSkeleton = isLoadingFilters || (isLoading && !hasCachedData);
+
   const getImpactColor = (impact: string) => {
     switch (impact) {
       case 'high':
@@ -584,6 +531,7 @@ export default function EconomicNews() {
           className={cn(
             "flex-1 rounded-2xl border transition-all duration-200 cursor-pointer",
             "p-4",
+            "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/30",
             isPast && "opacity-50",
             isLive
               ? "border-foreground/30 bg-card shadow-sm dark:border-white/20 dark:bg-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
@@ -660,7 +608,7 @@ export default function EconomicNews() {
   };
 
   // Show full skeleton while loading filters or initial data
-  if (isLoadingFilters || (isLoading && newsEvents.length === 0)) {
+  if (showSkeleton) {
     return (
       <div className="min-h-screen pb-24">
         <div className="px-4 py-6 md:px-6 lg:px-8">
@@ -1280,7 +1228,7 @@ export default function EconomicNews() {
 
         {/* News Events Timeline */}
         <div className="relative">
-          {isLoading && filteredEvents.length === 0 ? (
+          {showSkeleton && filteredEvents.length === 0 ? (
             <div className="space-y-4 animate-fade-in">
               {[1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="flex gap-4">
@@ -1305,7 +1253,7 @@ export default function EconomicNews() {
               </p>
             </div>
           ) : (
-            <div key={dataKey} className="space-y-6 animate-fade-in">
+            <div key={dataUpdatedAt || 'initial'} className="space-y-6 animate-fade-in">
               {timeRangeFilter === 'week' ? (
                 Object.entries(groupedEvents)
                   .sort((a, b) => a[0].localeCompare(b[0]))
