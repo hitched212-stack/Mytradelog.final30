@@ -457,10 +457,10 @@ export default function History() {
                     <Badge 
                       variant="outline"
                       className={cn(
-                        "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide whitespace-nowrap",
+                        "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide whitespace-nowrap border-0",
                         trade.direction === 'long' 
-                          ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40" 
-                          : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
+                          ? "bg-pnl-positive/10 text-pnl-positive" 
+                          : "bg-pnl-negative/10 text-pnl-negative"
                       )}
                     >
                       {trade.direction === 'long' ? 'Long' : 'Short'}
@@ -616,10 +616,10 @@ export default function History() {
                       ) : (
                         <Badge 
                           className={cn(
-                            "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide whitespace-nowrap",
+                            "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide whitespace-nowrap border-0",
                             trade.direction === 'long' 
-                              ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40" 
-                              : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
+                              ? "bg-pnl-positive/10 text-pnl-positive" 
+                              : "bg-pnl-negative/10 text-pnl-negative"
                           )}
                         >
                           {trade.direction === 'long' ? 'LONG' : 'SHORT'}
