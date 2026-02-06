@@ -398,7 +398,7 @@ export default function CalendarPage() {
                 
                 {/* P&L Display */}
                 <div className="mb-4">
-                  <span className={cn('text-4xl font-bold font-display tabular-nums', currentPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                  <span className={cn('text-3xl font-bold font-display tabular-nums', currentPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
                     {formatPnlWithK(currentPnl)}
                   </span>
                 </div>
