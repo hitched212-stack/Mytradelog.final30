@@ -368,11 +368,25 @@ export default function EconomicNews() {
   };
 
   // Handle time range change
-  const handleTimeRangeChange = (range: 'day' | 'week') => {
+  const handleTimeRangeChange = async (range: 'day' | 'week') => {
     setTimeRangeFilter(range);
     setIsDateRangeMode(false); // Disable custom date range when switching to day/week view
     if (range === 'day') {
       setSelectedDate(new Date());
+    }
+    
+    // Automatically save the time range preference
+    if (user) {
+      try {
+        const newFilters = { currency: selectedCurrencies, impact: selectedImpacts, timeRange: range };
+        await supabase
+          .from('profiles')
+          .update({ news_filters: newFilters })
+          .eq('user_id', user.id);
+        setSavedFilters(newFilters);
+      } catch (error) {
+        console.error('Error saving time range preference:', error);
+      }
     }
   };
 
