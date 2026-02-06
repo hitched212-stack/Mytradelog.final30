@@ -768,8 +768,8 @@ export default function EconomicNews() {
               <div className="px-3 py-2 sm:px-6 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 text-xs sm:text-sm font-medium text-foreground min-w-0 flex-1 text-center">
                 <span className="block truncate">
                   {isSameDay(selectedDate, new Date()) 
-                    ? `Today: ${format(new Date(), 'MMM d, yyyy')}`
-                    : format(selectedDate, 'MMM d, yyyy')}
+                    ? `Today: ${format(new Date(), 'EEEE, MMM d, yyyy')}`
+                    : format(selectedDate, 'EEEE, MMM d, yyyy')}
                 </span>
               </div>
             )}
