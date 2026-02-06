@@ -1,12 +1,11 @@
 import { cn } from '@/lib/utils';
-import { CircleDollarSign, FileText, CircleSlash } from 'lucide-react';
 
 type TradeType = 'real' | 'paper' | 'no_trade';
 
-const tradeTypes: { value: TradeType; icon: typeof CircleDollarSign; label: string }[] = [
-  { value: 'real', icon: CircleDollarSign, label: 'Real' },
-  { value: 'paper', icon: FileText, label: 'Paper' },
-  { value: 'no_trade', icon: CircleSlash, label: 'No Trade' },
+const tradeTypes: { value: TradeType; label: string }[] = [
+  { value: 'real', label: 'Real' },
+  { value: 'paper', label: 'Paper' },
+  { value: 'no_trade', label: 'No Trade' },
 ];
 
 interface TradeTypeSwitchProps {
@@ -33,29 +32,43 @@ export function TradeTypeSwitch({ isPaperTrade, noTradeTaken, onChange }: TradeT
     }
   };
 
+  // Calculate the position of the sliding background
+  const activeIndex = tradeTypes.findIndex(t => t.value === value);
+  const slidePercentage = (activeIndex * 100) / tradeTypes.length;
+
   return (
-    <div className="grid grid-cols-3 gap-2 w-full">
-      {tradeTypes.map((tradeType) => {
-        const Icon = tradeType.icon;
-        const isActive = value === tradeType.value;
-        
-        return (
-          <button
-            key={tradeType.value}
-            type="button"
-            onClick={() => handleChange(tradeType.value)}
-            className={cn(
-              "flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 border",
-              isActive
-                ? "bg-primary/10 text-primary border-primary/20"
-                : "bg-black/[0.06] dark:bg-secondary text-muted-foreground border-border/50 hover:bg-black/[0.1] dark:hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <Icon className="h-4 w-4 flex-shrink-0" strokeWidth={1.5} />
-            <span className="hidden xs:inline sm:inline">{tradeType.label}</span>
-          </button>
-        );
-      })}
+    <div className="relative flex gap-0 rounded-lg overflow-hidden border border-border/60 dark:border-white/10 bg-muted/40 dark:bg-white/5">
+      {/* Sliding background */}
+      <div
+        className="absolute top-0 bottom-0 transition-all duration-500 rounded-md bg-primary/10"
+        style={{
+          width: `${100 / tradeTypes.length}%`,
+          left: `${slidePercentage}%`,
+        }}
+      />
+      
+      {/* Buttons */}
+      <div className="flex gap-0 w-full relative z-10">
+        {tradeTypes.map((tradeType) => {
+          const isActive = value === tradeType.value;
+          
+          return (
+            <button
+              key={tradeType.value}
+              type="button"
+              onClick={() => handleChange(tradeType.value)}
+              className={cn(
+                "flex-1 flex items-center justify-center h-10 px-4 text-sm font-medium transition-colors duration-500",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground/80"
+              )}
+            >
+              <span>{tradeType.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -10,35 +10,50 @@ interface TradeStatusSwitchProps {
 export function TradeStatusSwitch({ isOpen, onChange, className }: TradeStatusSwitchProps) {
   return (
     <div className={cn(
-      "grid grid-cols-2 gap-2",
+      "relative flex gap-0 rounded-lg overflow-hidden border border-border/60 dark:border-white/10 bg-muted/40 dark:bg-white/5 p-1.5",
       className
     )}>
-      <button
-        type="button"
-        onClick={() => onChange(true)}
+      {/* Sliding background */}
+      <div
         className={cn(
-          "flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium transition-all duration-200 justify-center border",
-          isOpen
-            ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/30"
-            : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+          "absolute top-1.5 bottom-1.5 transition-all duration-500 rounded-md pointer-events-none",
+          isOpen ? "bg-pnl-positive/20" : "bg-pnl-negative/20"
         )}
-      >
-        <LockOpen className="h-4 w-4" strokeWidth={1.5} />
-        <span>Open</span>
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange(false)}
-        className={cn(
-          "flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium transition-all duration-200 justify-center border",
-          !isOpen
-            ? "bg-primary/10 text-primary border-primary/20"
-            : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-        )}
-      >
-        <Lock className="h-4 w-4" strokeWidth={1.5} />
-        <span>Closed</span>
-      </button>
+        style={{
+          width: "calc(50% - 0.375rem)",
+          left: isOpen ? "0.375rem" : "calc(50% + 0.375rem)",
+        }}
+      />
+      
+      {/* Buttons */}
+      <div className="flex gap-0 w-full relative z-10">
+        <button
+          type="button"
+          onClick={() => onChange(true)}
+          className={cn(
+            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-500 justify-center rounded-md",
+            isOpen
+              ? "text-pnl-positive"
+              : "text-muted-foreground hover:text-foreground/80"
+          )}
+        >
+          <LockOpen className="h-4 w-4 transition-transform duration-500" strokeWidth={1.5} />
+          <span>Open</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(false)}
+          className={cn(
+            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-500 justify-center rounded-md",
+            !isOpen
+              ? "text-pnl-negative"
+              : "text-muted-foreground hover:text-foreground/80"
+          )}
+        >
+          <Lock className="h-4 w-4 transition-transform duration-500" strokeWidth={1.5} />
+          <span>Closed</span>
+        </button>
+      </div>
     </div>
   );
 }
