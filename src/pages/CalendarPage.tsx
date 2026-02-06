@@ -73,6 +73,14 @@ export default function CalendarPage() {
     return `${sign}${currencySymbol}${absValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  // Calculate PnL percentage based on account starting balance
+  const calculatePnlPercentage = (pnlAmount: number) => {
+    const accountBalance = activeAccount?.starting_balance || 0;
+    return accountBalance > 0 
+      ? (pnlAmount / accountBalance * 100)
+      : 0;
+  };
+
   // Get monthly trades for stats - exclude paper trades
   const monthlyTrades = useMemo(() => {
     const year = currentMonth.getFullYear();
@@ -1055,7 +1063,7 @@ export default function CalendarPage() {
                               {trade.pnlAmount >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(trade.pnlAmount).toLocaleString()}
                             </p>
                             <p className={cn('text-sm font-display', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
-                              {trade.pnlAmount >= 0 ? '+' : ''}{trade.pnlPercentage.toFixed(2)}%
+                              {trade.pnlAmount >= 0 ? '+' : ''}{calculatePnlPercentage(trade.pnlAmount).toFixed(2)}%
                             </p>
                           </div>
                         )}

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Trade, TradeDirection, TradeCategory, TradeStatus, TRADE_CATEGORIES, getCurrencySymbol, NewsImpact, NEWS_IMPACTS, NewsEvent } from '@/types/trade';
 import { useTrades } from '@/hooks/useTrades';
 import { useSettings } from '@/hooks/useSettings';
+import { useAccount } from '@/hooks/useAccount';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useTradingPreferences } from '@/hooks/useTradingPreferences';
 import { Button } from '@/components/ui/button';
@@ -100,6 +101,7 @@ export function TradeForm({
   const {
     settings
   } = useSettings();
+  const { activeAccount } = useAccount();
   const { preferences } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const { selectedTimeframes } = useTradingPreferences();
@@ -424,6 +426,12 @@ export function TradeForm({
   };
   useEffect(() => {
     if (editTrade) {
+      // Recalculate pnl percentage based on current account balance
+      const accountBalance = activeAccount?.starting_balance || 0;
+      const calculatedPnlPercentage = accountBalance > 0 
+        ? (editTrade.pnlAmount / accountBalance * 100).toFixed(2)
+        : editTrade.pnlPercentage.toString();
+      
       setFormData({
         symbol: editTrade.symbol,
         direction: editTrade.direction,
@@ -438,7 +446,7 @@ export function TradeForm({
         takeProfit: editTrade.takeProfit.toString(),
         riskRewardRatio: editTrade.riskRewardRatio,
         pnlAmount: editTrade.pnlAmount.toString(),
-        pnlPercentage: editTrade.pnlPercentage.toString(),
+        pnlPercentage: calculatedPnlPercentage,
         preMarketPlan: editTrade.preMarketPlan,
         postMarketReview: editTrade.postMarketReview,
         emotionalJournalBefore: editTrade.emotionalJournalBefore,
@@ -482,13 +490,11 @@ export function TradeForm({
       const pnlAmount = parseFloat(value) || 0;
       let pnlPercentage = prev.pnlPercentage;
       
-      // Calculate percentage based on entry cost (entryPrice * lotSize)
-      const entryPrice = parseFloat(prev.entryPrice) || 0;
-      const lotSize = parseFloat(prev.lotSize) || 0;
-      const entryCost = entryPrice * lotSize;
+      // Calculate percentage based on account starting balance
+      const accountBalance = activeAccount?.starting_balance || 0;
       
-      if (entryCost > 0 && value !== '') {
-        pnlPercentage = (pnlAmount / entryCost * 100).toFixed(2);
+      if (accountBalance > 0 && value !== '') {
+        pnlPercentage = (pnlAmount / accountBalance * 100).toFixed(2);
       }
       return {
         ...prev,
@@ -504,28 +510,6 @@ export function TradeForm({
     } = e.target;
     if (name === 'pnlAmount') {
       handlePnlAmountChange(value);
-      return;
-    }
-    
-    // Recalculate pnlPercentage when entry price or lot size changes
-    if ((name === 'entryPrice' || name === 'lotSize') && formData.pnlAmount) {
-      setFormData(prev => {
-        const pnlAmount = parseFloat(prev.pnlAmount) || 0;
-        const newEntryPrice = name === 'entryPrice' ? parseFloat(value) || 0 : parseFloat(prev.entryPrice) || 0;
-        const newLotSize = name === 'lotSize' ? parseFloat(value) || 0 : parseFloat(prev.lotSize) || 0;
-        const entryCost = newEntryPrice * newLotSize;
-        let pnlPercentage = prev.pnlPercentage;
-        
-        if (entryCost > 0) {
-          pnlPercentage = (pnlAmount / entryCost * 100).toFixed(2);
-        }
-        
-        return {
-          ...prev,
-          [name]: value,
-          pnlPercentage
-        };
-      });
       return;
     }
     
@@ -556,15 +540,16 @@ export function TradeForm({
     const allPreMarketNotes = preMarketCharts.filter(c => c.images.length > 0 || c.notes.trim()).map(c => `[${getTimeframeLabel(c.timeframe)}]\n${c.notes}`).join('\n\n');
     const allPostMarketNotes = postMarketCharts.filter(c => c.images.length > 0 || c.notes.trim()).map(c => `[${getTimeframeLabel(c.timeframe)}]\n${c.notes}`).join('\n\n');
     
-    // Calculate pnlPercentage based on entry cost if not already set
+    // Calculate pnlPercentage based on account starting balance
     const pnlAmount = parseFloat(formData.pnlAmount) || 0;
-    const entryPrice = parseFloat(formData.entryPrice) || 0;
-    const lotSize = parseFloat(formData.lotSize) || 0;
-    const entryCost = entryPrice * lotSize;
+    const accountBalance = activeAccount?.starting_balance || 0;
     let calculatedPnlPercentage = parseFloat(formData.pnlPercentage) || 0;
     
-    if (entryCost > 0 && (formData.pnlPercentage === '' || formData.pnlPercentage === '0')) {
-      calculatedPnlPercentage = (pnlAmount / entryCost * 100);
+    if (accountBalance > 0 && (formData.pnlPercentage === '' || formData.pnlPercentage === '0')) {
+      calculatedPnlPercentage = (pnlAmount / accountBalance * 100);
+    } else if (accountBalance > 0) {
+      // Always recalculate to ensure it's based on account balance
+      calculatedPnlPercentage = (pnlAmount / accountBalance * 100);
     }
     
     const tradeData = {

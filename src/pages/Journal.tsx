@@ -377,8 +377,11 @@ export default function Journal() {
     })}`;
   };
   const calculatePnlPercentage = (trade: Trade) => {
-    if (!trade.entryPrice || !trade.lotSize) return trade.pnlPercentage || 0;
-    return trade.pnlPercentage;
+    // Calculate percentage based on account starting balance
+    const accountBalance = activeAccount?.starting_balance || 0;
+    return accountBalance > 0 
+      ? (trade.pnlAmount / accountBalance * 100)
+      : trade.pnlPercentage || 0;
   };
   const accountBalanceCard = {
     title: 'Account Balance',

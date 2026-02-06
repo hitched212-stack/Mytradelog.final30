@@ -4,6 +4,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useAccount } from '@/hooks/useAccount';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useDataStore } from '@/store/dataStore';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Target, BarChart3, Trophy, AlertTriangle, Zap, Wallet } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -11,11 +12,13 @@ import { getCurrencySymbol } from '@/types/trade';
 import { cn } from '@/lib/utils';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SplashScreen } from '@/components/ui/SplashScreen';
 import { DashboardTradeCard } from '@/components/trade/DashboardTradeCard';
 import { AccountTransition } from '@/components/account/AccountTransition';
 
 export default function Index() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const { trades, isLoading: tradesLoading, getDailyPnl } = useTrades();
   const { settings, isLoading: settingsLoading } = useSettings();
@@ -183,8 +186,14 @@ export default function Index() {
       return ((current - previous) / Math.abs(previous)) * 100;
     };
 
+    // Calculate P&L as percentage of account starting balance
+    const accountStartingBalance = activeAccount?.starting_balance || 0;
+    const pnlAsPercentageOfAccount = accountStartingBalance > 0 
+      ? (thisMonthPnl / accountStartingBalance) * 100 
+      : 0;
+
     return {
-      pnlChange: calcChange(thisMonthPnl, lastMonthPnl),
+      pnlChange: pnlAsPercentageOfAccount,
       winRateChange: thisMonthWinRate - lastMonthWinRate,
       profitFactorChange: lastMonthPF === Infinity || thisMonthPF === Infinity ? 0 : calcChange(thisMonthPF, lastMonthPF),
       tradesChange: calcChange(thisMonthTrades.length, lastMonthTrades.length)
@@ -231,8 +240,13 @@ export default function Index() {
     );
   }
 
-  // Show skeleton to prevent any flash of unloaded content
+  // Show splash screen on mobile to replace loading state, skeleton on desktop
   if (isLoading) {
+    if (isMobile) {
+      return <SplashScreen />;
+    }
+    
+    // Desktop skeleton loading state
     return (
       <div className="min-h-screen pb-24">
         <div className="px-4 py-6 md:px-6 lg:px-8">

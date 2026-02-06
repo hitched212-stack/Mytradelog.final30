@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Trade, getCurrencySymbol, NEWS_IMPACTS } from '@/types/trade';
 import { usePreferences } from '@/hooks/usePreferences';
+import { useAccount } from '@/hooks/useAccount';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -92,7 +93,19 @@ export function TradeViewDialogContent({
   onImageClick
 }: TradeViewDialogContentProps) {
   const { preferences } = usePreferences();
+  const { activeAccount } = useAccount();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
+  
+  // Calculate PnL percentage based on account starting balance
+  const calculatePnlPercentage = () => {
+    const accountBalance = activeAccount?.starting_balance || 0;
+    return accountBalance > 0 
+      ? (trade.pnlAmount / accountBalance * 100)
+      : trade.pnlPercentage;
+  };
+  
+  const pnlPercentage = calculatePnlPercentage();
+  
   const [activeTab, setActiveTab] = useState<ViewTab>('general');
   const tabs: {
     id: ViewTab;
@@ -199,7 +212,7 @@ export function TradeViewDialogContent({
                     <div className={cn('text-2xl font-bold', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
                       {formatPnl(trade.pnlAmount)}
                       <span className="text-sm font-normal ml-2">
-                        ({trade.pnlAmount >= 0 ? '+' : ''}{trade.pnlPercentage.toFixed(2)}%)
+                        ({trade.pnlAmount >= 0 ? '+' : ''}{pnlPercentage.toFixed(2)}%)
                       </span>
                     </div>
                   )}
