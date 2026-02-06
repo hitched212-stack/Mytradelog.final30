@@ -845,6 +845,22 @@ export default function EconomicNews() {
                 </div>
 
                 <div>
+                  <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">View Mode</p>
+                  <Select 
+                    value={timeRangeFilter} 
+                    onValueChange={(value: 'day' | 'week') => handleTimeRangeChange(value)}
+                  >
+                    <SelectTrigger className="w-full rounded-xl bg-muted/40 border-border/60 text-foreground dark:bg-white/5 dark:border-white/10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="day">Day View</SelectItem>
+                      <SelectItem value="week">Week View</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Custom Date Range</p>
                   <Popover>
                     <PopoverTrigger asChild>
