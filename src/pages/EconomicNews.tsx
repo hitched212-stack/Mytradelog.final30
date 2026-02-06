@@ -761,7 +761,7 @@ export default function EconomicNews() {
             ) : timeRangeFilter === 'week' ? (
               <div className="px-3 py-2 sm:px-6 rounded-xl bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 text-xs sm:text-sm font-medium text-foreground min-w-0 flex-1 text-center">
                 <span className="block truncate">
-                  {format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'MMM d, yyyy')} - {format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+                  {format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'EEE, MMM d, yyyy')} - {format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'EEE, MMM d, yyyy')}
                 </span>
               </div>
             ) : (
