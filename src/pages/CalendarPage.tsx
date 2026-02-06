@@ -1031,7 +1031,7 @@ export default function CalendarPage() {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-lg">{trade.symbol}</span>
-                            <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border', trade.direction === 'long' ? 'bg-pnl-positive/10 text-pnl-positive border-pnl-positive/30' : 'bg-pnl-negative/10 text-pnl-negative border-pnl-negative/30')}>
+                            <span className={cn('inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide uppercase whitespace-nowrap', trade.direction === 'long' ? 'bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40' : 'bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40')}>
                               {trade.direction === 'long' ? 'Long' : 'Short'}
                             </span>
                             {trade.forecastId && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground flex items-center gap-1">

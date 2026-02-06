@@ -367,7 +367,7 @@ export default function History() {
                     <div className="min-w-0">
                       <span className="text-base font-semibold text-foreground block truncate">{trade.symbol}</span>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(trade.date), 'MMM dd, yyyy')} · {trade.entryTime}
+                        {format(new Date(trade.date), 'MMM dd, yyyy')} · {trade.noTradeTaken ? '—' : (trade.entryTime || '—')}
                       </p>
                     </div>
                   </div>
@@ -427,14 +427,14 @@ export default function History() {
                   {trade.isPaperTrade ? (
                     <Badge 
                       variant="outline" 
-                      className="text-[10px] font-medium bg-muted/50 text-muted-foreground px-2 py-0.5"
+                      className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap"
                     >
                       Paper
                     </Badge>
                   ) : trade.noTradeTaken ? (
                     <Badge 
                       variant="outline" 
-                      className="text-[10px] font-medium bg-muted/50 text-muted-foreground px-2 py-0.5"
+                      className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap"
                     >
                       No Trade
                     </Badge>
@@ -451,17 +451,21 @@ export default function History() {
                   )}
 
                   {/* Side Badge */}
-                  <Badge 
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] font-medium px-2 py-0.5 rounded-full",
-                      trade.direction === 'long' 
-                        ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/30" 
-                        : "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/30"
-                    )}
-                  >
-                    {trade.direction === 'long' ? 'Long' : 'Short'}
-                  </Badge>
+                  {trade.noTradeTaken ? (
+                    <span className="text-[10px] text-muted-foreground">—</span>
+                  ) : (
+                    <Badge 
+                      variant="outline"
+                      className={cn(
+                        "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide whitespace-nowrap",
+                        trade.direction === 'long' 
+                          ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40" 
+                          : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
+                      )}
+                    >
+                      {trade.direction === 'long' ? 'Long' : 'Short'}
+                    </Badge>
+                  )}
 
                   {/* Strategy if exists */}
                   {trade.strategy && (
@@ -545,6 +549,7 @@ export default function History() {
                     <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
                   </div>
                 </TableHead>
+                <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">News</TableHead>
                 <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3">Entry • Exit</TableHead>
                 <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">Duration</TableHead>
                 <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 text-center">Strategy</TableHead>
@@ -565,7 +570,7 @@ export default function History() {
             <TableBody>
               {paginatedTrades.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-16 text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center py-16 text-muted-foreground">
                     <div className="space-y-2">
                       <p className="text-sm">{searchQuery ? 'No trades match your search' : 'No trades recorded yet'}</p>
                     </div>
@@ -606,28 +611,43 @@ export default function History() {
                     
                     {/* Side */}
                     <TableCell className="px-4">
-                      <Badge 
-                        className={cn(
-                          "text-[11px] font-semibold px-2.5 py-1 rounded-md border-0",
-                          trade.direction === 'long' 
-                            ? "bg-pnl-positive/15 text-pnl-positive" 
-                            : "bg-pnl-negative/15 text-pnl-negative"
-                        )}
-                      >
-                        {trade.direction === 'long' ? 'LONG' : 'SHORT'}
-                      </Badge>
+                      {trade.noTradeTaken ? (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ) : (
+                        <Badge 
+                          className={cn(
+                            "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide whitespace-nowrap",
+                            trade.direction === 'long' 
+                              ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40" 
+                              : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
+                          )}
+                        >
+                          {trade.direction === 'long' ? 'LONG' : 'SHORT'}
+                        </Badge>
+                      )}
                     </TableCell>
                     
                     {/* Date */}
                     <TableCell className="px-4 text-center text-sm text-muted-foreground">
                       {format(new Date(trade.date), 'MMM dd')}
                     </TableCell>
+
+                    {/* News */}
+                    <TableCell className="px-4 text-center">
+                      {trade.hasNews || (trade.newsEvents && trade.newsEvents.length > 0) || trade.newsType || trade.newsImpact || trade.newsTime ? (
+                        <span className="text-xs font-semibold text-pnl-positive">Yes</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No</span>
+                      )}
+                    </TableCell>
                     
                     {/* Entry • Exit Time */}
                     <TableCell className="px-4 text-sm">
                       <div className="space-y-0.5">
-                        <div className="font-medium text-foreground text-xs">{trade.entryTime || '—'}</div>
-                        <div className="text-xs text-muted-foreground">{calculateExitTime(trade.entryTime, trade.holdingTime)}</div>
+                        <div className="font-medium text-foreground text-xs">{trade.noTradeTaken ? '—' : (trade.entryTime || '—')}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {trade.noTradeTaken ? '—' : calculateExitTime(trade.entryTime, trade.holdingTime)}
+                        </div>
                       </div>
                     </TableCell>
                     
@@ -640,7 +660,7 @@ export default function History() {
                     
                     {/* Strategy */}
                     <TableCell className="px-4 text-center">
-                      {trade.strategy ? (
+                      {!trade.noTradeTaken && trade.strategy ? (
                         <span className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded inline-block max-w-[120px] truncate">
                           {trade.strategy}
                         </span>
@@ -684,11 +704,11 @@ export default function History() {
                     {/* P&L */}
                     <TableCell className="px-4 text-right">
                       {trade.isPaperTrade ? (
-                        <Badge variant="outline" className="text-[10px] font-semibold bg-muted/50 text-muted-foreground border-muted/50">
+                        <Badge variant="outline" className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                           Paper
                         </Badge>
                       ) : trade.noTradeTaken ? (
-                        <Badge variant="outline" className="text-[10px] font-semibold bg-muted/50 text-muted-foreground border-muted/50">
+                        <Badge variant="outline" className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                           No Trade
                         </Badge>
                       ) : (

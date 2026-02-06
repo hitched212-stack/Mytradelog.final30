@@ -10,18 +10,18 @@ interface TradeStatusSwitchProps {
 export function TradeStatusSwitch({ isOpen, onChange, className }: TradeStatusSwitchProps) {
   return (
     <div className={cn(
-      "relative flex gap-0 rounded-lg overflow-hidden border border-border/60 dark:border-white/10 bg-muted/40 dark:bg-white/5 p-1.5",
+      "relative flex gap-0 rounded-xl overflow-hidden border border-border/50 bg-card/85 dark:bg-card/70 backdrop-blur-xl p-1",
       className
     )}>
       {/* Sliding background */}
       <div
         className={cn(
-          "absolute top-1.5 bottom-1.5 transition-all duration-500 rounded-md pointer-events-none",
-          isOpen ? "bg-pnl-positive/20" : "bg-pnl-negative/20"
+          "absolute top-1 bottom-1 transition-all duration-500 rounded-lg pointer-events-none shadow-sm",
+          isOpen ? "border border-pnl-positive/30 bg-pnl-positive/10" : "border border-pnl-negative/30 bg-pnl-negative/10"
         )}
         style={{
-          width: "calc(50% - 0.375rem)",
-          left: isOpen ? "0.375rem" : "calc(50% + 0.375rem)",
+          width: "calc(50% - 0.5rem)",
+          left: isOpen ? "0.25rem" : "calc(50% + 0.25rem)",
         }}
       />
       
@@ -31,7 +31,7 @@ export function TradeStatusSwitch({ isOpen, onChange, className }: TradeStatusSw
           type="button"
           onClick={() => onChange(true)}
           className={cn(
-            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-500 justify-center rounded-md",
+            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-500 justify-center rounded-lg",
             isOpen
               ? "text-pnl-positive"
               : "text-muted-foreground hover:text-foreground/80"
@@ -44,7 +44,7 @@ export function TradeStatusSwitch({ isOpen, onChange, className }: TradeStatusSw
           type="button"
           onClick={() => onChange(false)}
           className={cn(
-            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-500 justify-center rounded-md",
+            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-500 justify-center rounded-lg",
             !isOpen
               ? "text-pnl-negative"
               : "text-muted-foreground hover:text-foreground/80"

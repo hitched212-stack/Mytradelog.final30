@@ -667,49 +667,49 @@ export default function EconomicNews() {
           {/* Header skeleton */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <Skeleton className="h-6 w-48 mb-2 bg-muted/50" />
-              <Skeleton className="h-4 w-36 bg-muted/30" />
+              <Skeleton className="h-6 w-52 mb-2 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+              <Skeleton className="h-4 w-40 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
             </div>
-            <Skeleton className="h-9 w-9 rounded-md bg-muted/40" />
+            <Skeleton className="h-9 w-9 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
           </div>
           
           {/* Last Updated skeleton */}
           <div className="flex items-center gap-2 mb-4">
-            <Skeleton className="h-3 w-3 rounded-full bg-muted/40" />
-            <Skeleton className="h-4 w-32 bg-muted/30" />
-            <Skeleton className="h-4 w-10 rounded bg-pnl-positive/20" />
+            <Skeleton className="h-3 w-3 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+            <Skeleton className="h-4 w-36 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+            <Skeleton className="h-4 w-12 rounded-full bg-gradient-to-r from-pnl-positive/10 via-pnl-positive/20 to-pnl-positive/10" />
           </div>
           
           {/* Controls skeleton */}
           <div className="flex items-center gap-2 mb-6 flex-wrap">
-            <Skeleton className="h-9 w-32 rounded-md bg-muted/40" />
-            <Skeleton className="h-9 w-9 rounded-md bg-muted/30" />
-            <Skeleton className="h-9 w-9 rounded-md bg-muted/30" />
-            <Skeleton className="h-9 w-24 rounded-md bg-muted/40" />
-            <Skeleton className="h-9 w-28 rounded-md bg-muted/40" />
-            <Skeleton className="h-9 w-32 rounded-md bg-muted/40" />
+            <Skeleton className="h-9 w-36 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+            <Skeleton className="h-9 w-9 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+            <Skeleton className="h-9 w-9 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+            <Skeleton className="h-9 w-24 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+            <Skeleton className="h-9 w-28 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+            <Skeleton className="h-9 w-32 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
           </div>
           
           {/* News events skeleton */}
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="rounded-2xl border border-foreground/20 bg-card/80 p-4 dark:border-white/10">
+              <div key={i} className="rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm backdrop-blur">
                 <div className="flex items-start gap-3">
-                  <Skeleton className="h-8 w-8 rounded-lg bg-muted/50" />
+                  <Skeleton className="h-9 w-9 rounded-xl bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <Skeleton className="h-5 w-40 bg-muted/50" />
-                      <Skeleton className="h-4 w-12 rounded bg-muted/40" />
+                      <Skeleton className="h-5 w-44 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+                      <Skeleton className="h-4 w-14 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
                     </div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Skeleton className="h-3 w-16 bg-muted/30" />
-                      <Skeleton className="h-3 w-20 bg-muted/30" />
-                      <Skeleton className="h-5 w-16 rounded-md bg-muted/40" />
+                      <Skeleton className="h-3 w-16 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+                      <Skeleton className="h-3 w-20 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+                      <Skeleton className="h-5 w-16 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
                     </div>
                     <div className="flex items-center gap-4">
-                      <Skeleton className="h-4 w-20 bg-muted/30" />
-                      <Skeleton className="h-4 w-20 bg-muted/30" />
-                      <Skeleton className="h-4 w-20 bg-muted/30" />
+                      <Skeleton className="h-4 w-20 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+                      <Skeleton className="h-4 w-20 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+                      <Skeleton className="h-4 w-20 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
                     </div>
                   </div>
                 </div>
@@ -1315,6 +1315,9 @@ export default function EconomicNews() {
                         <p className="text-sm font-semibold text-foreground">
                           {format(new Date(date), 'EEEE, MMM d')}
                         </p>
+                        <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground border border-border/40">
+                          {events.length} {events.length === 1 ? 'event' : 'events'}
+                        </Badge>
                         <div className="h-px flex-1 bg-border/60 dark:bg-white/10" />
                       </div>
                       <div className="space-y-4">
@@ -1324,6 +1327,15 @@ export default function EconomicNews() {
                   ))
               ) : (
                 <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-semibold text-foreground">
+                      {format(selectedDate, 'EEEE, MMM d')}
+                    </p>
+                    <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground border border-border/40">
+                      {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
+                    </Badge>
+                    <div className="h-px flex-1 bg-border/60 dark:bg-white/10" />
+                  </div>
                   {filteredEvents.map((event, index) => renderEventRow(event, index, filteredEvents.length))}
                 </div>
               )}

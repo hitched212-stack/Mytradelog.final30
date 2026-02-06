@@ -239,31 +239,31 @@ export default function Index() {
           {/* Header skeleton */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <Skeleton className="h-8 w-64 mb-2 bg-muted/50" />
-              <Skeleton className="h-4 w-48 bg-muted/30" />
+              <Skeleton className="h-8 w-64 mb-2 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+              <Skeleton className="h-4 w-48 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
             </div>
-            <Skeleton className="h-4 w-32 bg-muted/30" />
+            <Skeleton className="h-4 w-32 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
           </div>
           
           {/* Section title skeleton */}
           <div className="flex items-center gap-2 mb-4">
-            <Skeleton className="h-5 w-5 rounded bg-muted/40" />
-            <Skeleton className="h-5 w-40 bg-muted/40" />
+            <Skeleton className="h-5 w-5 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+            <Skeleton className="h-5 w-40 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
           </div>
           
           {/* Stats grid skeleton - matches actual layout */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Account Balance Card - highlighted */}
-            <div className="rounded-xl border border-pnl-positive/30 bg-card p-4 shadow-[0_0_20px_rgba(34,197,94,0.08)]">
-              <Skeleton className="h-4 w-24 mb-3 bg-muted/40" />
-              <Skeleton className="h-8 w-32 mb-2 bg-pnl-positive/20" />
-              <Skeleton className="h-4 w-28 bg-muted/30" />
+            <div className="rounded-2xl border border-pnl-positive/30 bg-card/70 p-4 shadow-[0_0_20px_rgba(34,197,94,0.08)] backdrop-blur">
+              <Skeleton className="h-4 w-24 mb-3 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+              <Skeleton className="h-8 w-32 mb-2 rounded-full bg-gradient-to-r from-pnl-positive/10 via-pnl-positive/20 to-pnl-positive/10" />
+              <Skeleton className="h-4 w-28 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
             </div>
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="rounded-xl border border-border bg-card p-4">
-                <Skeleton className="h-4 w-20 mb-3 bg-muted/40" />
-                <Skeleton className="h-7 w-28 mb-2 bg-muted/50" />
-                <Skeleton className="h-4 w-24 bg-muted/30" />
+              <div key={i} className="rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm backdrop-blur">
+                <Skeleton className="h-4 w-20 mb-3 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+                <Skeleton className="h-7 w-28 mb-2 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+                <Skeleton className="h-4 w-24 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
               </div>
             ))}
           </div>
@@ -271,37 +271,37 @@ export default function Index() {
           {/* Trade journal section skeleton */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-5 rounded bg-muted/40" />
-              <Skeleton className="h-5 w-28 bg-muted/40" />
+              <Skeleton className="h-5 w-5 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+              <Skeleton className="h-5 w-28 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
             </div>
-            <Skeleton className="h-9 w-48 rounded-full bg-muted/30" />
+            <Skeleton className="h-9 w-48 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
           </div>
           
           {/* Filter tabs skeleton */}
           <div className="flex gap-2 mb-4">
-            <Skeleton className="h-9 w-20 rounded-full bg-muted/40" />
-            <Skeleton className="h-9 w-20 rounded-full bg-muted/30" />
-            <Skeleton className="h-9 w-24 rounded-full bg-muted/30" />
+            <Skeleton className="h-9 w-20 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+            <Skeleton className="h-9 w-20 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
+            <Skeleton className="h-9 w-24 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
           </div>
           
           {/* Trade cards skeleton */}
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="rounded-xl border border-border bg-card p-4">
+              <div key={i} className="rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm backdrop-blur">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-xl bg-muted/50" />
+                    <Skeleton className="h-10 w-10 rounded-2xl bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
                     <div>
-                      <Skeleton className="h-5 w-32 mb-1 bg-muted/50" />
-                      <Skeleton className="h-4 w-24 bg-muted/30" />
+                      <Skeleton className="h-5 w-32 mb-1 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+                      <Skeleton className="h-4 w-24 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
                     </div>
                   </div>
                   <div className="text-right">
-                    <Skeleton className="h-6 w-20 mb-1 bg-muted/50" />
-                    <Skeleton className="h-4 w-16 bg-muted/30" />
+                    <Skeleton className="h-6 w-20 mb-1 rounded-full bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30" />
+                    <Skeleton className="h-4 w-16 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
                   </div>
                 </div>
-                <Skeleton className="h-4 w-28 bg-muted/30" />
+                <Skeleton className="h-4 w-28 rounded-full bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
               </div>
             ))}
           </div>

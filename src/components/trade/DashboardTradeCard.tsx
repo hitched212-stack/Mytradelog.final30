@@ -82,18 +82,20 @@ export const DashboardTradeCard = memo(function DashboardTradeCard({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-foreground">{trade.symbol}</span>
               <span className={cn(
-                'px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide border',
-                'border-border bg-muted/50 text-muted-foreground'
+                'inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide uppercase whitespace-nowrap',
+                trade.direction === 'long'
+                  ? 'bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40'
+                  : 'bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40'
               )}>
                 {trade.direction}
               </span>
               {isPaper && (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium border border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground whitespace-nowrap">
+                <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                   Paper
                 </span>
               )}
               {isNoTrade && (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium border border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground whitespace-nowrap">
+                <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                   No Trade
                 </span>
               )}
@@ -129,7 +131,7 @@ export const DashboardTradeCard = memo(function DashboardTradeCard({
           </div>
         )}
         {(isPaper || isNoTrade) && (
-          <span className="px-3 py-1 rounded-full text-xs font-medium border border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground whitespace-nowrap">
+          <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
             {isPaper ? 'Paper' : 'No Trade'}
           </span>
         )}

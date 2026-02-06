@@ -82,8 +82,10 @@ export function TradeCard({
                 {trade.symbol}
               </span>
               <span className={cn(
-                'rounded px-1.5 py-0.5 text-[10px] md:text-xs font-medium uppercase',
-                isLong ? 'bg-pnl-positive/20 text-pnl-positive' : 'bg-pnl-negative/20 text-pnl-negative'
+                'inline-flex items-center px-3 py-1 rounded-lg text-[10px] md:text-xs font-semibold tracking-wide uppercase whitespace-nowrap',
+                isLong
+                  ? 'bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40'
+                  : 'bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40'
               )}>
                 {trade.direction}
               </span>

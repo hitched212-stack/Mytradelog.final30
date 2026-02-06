@@ -652,10 +652,10 @@ export default function Journal() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-foreground">{trade.symbol}</span>
                             <span className={cn(
-                              "px-2.5 py-0.5 rounded-full text-[10px] font-medium capitalize border",
+                              "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide capitalize whitespace-nowrap",
                               trade.direction === 'long' 
-                                ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/30" 
-                                : "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/30"
+                                ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40" 
+                                : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
                             )}>
                               {trade.direction}
                             </span>
@@ -672,7 +672,7 @@ export default function Journal() {
                         {!trade.isPaperTrade && !trade.noTradeTaken ? <div className="text-right flex flex-col">
                             <AnimatedNumber value={trade.pnlAmount} formatFn={formatPnl} className={cn('font-semibold text-base font-display', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')} />
                             <AnimatedNumber value={calculatePnlPercentage(trade)} formatFn={v => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`} className={cn("text-xs font-display mt-0.5", trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative")} />
-                          </div> : <span className="px-2 py-1 rounded text-xs font-medium border border-border bg-muted text-muted-foreground whitespace-nowrap">
+                          </div> : <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                             {trade.isPaperTrade ? 'Paper' : 'No Trade'}
                           </span>}
 
@@ -745,10 +745,10 @@ export default function Journal() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-foreground">{trade.symbol}</span>
                               <span className={cn(
-                                "px-2.5 py-0.5 rounded-full text-[10px] font-medium capitalize border",
+                                "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide capitalize whitespace-nowrap",
                                 trade.direction === 'long' 
-                                  ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/30" 
-                                  : "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/30"
+                                  ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40" 
+                                  : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
                               )}>
                                 {trade.direction}
                               </span>
@@ -759,7 +759,7 @@ export default function Journal() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {trade.isPaperTrade || trade.noTradeTaken ? <span className="px-2 py-1 rounded text-xs font-medium border border-border bg-muted text-muted-foreground whitespace-nowrap">
+                          {trade.isPaperTrade || trade.noTradeTaken ? <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                               {trade.isPaperTrade ? 'Paper' : 'No Trade'}
                             </span> : <div className="text-right flex flex-col">
                               <AnimatedNumber value={trade.pnlAmount} formatFn={formatPnl} className={cn('font-semibold text-base font-display', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')} />

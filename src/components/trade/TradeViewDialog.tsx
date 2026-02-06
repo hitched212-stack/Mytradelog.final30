@@ -143,10 +143,10 @@ export function TradeViewDialogContent({
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-lg font-semibold text-foreground">{trade.symbol}</span>
                   <span className={cn(
-                    'px-2.5 py-0.5 rounded-full text-xs font-medium border',
+                    'inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide uppercase whitespace-nowrap',
                     trade.direction === 'long' 
-                      ? 'border-pnl-positive/30 bg-pnl-positive/10 text-pnl-positive'
-                      : 'border-pnl-negative/30 bg-pnl-negative/10 text-pnl-negative'
+                      ? 'bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40'
+                      : 'bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40'
                   )}>
                     {trade.direction === 'long' ? 'Long' : 'Short'}
                   </span>
@@ -205,11 +205,11 @@ export function TradeViewDialogContent({
                   )}
                 </div>
                 {trade.isPaperTrade ? (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium border border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                     Paper
                   </span>
                 ) : trade.noTradeTaken ? (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium border border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
                     No Trade
                   </span>
                 ) : (
