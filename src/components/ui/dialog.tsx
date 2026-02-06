@@ -52,7 +52,7 @@ const DialogContent = React.forwardRef<
       {!hideCloseButton && (
         <DialogPrimitive.Close 
           className={cn(
-            "absolute right-4 rounded-lg p-1.5 opacity-70 ring-offset-background transition-all hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-10 [-webkit-tap-highlight-color:transparent]",
+            "absolute right-4 rounded-lg p-1.5 opacity-70 transition-all hover:opacity-100 focus:outline-none disabled:pointer-events-none z-10 [-webkit-tap-highlight-color:transparent]",
             fullScreenOnMobile 
               ? "top-[max(1rem,env(safe-area-inset-top))] sm:top-4" 
               : "top-4"

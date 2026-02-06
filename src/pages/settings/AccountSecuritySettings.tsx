@@ -25,18 +25,56 @@ export default function AccountSecuritySettings() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      // Delete all user data in order (respecting foreign key constraints)
+      // 1. Delete trades
+      const { error: tradesError } = await supabase
         .from('trades')
         .delete()
         .eq('user_id', user.id);
+      if (tradesError) throw tradesError;
 
-      if (error) throw error;
+      // 2. Delete backtests
+      const { error: backtestsError } = await supabase
+        .from('backtests')
+        .delete()
+        .eq('user_id', user.id);
+      if (backtestsError) throw backtestsError;
+
+      // 3. Delete playbook setups
+      const { error: playbookError } = await supabase
+        .from('playbook_setups')
+        .delete()
+        .eq('user_id', user.id);
+      if (playbookError) throw playbookError;
+
+      // 4. Delete AI messages (must be deleted before conversations due to FK)
+      const { error: messagesError } = await supabase
+        .from('ai_messages')
+        .delete()
+        .eq('user_id', user.id);
+      if (messagesError) throw messagesError;
+
+      // 5. Delete AI conversations
+      const { error: conversationsError } = await supabase
+        .from('ai_conversations')
+        .delete()
+        .eq('user_id', user.id);
+      if (conversationsError) throw conversationsError;
+
+      // 6. Delete folders (should be last since backtests/playbook reference them)
+      const { error: foldersError } = await supabase
+        .from('folders')
+        .delete()
+        .eq('user_id', user.id);
+      if (foldersError) throw foldersError;
 
       toast({
         title: 'Data Erased',
         description: 'All trading data has been deleted',
-        variant: 'success',
       });
+
+      // Reload the page to refresh all data
+      window.location.reload();
     } catch (error) {
       console.error('Error erasing data:', error);
       toast({
@@ -55,12 +93,12 @@ export default function AccountSecuritySettings() {
 
       if (error) throw error;
 
-      await signOut();
       toast({
         title: 'Account Deleted',
         description: 'Your account has been deleted successfully',
-        variant: 'success',
       });
+      
+      await signOut();
       navigate('/auth');
     } catch (error) {
       console.error('Error deleting account:', error);

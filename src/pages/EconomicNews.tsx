@@ -1277,7 +1277,7 @@ export default function EconomicNews() {
                         <p className="text-sm font-semibold text-foreground">
                           {format(new Date(date), 'EEEE, MMM d')}
                         </p>
-                        <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground border border-border/40">
+                        <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/30">
                           {events.length} {events.length === 1 ? 'event' : 'events'}
                         </Badge>
                         <div className="h-px flex-1 bg-border/60 dark:bg-white/10" />
@@ -1293,7 +1293,7 @@ export default function EconomicNews() {
                     <p className="text-sm font-semibold text-foreground">
                       {format(selectedDate, 'EEEE, MMM d')}
                     </p>
-                    <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground border border-border/40">
+                    <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/30">
                       {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
                     </Badge>
                     <div className="h-px flex-1 bg-border/60 dark:bg-white/10" />
