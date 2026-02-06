@@ -843,66 +843,6 @@ export default function EconomicNews() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Time</p>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => handleTimeRangeChange('day')}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                        timeRangeFilter === 'day'
-                          ? "bg-foreground text-background dark:bg-white dark:text-black"
-                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                      )}
-                    >
-                      Day
-                    </button>
-                    <button
-                      onClick={() => setSelectedDate(subDays(new Date(), 1))}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                        isSameDay(selectedDate, subDays(new Date(), 1))
-                          ? "bg-foreground text-background dark:bg-white dark:text-black"
-                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                      )}
-                    >
-                      Yesterday
-                    </button>
-                    <button
-                      onClick={() => setSelectedDate(new Date())}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                        isSameDay(selectedDate, new Date())
-                          ? "bg-foreground text-background dark:bg-white dark:text-black"
-                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                      )}
-                    >
-                      Today
-                    </button>
-                    <button
-                      onClick={() => setSelectedDate(addDays(new Date(), 1))}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                        isSameDay(selectedDate, addDays(new Date(), 1))
-                          ? "bg-foreground text-background dark:bg-white dark:text-black"
-                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                      )}
-                    >
-                      Tomorrow
-                    </button>
-                    <button
-                      onClick={() => handleTimeRangeChange('week')}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                        timeRangeFilter === 'week'
-                          ? "bg-foreground text-background dark:bg-white dark:text-black"
-                          : "bg-muted/40 text-foreground/80 hover:bg-muted/60 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-                      )}
-                    >
-                      Week
-                    </button>
-                  </div>
-                </div>
 
                 <div>
                   <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Custom Date Range</p>
@@ -963,31 +903,6 @@ export default function EconomicNews() {
                       </div>
                     </PopoverContent>
                   </Popover>
-                </div>
-
-                <div>
-                  <p className="text-xs text-foreground/80 dark:text-muted-foreground font-medium mb-2">Day</p>
-                  <div className="grid grid-cols-7 gap-1">
-                    {Array.from({ length: 7 }, (_, i) => {
-                      const day = addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), i);
-                      const isSelected = isSameDay(day, selectedDate);
-                      return (
-                        <button
-                          key={format(day, 'yyyy-MM-dd')}
-                          onClick={() => setSelectedDate(day)}
-                          className={cn(
-                            "h-10 rounded-xl flex flex-col items-center justify-center text-[11px] transition-all",
-                            isSelected
-                              ? "border border-foreground/50 bg-muted text-foreground dark:border-white dark:bg-white/10 dark:text-white"
-                              : "border border-border/60 bg-muted/40 text-foreground/80 dark:border-white/5 dark:bg-white/5 dark:text-gray-400"
-                          )}
-                        >
-                          <span className="text-[10px]">{format(day, 'EEE')}</span>
-                          <span className="text-sm font-medium leading-none">{format(day, 'd')}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
 
                 <div>
