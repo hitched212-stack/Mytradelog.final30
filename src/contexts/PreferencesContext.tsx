@@ -33,6 +33,7 @@ interface Preferences {
   activePresetId: string | null;
   liquidGlassEnabled: boolean;
   folderColorPresets: string[];
+  timeZone: string;
 }
 
 const defaultPreset: ColorPreset = {
@@ -61,6 +62,7 @@ const defaultPreferences: Preferences = {
   activePresetId: 'default',
   liquidGlassEnabled: false,
   folderColorPresets: [],
+  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 };
 
 const STORAGE_KEY = 'app-theme';
@@ -108,6 +110,7 @@ interface PreferencesContextValue {
   setGoalPeriod: (goalPeriod: GoalPeriod) => void;
   setCustomColor: (key: keyof Preferences['customColors'], value: string) => void;
   setLiquidGlassEnabled: (enabled: boolean) => void;
+  setTimeZone: (timeZone: string) => void;
   createPreset: (name: string) => ColorPreset | null;
   deletePreset: (id: string) => void;
   applyPreset: (preset: ColorPreset) => void;
@@ -119,6 +122,9 @@ interface PreferencesContextValue {
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
+    const setTimeZone = useCallback((timeZone: string) => {
+      setPreferences(prev => ({ ...prev, timeZone }));
+    }, []);
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<Preferences>(() => {
     if (typeof window === 'undefined') return defaultPreferences;
@@ -388,6 +394,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       setGoalPeriod,
       setCustomColor,
       setLiquidGlassEnabled,
+      setTimeZone,
       createPreset,
       deletePreset,
       applyPreset,

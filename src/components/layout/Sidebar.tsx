@@ -36,6 +36,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 
+// Dashboard icon - solid house
 // Custom 4-dot grid icon matching mobile nav
 const GridDotsIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -46,6 +47,7 @@ const GridDotsIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Calendar icon - solid filled
 // Custom calendar icon - thin stroke style
 const CalendarIcon = ({ className }: { className?: string }) => (
   <svg
@@ -62,8 +64,19 @@ const CalendarIcon = ({ className }: { className?: string }) => (
     <line x1="8" y1="2" x2="8" y2="6" />
     <line x1="3" y1="10" x2="21" y2="10" />
   </svg>
+// ...existing code...
 );
 
+// Bar chart icon - solid filled
+const BarChartIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <rect x="3" y="12" width="4" height="9" rx="1" />
+    <rect x="10" y="6" width="4" height="15" rx="1" />
+    <rect x="17" y="3" width="4" height="18" rx="1" />
+  </svg>
+);
+
+// News/globe icon - solid filled
 // Custom news/globe icon - thin stroke style
 const NewsIcon = ({ className }: { className?: string }) => (
   <svg
@@ -81,11 +94,7 @@ const NewsIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-import * as React from "react";
-
-// Use Lucide Bot icon for AI Coach
-export const AIIcon = Bot;
-
+// Backtest icon - solid layers
 // Custom backtesting icon - premium layers/history style
 const BacktestIcon = ({ className }: { className?: string }) => (
   <svg
@@ -102,6 +111,10 @@ const BacktestIcon = ({ className }: { className?: string }) => (
     <path d="M2 17l8.58 3.91a2 2 0 0 0 1.66 0L21 17" />
   </svg>
 );
+
+import * as React from "react";
+// Use Lucide Bot icon for AI Coach
+export const AIIcon = Bot;
 
 // Custom playbook icon - premium open book style
 const PlaybookIcon = ({ className }: { className?: string }) => (

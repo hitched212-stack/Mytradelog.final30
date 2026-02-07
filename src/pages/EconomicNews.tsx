@@ -523,6 +523,16 @@ export default function EconomicNews() {
         ? "bg-orange-500"
         : "bg-yellow-500";
 
+    // Show time in user's selected time zone
+    let displayTime = event.time;
+    if (eventDateTime && preferences.timeZone && event.time !== 'All Day' && event.time !== 'Tentative') {
+      displayTime = eventDateTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: preferences.timeZone,
+        hour12: true,
+      });
+    }
     return (
       <div key={event.id} className="flex gap-4 group cursor-pointer">
         {/* Timeline Column */}
@@ -531,7 +541,7 @@ export default function EconomicNews() {
             "text-xs font-semibold whitespace-nowrap w-12 text-center",
             isLive ? "text-foreground" : "text-foreground"
           )}>
-            {event.time}
+            {displayTime}
           </div>
           <div className={cn(
             "w-0.5 h-12 mt-2 rounded-full",

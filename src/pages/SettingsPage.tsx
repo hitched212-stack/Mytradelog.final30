@@ -79,8 +79,9 @@ function SettingsSection({ title, children, isGlassEnabled, patternId }: { title
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { settings, setUsername } = useSettings();
-  const { preferences } = usePreferences();
+  const { preferences, setTimeZone } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
+  const [timeZoneInput, setTimeZoneInput] = useState(preferences.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
   const navigate = useNavigate();
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [usernameInput, setUsernameInput] = useState(settings.username || '');
@@ -217,6 +218,43 @@ export default function SettingsPage() {
 
       {/* Settings Content */}
       <div className="px-4 md:px-6 lg:px-8 space-y-6">
+        {/* Time Zone Section */}
+        <SettingsSection title="Time Zone" isGlassEnabled={isGlassEnabled} patternId="settings-timezone-dots">
+          <div className="p-4 flex flex-col gap-3">
+            <Label htmlFor="timezone-select" className="text-base font-semibold text-foreground mb-1">Time Zone</Label>
+            <div className="relative">
+              <select
+                id="timezone-select"
+                value={timeZoneInput}
+                onChange={e => setTimeZoneInput(e.target.value)}
+                className="w-full h-12 px-4 py-2 rounded-xl bg-white border border-gray-300 shadow-md text-lg font-semibold text-black dark:bg-neutral-900 dark:text-white dark:border-border focus:outline-none appearance-none transition-all font-montserrat"
+                style={{ WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none', fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}
+              >
+                {/* Main trading time zones */}
+                <option value="America/New_York" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>EST (New York)</option>
+                <option value="America/Chicago" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>CST (Chicago)</option>
+                <option value="America/Denver" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>MST (Denver)</option>
+                <option value="America/Los_Angeles" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>PST (Los Angeles)</option>
+                <option value="Europe/London" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>GMT (London)</option>
+                <option value="Europe/Frankfurt" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>CET (Frankfurt)</option>
+                <option value="Asia/Tokyo" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>JST (Tokyo)</option>
+                <option value="Asia/Hong_Kong" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>HKT (Hong Kong)</option>
+                <option value="Australia/Sydney" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>AEST (Sydney)</option>
+              </select>
+              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-montserrat" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>
+                ▼
+              </span>
+            </div>
+            <Button
+              onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
+              className="w-full mt-2 text-base h-11 rounded-xl"
+              disabled={preferences.timeZone === timeZoneInput}
+            >
+              Save Time Zone
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1">Your economic calendar will show news events in this time zone.</p>
+          </div>
+        </SettingsSection>
         {/* Account Section */}
         <SettingsSection title="Account" isGlassEnabled={isGlassEnabled} patternId="settings-account-dots">
           <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
