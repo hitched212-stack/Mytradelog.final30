@@ -38,14 +38,6 @@ const CalendarIcon = ({ className, strokeWidth = 1.5 }: { className?: string; st
   </svg>
 );
 
-// Clock icon - filled (matches Sidebar for History and Timeframes)
-const ClockHistoryIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-
 // Custom news/globe icon - thin stroke style matching main nav
 const NewsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
   <svg 
@@ -116,8 +108,25 @@ const PlaybookIcon = ({ className, strokeWidth = 1.5 }: { className?: string; st
   </svg>
 );
 
-// Custom playbook icon - premium open book style
-const PlaybookIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
+// Custom history icon - premium scroll/timeline style
+const HistoryIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M12 7v5l4 2" />
+  </svg>
+);
+
+// Custom trading rules icon - minimal checklist
+const TradingRulesIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
   <svg 
     viewBox="0 0 24 24" 
     fill="none"
@@ -136,14 +145,36 @@ const PlaybookIcon = ({ className, strokeWidth = 1.5 }: { className?: string; st
   </svg>
 );
 
-// Custom target icon - crosshair reticle (matches Sidebar for P&L Goals)
-const TargetIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+// Custom goals icon - target
+const GoalsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
     <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="2" x2="12" y2="6" />
-    <line x1="12" y1="18" x2="12" y2="22" />
-    <line x1="2" y1="12" x2="6" y2="12" />
-    <line x1="18" y1="12" x2="22" y2="12" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+);
+
+// Custom timeframes icon - clock
+const TimeframesIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
   </svg>
 );
 
@@ -353,7 +384,7 @@ export function BottomNav() {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:bg-foreground/[0.08]"
                   style={{ backgroundColor: location.pathname === '/history' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
-                  <ClockHistoryIcon className={cn('h-5 w-5', location.pathname === '/history' ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.5} />
+                  <HistoryIcon className={cn('h-5 w-5', location.pathname === '/history' ? 'text-foreground' : 'text-muted-foreground')} />
                   <span className={cn('text-sm', location.pathname === '/history' ? 'text-foreground' : 'text-muted-foreground')}>History</span>
                 </NavLink>
                 <NavLink 
@@ -416,7 +447,7 @@ export function BottomNav() {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:bg-foreground/[0.08]"
                   style={{ backgroundColor: location.pathname === '/settings/goals' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
-                  <TargetIcon className={cn('h-5 w-5', location.pathname === '/settings/goals' ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.5} />
+                  <GoalsIcon className={cn('h-5 w-5', location.pathname === '/settings/goals' ? 'text-foreground' : 'text-muted-foreground')} />
                   <span className={cn('text-sm', location.pathname === '/settings/goals' ? 'text-foreground' : 'text-muted-foreground')}>P&L Goals</span>
                 </NavLink>
                 <NavLink 
@@ -425,7 +456,7 @@ export function BottomNav() {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:bg-foreground/[0.08]"
                   style={{ backgroundColor: location.pathname === '/settings/timeframes' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
-                  <ClockHistoryIcon className={cn('h-5 w-5', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.5} />
+                  <TimeframesIcon className={cn('h-5 w-5', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')} />
                   <span className={cn('text-sm', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')}>Timeframes</span>
                 </NavLink>
               </div>
