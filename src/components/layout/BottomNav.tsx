@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Plus, ChartNoAxesColumn, User, Menu, Bot } from 'lucide-react';
+import { Plus, User, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { usePreferences } from '@/hooks/usePreferences';
@@ -55,8 +55,24 @@ const NewsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; stroke
   </svg>
 );
 
-// Use Lucide Bot icon for AI Coach
-const AIIcon = Bot;
+// Custom AI Coach icon - Chat bubbles icon
+const AIIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <circle cx="9" cy="10" r="0.5" fill="currentColor" />
+    <circle cx="12" cy="10" r="0.5" fill="currentColor" />
+    <circle cx="15" cy="10" r="0.5" fill="currentColor" />
+  </svg>
+);
+
+// Custom analytics icon - three vertical bars
+const AnalyticsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="6" y1="20" x2="6" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="18" y1="20" x2="18" y2="14" />
+  </svg>
+);
 
 // Custom backtesting icon - premium layers/history style (matches sidebar)
 const BacktestIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
@@ -288,7 +304,7 @@ export function BottomNav() {
             className="relative flex items-center justify-center z-10"
           >
             <div className="relative flex items-center justify-center w-12 h-12">
-              <ChartNoAxesColumn 
+              <AnalyticsIcon 
                 className={cn(
                   'transition-all duration-300 ease-out',
                   location.pathname === '/analytics' 
