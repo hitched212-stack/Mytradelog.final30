@@ -65,7 +65,7 @@ export function MobileSection() {
         </div>
         <div className="reveal-on-scroll flex items-center justify-center order-first lg:order-last">
           <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202026-01-30%20at%2014.18.28-krDi61I0eal2wAmO7qYareLZg7ibHn.png"
+            src="/images/mobile-app-preview.png"
             alt="MyTradeLog mobile app showing trading dashboard and calendar views"
             width={1200}
             height={1000}
