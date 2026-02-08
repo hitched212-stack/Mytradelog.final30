@@ -17,8 +17,8 @@ export function DashboardMockup() {
 
       {/* Dashboard Image */}
       <img
-        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202026-01-30%20at%2001.50.11-a91f42LTpefjt2kTrxqgRyowOEiIO3.png"
-        alt="MyTradeLog Dashboard showing performance overview with $100,294,009.98 balance and recent trades"
+        src="/images/dashboard-preview.png"
+        alt="MyTradeLog Dashboard showing performance overview with balance and recent trades"
         className="w-full h-auto"
         draggable={false}
         loading="lazy"
