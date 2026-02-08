@@ -61,25 +61,30 @@ export function ImageGallery({ images, thumbnailSize = 'sm' }: ImageGalleryProps
 
       {/* Expanded view dialog */}
       <Dialog open={selectedIndex !== null} onOpenChange={() => closeImage()}>
-        <DialogContent className="max-w-4xl border-border bg-background p-0">
-          <div className="relative">
-            {/* Close button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 z-10 bg-background/80"
-              onClick={closeImage}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+        <DialogContent className="max-w-7xl border-0 bg-black/95 backdrop-blur-xl p-0 gap-0">
+          <div className="relative h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
+              <div className="text-sm font-medium text-white/90">
+                {(selectedIndex ?? 0) + 1} / {images.length}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-white border-0"
+                onClick={closeImage}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
 
-            {/* Image */}
-            <div className="flex items-center justify-center p-4">
+            {/* Main image container */}
+            <div className="flex-1 flex items-center justify-center p-6 pt-20 pb-24">
               {selectedIndex !== null && (
                 <img
                   src={images[selectedIndex]}
                   alt={`Chart ${selectedIndex + 1}`}
-                  className="max-h-[80vh] max-w-full rounded-lg object-contain"
+                  className="max-h-full max-w-full object-contain rounded-lg"
                   style={{ 
                     imageRendering: 'auto',
                     maxWidth: '100%',
@@ -94,29 +99,43 @@ export function ImageGallery({ images, thumbnailSize = 'sm' }: ImageGalleryProps
             {/* Navigation arrows */}
             {images.length > 1 && (
               <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80"
+                <button
                   onClick={goToPrevious}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all border border-white/10 text-white"
                 >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80"
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
                   onClick={goToNext}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all border border-white/10 text-white"
                 >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
+                  <ChevronRight className="h-6 w-6" />
+                </button>
               </>
             )}
 
-            {/* Image counter */}
+            {/* Thumbnail strip at bottom */}
             {images.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-background/80 px-3 py-1 text-sm text-foreground">
-                {(selectedIndex ?? 0) + 1} / {images.length}
+              <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/80 to-transparent p-4">
+                <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 px-4">
+                  {images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedIndex(index)}
+                      className={`flex-shrink-0 h-16 w-24 rounded-lg overflow-hidden transition-all border-2 ${
+                        selectedIndex === index 
+                          ? 'border-white scale-105 opacity-100' 
+                          : 'border-white/20 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

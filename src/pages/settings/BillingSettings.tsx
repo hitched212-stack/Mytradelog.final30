@@ -90,8 +90,8 @@ export default function BillingSettings() {
               <CreditCard className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Billing & Subscription</h1>
-              <p className="text-sm text-muted-foreground">Manage your subscription and payment</p>
+              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Billing & Subscription</h1>
+              <p className="text-xs text-muted-foreground mt-1">Manage your subscription and payment</p>
             </div>
           </div>
         </header>
@@ -134,8 +134,8 @@ export default function BillingSettings() {
             <CreditCard className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Billing & Subscription</h1>
-            <p className="text-sm text-muted-foreground">Manage your subscription and payment</p>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Billing & Subscription</h1>
+            <p className="text-xs text-muted-foreground mt-1">Manage your subscription and payment</p>
           </div>
         </div>
       </header>

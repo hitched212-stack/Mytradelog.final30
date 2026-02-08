@@ -166,7 +166,7 @@ export default function PreferencesSettings() {
             <Palette className="h-6 w-6 text-muted-foreground" strokeWidth={1.5} />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-foreground tracking-tight">Appearance</h1>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Appearance</h1>
             <p className="text-sm text-muted-foreground">Customize your trading interface</p>
           </div>
         </div>

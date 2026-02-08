@@ -1,19 +1,14 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  ChartNoAxesColumn,
   ChevronRight,
   ChevronDown,
   Plus,
-  Settings,
   ChevronsUpDown,
   PanelLeft,
   LogOut,
   CreditCard,
   Wallet,
   Check,
-  Target,
-  Clock,
-  History,
   Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -37,119 +32,96 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // Dashboard icon - solid house
-// Custom 4-dot grid icon matching mobile nav
+// Custom 4-dot grid icon - filled
 const GridDotsIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <circle cx="7" cy="7" r="2.5" />
-    <circle cx="17" cy="7" r="2.5" />
-    <circle cx="7" cy="17" r="2.5" />
-    <circle cx="17" cy="17" r="2.5" />
+    <rect x="3" y="3" width="8" height="8" rx="2" />
+    <rect x="13" y="3" width="8" height="8" rx="2" />
+    <rect x="3" y="13" width="8" height="8" rx="2" />
+    <rect x="13" y="13" width="8" height="8" rx="2" />
   </svg>
 );
 
-// Calendar icon - solid filled
-// Custom calendar icon - thin stroke style
+// Custom calendar icon - filled
 const CalendarIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-// ...existing code...
-);
-
-// Bar chart icon - solid filled
-const BarChartIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <rect x="3" y="12" width="4" height="9" rx="1" />
-    <rect x="10" y="6" width="4" height="15" rx="1" />
-    <rect x="17" y="3" width="4" height="18" rx="1" />
+    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V9h14v10z"/>
   </svg>
 );
 
-// News/globe icon - solid filled
-// Custom news/globe icon - thin stroke style
+// Clock icon - filled
+const ClockHistoryIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/>
+  </svg>
+);
+
+// Bar chart icon - three vertical bars
+const BarChartIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="6" y1="20" x2="6" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="18" y1="20" x2="18" y2="14" />
+  </svg>
+);
+
+// News/globe icon - filled
 const NewsIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-    <path d="M2 12h20" />
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
   </svg>
 );
 
-// Backtest icon - solid layers
-// Custom backtesting icon - premium layers/history style
+// Backtest icon - rewind/fast-backward
 const BacktestIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-    <path d="M2 12l8.58 3.91a2 2 0 0 0 1.66 0L21 12" />
-    <path d="M2 17l8.58 3.91a2 2 0 0 0 1.66 0L21 17" />
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M11 5L3 11l8 6v-6l8-6-8 6v-6z"/>
+    <path d="M21 5L13 11l8 6v-12z"/>
+    <rect x="2" y="5" width="2" height="12" fill="currentColor"/>
   </svg>
 );
 
-import * as React from "react";
-// Use Lucide Bot icon for AI Coach
-export const AIIcon = Bot;
+// Custom AI Coach icon - Chat bubbles icon
+const AIIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <circle cx="9" cy="10" r="0.5" fill="currentColor" />
+    <circle cx="12" cy="10" r="0.5" fill="currentColor" />
+    <circle cx="15" cy="10" r="0.5" fill="currentColor" />
+  </svg>
+);
 
-// Custom playbook icon - premium open book style
+export { AIIcon };
+
+// Custom playbook icon - filled book style
 const PlaybookIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-    <path d="M8 7h6" />
-    <path d="M8 11h8" />
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 8h6v2H9V8zm0 4h6v2H9v-2z"/>
   </svg>
 );
 
-// Custom trading rules icon - minimal checklist
+// Custom trading rules icon - filled checklist
 const TradingRulesIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <line x1="10" y1="6" x2="21" y2="6" />
-    <line x1="10" y1="12" x2="21" y2="12" />
-    <line x1="10" y1="18" x2="21" y2="18" />
-    <polyline points="3 6 4 7 6 5" />
-    <polyline points="3 12 4 13 6 11" />
-    <polyline points="3 18 4 19 6 17" />
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8.29 13.29L6.7 12.3a.996.996 0 111.41-1.41L10.7 13.3l5.18-5.19a.996.996 0 111.41 1.41l-5.88 5.88a.996.996 0 01-1.41 0z"/>
+  </svg>
+);
+
+// Custom settings icon - filled gear
+const SettingsIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81a.488.488 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+  </svg>
+);
+
+// Custom target icon - crosshair reticle
+const TargetIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="2" x2="12" y2="6" />
+    <line x1="12" y1="18" x2="12" y2="22" />
+    <line x1="2" y1="12" x2="6" y2="12" />
+    <line x1="18" y1="12" x2="22" y2="12" />
   </svg>
 );
 
@@ -175,8 +147,8 @@ const navSections = [
     items: [
       { to: "/dashboard", icon: GridDotsIcon, label: "Dashboard" },
       { to: "/calendar", icon: CalendarIcon, label: "Calendar" },
-      { to: "/history", icon: History, label: "History" },
-      { to: "/analytics", icon: ChartNoAxesColumn, label: "Analytics" },
+      { to: "/history", icon: ClockHistoryIcon, label: "History" },
+      { to: "/analytics", icon: BarChartIcon, label: "Analytics" },
     ],
   },
   {
@@ -193,15 +165,15 @@ const navSections = [
 // Parameters section items (collapsible)
 const parametersItems = [
   { to: "/settings/rules", icon: TradingRulesIcon, label: "Trading Rules" },
-  { to: "/settings/goals", icon: Target, label: "P&L Goals" },
-  { to: "/settings/timeframes", icon: Clock, label: "Chart Timeframes" },
+  { to: "/settings/goals", icon: TargetIcon, label: "P&L Goals" },
+  { to: "/settings/timeframes", icon: ClockHistoryIcon, label: "Chart Timeframes" },
 ];
 
 // Flatten all nav items for indicator positioning
 const allNavItems = [
   ...navSections.flatMap((section) => section.items),
   ...parametersItems,
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 export function Sidebar({
@@ -287,7 +259,7 @@ export function Sidebar({
   const isActive = (path: string) => {
     if (path === "/settings") {
       // Don't highlight settings when on tools pages
-      const toolsPaths = ["/settings/rules", "/settings/goals", "/settings/timeframes"];
+      const toolsPaths = ["/settings/rules", "/settings/goals", "/settings/timeframes", "/settings/accounts"];
       if (toolsPaths.includes(location.pathname)) return false;
       return location.pathname === "/settings" || location.pathname.startsWith("/settings");
     }
@@ -663,7 +635,7 @@ export function Sidebar({
             )}
           >
             <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-              <Settings className="h-[18px] w-[18px] stroke-[1.5px]" />
+              <SettingsIcon className="h-[18px] w-[18px]" />
             </div>
             {!isCollapsed && (
               <>
@@ -737,7 +709,7 @@ export function Sidebar({
               <span>Billing</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/settings")} className="py-2.5 px-2 cursor-pointer">
-              <Settings className="mr-3 h-4 w-4 text-muted-foreground" />
+              <SettingsIcon className="mr-3 h-4 w-4 text-muted-foreground" />
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="my-1" />

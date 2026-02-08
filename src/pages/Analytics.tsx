@@ -165,7 +165,7 @@ export default function Analytics() {
     const totalWins = winningTrades.reduce((sum, t) => sum + t.pnlAmount, 0);
     const totalLosses = Math.abs(losingTrades.reduce((sum, t) => sum + t.pnlAmount, 0));
     const profitFactor = totalLosses > 0 ? totalWins / totalLosses : totalWins > 0 ? Infinity : 0;
-    const validRRs = filteredTrades.map(t => parseFloat(t.riskRewardRatio) || 0).filter(rr => rr > 0);
+    const validRRs = winningTrades.map(t => parseFloat(t.riskRewardRatio) || 0).filter(rr => rr > 0);
     const avgRR = validRRs.length > 0 ? validRRs.reduce((sum, rr) => sum + rr, 0) / validRRs.length : 0;
     const longWins = longTrades.filter(t => t.pnlAmount > 0).length;
     const shortWins = shortTrades.filter(t => t.pnlAmount > 0).length;
@@ -235,7 +235,7 @@ export default function Analytics() {
     };
   }, [filteredTrades]);
 
-  // Performance Consistency - based on performance grade stability
+  // Performance Consistency - based on performance grade quality and stability
   const performanceConsistency = useMemo(() => {
     // Filter trades that have a performance grade
     const tradesWithGrade = filteredTrades.filter(t => t.performanceGrade);
@@ -254,17 +254,6 @@ export default function Analytics() {
     // Calculate average grade
     const avgGrade = tradesWithGrade.reduce((sum, t) => sum + (t.performanceGrade || 0), 0) / tradesWithGrade.length;
     
-    // Calculate standard deviation of grades
-    const variance = tradesWithGrade.reduce((sum, t) => {
-      const diff = (t.performanceGrade || 0) - avgGrade;
-      return sum + (diff * diff);
-    }, 0) / tradesWithGrade.length;
-    const stdDev = Math.sqrt(variance);
-    
-    // Calculate consistency score (lower std dev = higher consistency)
-    // Max std dev for grades 1-3 is ~0.816 (equal distribution), so we normalize
-    const consistencyScore = Math.max(0, 100 - (stdDev / 0.816) * 100);
-    
     // Grade distribution
     const gradeDistribution = {
       grade1: tradesWithGrade.filter(t => t.performanceGrade === 1).length,
@@ -272,17 +261,21 @@ export default function Analytics() {
       grade3: tradesWithGrade.filter(t => t.performanceGrade === 3).length
     };
     
+    // Calculate consistency score based on average grade normalized to percentage
+    // Grade 1 = 33.33%, Grade 2 = 66.67%, Grade 3 = 100%
+    const consistencyScore = (avgGrade / 3) * 100;
+    
     // Determine label based on consistency score
     let label = 'Inconsistent';
-    if (consistencyScore >= 80) label = 'Very Consistent';
-    else if (consistencyScore >= 60) label = 'Consistent';
-    else if (consistencyScore >= 40) label = 'Moderate';
+    if (consistencyScore >= 85) label = 'Very Consistent';
+    else if (consistencyScore >= 70) label = 'Consistent';
+    else if (consistencyScore >= 50) label = 'Moderate';
     
     return {
       score: consistencyScore,
       label,
       avgGrade,
-      stdDev,
+      stdDev: 0,
       gradeDistribution,
       description: `${label} performance with avg grade ${avgGrade.toFixed(1)}/3`
     };
@@ -857,61 +850,63 @@ export default function Analytics() {
   return <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
-        <div className="flex flex-col gap-3 px-4 py-4 md:px-6 md:flex-row md:items-center md:justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Date Range Picker */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="secondary" className={cn("h-9 text-sm border-0 gap-2", dateRange.from ? "text-foreground" : "text-muted-foreground")}>
-                  <CalendarIcon className="h-4 w-4" />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd, yyyy')}`
-                    ) : (
-                      format(dateRange.from, 'MMM dd, yyyy')
-                    )
-                  ) : 'Pick date range'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar 
-                  mode="range" 
-                  selected={dateRange}
-                  onSelect={(range) => {
-                    setDateRange(range || { from: undefined, to: undefined });
-                    if (range?.from) {
-                      setTimeFrame('Daily');
-                    }
-                  }} 
-                  numberOfMonths={2}
-                  initialFocus 
-                  className="p-3 pointer-events-auto" 
-                />
-                {dateRange.from && <div className="p-3 border-t border-border">
-                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setDateRange({ from: undefined, to: undefined })}>
-                      Clear date filter
-                    </Button>
-                  </div>}
-              </PopoverContent>
-            </Popover>
+        <div className="px-4 py-5 md:px-6">
+          <div className="flex flex-col gap-4">
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Analytics</h1>
             
-            <Select value={timeFrame} onValueChange={(v: TimeFrame) => {
-            setTimeFrame(v);
-            setDateRange({ from: undefined, to: undefined });
-          }}>
-              <SelectTrigger className="w-[110px] h-9 text-sm bg-secondary border-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Daily">Daily</SelectItem>
-                <SelectItem value="Week">Week</SelectItem>
-                <SelectItem value="Month">Month</SelectItem>
-                <SelectItem value="Year">Year</SelectItem>
-                <SelectItem value="All Time">All Time</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Date Range Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="secondary" className={cn("h-9 text-sm border-0 gap-2 rounded-lg bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3", dateRange.from ? "text-foreground" : "text-muted-foreground")}>
+                    <CalendarIcon className="h-4 w-4" />
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd, yyyy')}`
+                      ) : (
+                        format(dateRange.from, 'MMM dd, yyyy')
+                      )
+                    ) : 'Pick date range'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar 
+                    mode="range" 
+                    selected={dateRange}
+                    onSelect={(range) => {
+                      setDateRange(range || { from: undefined, to: undefined });
+                      if (range?.from) {
+                        setTimeFrame('Daily');
+                      }
+                    }} 
+                    numberOfMonths={2}
+                    initialFocus 
+                    className="p-3 pointer-events-auto" 
+                  />
+                  {dateRange.from && <div className="p-3 border-t border-border">
+                      <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setDateRange({ from: undefined, to: undefined })}>
+                        Clear date filter
+                      </Button>
+                    </div>}
+                </PopoverContent>
+              </Popover>
+              
+              <Select value={timeFrame} onValueChange={(v: TimeFrame) => {
+              setTimeFrame(v);
+              setDateRange({ from: undefined, to: undefined });
+            }}>
+                <SelectTrigger className="w-[110px] h-9 text-sm bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Daily">Daily</SelectItem>
+                  <SelectItem value="Week">Week</SelectItem>
+                  <SelectItem value="Month">Month</SelectItem>
+                  <SelectItem value="Year">Year</SelectItem>
+                  <SelectItem value="All Time">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </header>
@@ -941,7 +936,7 @@ export default function Analytics() {
             {/* Left: Income info */}
             <div>
               <div className="flex items-start justify-between gap-4">
-                <p className="text-sm text-muted-foreground mb-1 md:mb-2 font-medium tracking-wide">Total Pnl</p>
+                <p className="text-xs text-white mb-1 md:mb-2 font-semibold uppercase tracking-wider">Total Pnl</p>
                 <span className={cn("text-sm font-medium font-display tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
                   {stats.totalPnl >= 0 ? '+' : '-'}{Math.abs(stats.winRate).toFixed(2)}%
                 </span>
@@ -1114,7 +1109,7 @@ export default function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Performance Score Radar */}
           <GlassCardWrapper patternId="perf-score-dots" className="p-5">
-            <h3 className="font-medium mb-2">Performance Score</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2">Performance Score</h3>
             <div className="flex flex-col items-center">
               <div className="w-full h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -1155,8 +1150,7 @@ export default function Analytics() {
           {/* Rule Compliance - Session Based */}
           <GlassCardWrapper patternId="rule-compliance-dots" className="p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium flex items-center gap-2">
-                <Shield className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider">
                 Session Compliance
               </h3>
               <span className="text-lg font-display font-bold tabular-nums" style={{ color: profitColor }}>
@@ -1244,8 +1238,7 @@ export default function Analytics() {
           {/* Win Rate Pie Chart */}
           <GlassCardWrapper patternId="winrate-dots" className="p-5">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider">
                 Win Rate
               </h3>
               <span className="text-lg font-display font-bold tabular-nums" style={{ color: profitColor }}>
@@ -1324,8 +1317,7 @@ export default function Analytics() {
           {/* Direction Performance Bar */}
           <GlassCardWrapper patternId="direction-dots" className="p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider">
                 Direction Performance
               </h3>
               <span className="text-sm font-display font-medium tabular-nums text-muted-foreground">
@@ -1349,22 +1341,62 @@ export default function Analytics() {
               ]}
               barHeight={14}
             />
+            
+            {/* Direction Stats */}
+            <div className="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-border/50">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-sm bg-pnl-positive" />
+                  <p className="text-xs font-medium text-foreground">Long Trades</p>
+                </div>
+                <div className="space-y-2 pl-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Win Rate</span>
+                    <span className="text-sm font-display font-semibold tabular-nums text-foreground">{stats.longTrades.winRate.toFixed(0)}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">P&L</span>
+                    <span className={cn("text-sm font-display font-semibold tabular-nums", stats.longTrades.pnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                      {formatPnl(stats.longTrades.pnl, currencySymbol)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: 'hsl(240, 91%, 65%)' }} />
+                  <p className="text-xs font-medium text-foreground">Short Trades</p>
+                </div>
+                <div className="space-y-2 pl-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Win Rate</span>
+                    <span className="text-sm font-display font-semibold tabular-nums text-foreground">{stats.shortTrades.winRate.toFixed(0)}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">P&L</span>
+                    <span className={cn("text-sm font-display font-semibold tabular-nums", stats.shortTrades.pnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                      {formatPnl(stats.shortTrades.pnl, currencySymbol)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </GlassCardWrapper>
         </div>
 
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <MetricCard label="Profit Factor" value={stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)} icon={<Scale className="h-4 w-4" />} />
-          <MetricCard label="Avg. R:R" value={`${stats.avgRR.toFixed(1)}R`} icon={<Crosshair className="h-4 w-4" />} />
-          <MetricCard label="Avg. Stop Loss" value={stats.avgStopLossPips > 0 ? `${stats.avgStopLossPips.toFixed(1)} pips` : '—'} icon={<Target className="h-4 w-4" />} />
-          <MetricCard label="Trades" value={stats.totalTrades.toString()} icon={<BarChart3 className="h-4 w-4" />} />
+          <MetricCard label="Profit Factor" value={stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)} />
+          <MetricCard label="Avg. R:R" value={`${stats.avgRR.toFixed(1)}R`} />
+          <MetricCard label="Avg. Stop Loss" value={stats.avgStopLossPips > 0 ? `${stats.avgStopLossPips.toFixed(1)} pips` : '—'} />
+          <MetricCard label="Trades" value={stats.totalTrades.toString()} />
         </div>
 
         {/* Performance Grade Consistency Card */}
         <GlassCardWrapper patternId="consistency-dots" className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider">
               Performance Consistency
             </h3>
             <span className={cn(
@@ -1432,13 +1464,13 @@ export default function Analytics() {
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Insight</p>
                 <div className="bg-muted/30 rounded-lg p-3">
                   <p className="text-xs text-foreground">
-                    {performanceConsistency.score >= 80 
-                      ? "Excellent! Your performance grades are very stable, showing consistent execution."
-                      : performanceConsistency.score >= 60
-                      ? "Good consistency. Your trades follow a relatively stable pattern."
-                      : performanceConsistency.score >= 40
-                      ? "Moderate consistency. Work on maintaining a more stable performance grade."
-                      : "Low consistency detected. Focus on following your trading rules more uniformly."}
+                    {performanceConsistency.score >= 85
+                      ? "Excellent! Your performance grades are very high, showing consistent quality execution."
+                      : performanceConsistency.score >= 70
+                      ? "Good consistency. Your trades show solid adherence to your trading plan."
+                      : performanceConsistency.score >= 50
+                      ? "Moderate performance. Work on improving execution quality for higher grades."
+                      : "Focus on following your trading rules more uniformly to achieve higher performance grades."}
                   </p>
                 </div>
               </div>
@@ -1450,8 +1482,7 @@ export default function Analytics() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Holding Time Card - Grouped Bar Chart */}
           <GlassCardWrapper patternId="holding-time-dots" className="p-5">
-            <h3 className="font-medium mb-2 flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2">
               Avg. Holding Time
             </h3>
             
@@ -1507,11 +1538,28 @@ export default function Analytics() {
 
           {/* Entry Time Analysis Card */}
           <GlassCardWrapper patternId="entry-time-dots" className="p-5">
-            <h3 className="font-medium mb-4 flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
               Entry Time Range
             </h3>
-            {entryTimeChartData.chartData.length > 0 ? <div style={{
+            
+            {entryTimeChartData.chartData.length > 0 ? <>
+                {/* Color Key */}
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-sm" style={{
+                  backgroundColor: profitColor
+                }} />
+                    <span className="text-xs text-muted-foreground">Winners</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-sm" style={{
+                  backgroundColor: lossColor
+                }} />
+                    <span className="text-xs text-muted-foreground">Losers</span>
+                  </div>
+                </div>
+                
+                <div style={{
             height: Math.max(160, entryTimeChartData.chartData.length * 32)
           }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -1550,7 +1598,8 @@ export default function Analytics() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </div> : <div className="h-40 flex items-center justify-center">
+              </div>
+            </> : <div className="h-40 flex items-center justify-center">
                 <p className="text-sm text-muted-foreground">No entry time data available</p>
               </div>}
           </GlassCardWrapper>
@@ -1558,7 +1607,7 @@ export default function Analytics() {
 
         {/* Strategy Profitability Bar */}
         <GlassCardWrapper patternId="strategy-dots" className="p-5">
-          <h3 className="font-medium mb-4">Most Profitable Strategies</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">Most Profitable Strategies</h3>
           {strategyProfitabilityData.length === 0 ? (
             <p className="text-sm text-muted-foreground">No profitable strategies yet</p>
           ) : (
@@ -1600,7 +1649,7 @@ export default function Analytics() {
 
         {/* Top Assets */}
         <GlassCardWrapper patternId="top-assets-dots" className="p-5">
-          <h3 className="font-medium mb-4">Top Assets</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">Top Assets</h3>
           {topAssets.length === 0 ? <p className="text-sm text-muted-foreground">No profitable assets yet</p> : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               {topAssets.map(([symbol, pnl], index) => <div key={symbol} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                   <div className="flex items-center gap-3">
@@ -1618,7 +1667,7 @@ export default function Analytics() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Trade Performance - Compact */}
           <GlassCardWrapper patternId="trade-perf-dots" className="p-4">
-            <h3 className="text-xs font-medium text-muted-foreground mb-2">Trade Performance</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Trade Performance</h3>
             <div className="space-y-1.5">
               <StatItemCompact label="Avg Win" value={`+${currencySymbol}${stats.avgWin.toFixed(0)}`} color="positive" />
               <StatItemCompact label="Avg Loss" value={`-${currencySymbol}${Math.abs(stats.avgLoss).toFixed(0)}`} color="negative" />
@@ -1626,7 +1675,7 @@ export default function Analytics() {
           </GlassCardWrapper>
           
           <GlassCardWrapper patternId="bestworst-dots" className="p-4">
-            <h3 className="text-xs font-medium text-muted-foreground mb-2">Best & Worst</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Best & Worst</h3>
             <div className="space-y-1.5">
               <StatItemCompact label="Best" value={stats.bestTrade > 0 ? `+${currencySymbol}${stats.bestTrade.toFixed(0)}` : `${currencySymbol}0`} color={stats.bestTrade > 0 ? 'positive' : undefined} />
               <StatItemCompact label="Worst" value={stats.worstTrade < 0 ? `-${currencySymbol}${Math.abs(stats.worstTrade).toFixed(0)}` : `${currencySymbol}0`} color={stats.worstTrade < 0 ? 'negative' : undefined} />
@@ -1635,7 +1684,7 @@ export default function Analytics() {
 
           {/* Streaks - Compact */}
           <GlassCardWrapper patternId="streaks-dots" className="p-4">
-            <h3 className="text-xs font-medium text-muted-foreground mb-2">Streaks</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Streaks</h3>
             <div className="space-y-1.5">
               <StatItemCompact label="Win Streak" value={stats.consecutiveWins.toString()} color={stats.consecutiveWins > 0 ? 'positive' : undefined} />
               <StatItemCompact label="Loss Streak" value={stats.consecutiveLosses.toString()} color={stats.consecutiveLosses > 0 ? 'negative' : undefined} />
@@ -1643,7 +1692,7 @@ export default function Analytics() {
           </GlassCardWrapper>
           
           <GlassCardWrapper patternId="frequency-dots" className="p-4">
-            <h3 className="text-xs font-medium text-muted-foreground mb-2">Frequency</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Frequency</h3>
             <div className="space-y-1.5">
               <StatItemCompact label="Trades/Week" value={(stats.totalTrades / 4).toFixed(1)} />
               <StatItemCompact label="Trade Freq." value={filteredTrades.length > 0 ? `${(filteredTrades.length / (timeFrame === 'Daily' ? 1 : timeFrame === 'Week' ? 7 : timeFrame === 'Month' ? 30 : 365)).toFixed(1)}/day` : '0/day'} />
@@ -1658,7 +1707,7 @@ export default function Analytics() {
           
           <div className="relative flex flex-col h-full">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-sm text-muted-foreground">Avg. Emotion</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Avg. Emotion</h3>
               <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border", emotionData.level === 1 && "bg-red-500/30 border-red-500/50", emotionData.level === 2 && "bg-yellow-500/30 border-yellow-500/50", emotionData.level === 3 && "bg-emerald-500/30 border-emerald-500/50")}>
                 <emotionData.icon className={cn("w-4 h-4", emotionData.level === 1 && "text-red-600 dark:text-red-400", emotionData.level === 2 && "text-yellow-600 dark:text-yellow-400", emotionData.level === 3 && "text-emerald-600 dark:text-emerald-400")} />
               </div>
@@ -1723,7 +1772,7 @@ function MetricCard({
 }: {
   label: string;
   value: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
 }) {
   const { preferences } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
@@ -1746,9 +1795,8 @@ function MetricCard({
         </svg>
       )}
       <div className="relative">
-        <div className="flex items-center gap-2 text-muted-foreground mb-2">
-          {icon}
-          <span className="text-xs">{label}</span>
+        <div className="text-muted-foreground mb-2">
+          <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
         </div>
         <p className="text-xl font-display font-bold tabular-nums">{value}</p>
       </div>

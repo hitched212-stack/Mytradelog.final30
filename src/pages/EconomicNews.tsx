@@ -544,7 +544,7 @@ export default function EconomicNews() {
             {displayTime}
           </div>
           <div className={cn(
-            "w-0.5 h-12 mt-2 rounded-full",
+            "w-0.5 h-32 mt-2 rounded-full",
             isLive ? "bg-red-500" : impactLineClass
           )} />
         </div>
@@ -553,9 +553,9 @@ export default function EconomicNews() {
         <div
           onClick={() => setSelectedEvent(event)}
           className={cn(
-            "flex-1 rounded-2xl border transition-all duration-200 cursor-pointer",
+            "flex-1 rounded-2xl border transition-all duration-300 cursor-pointer",
             "p-4",
-            "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/30",
+            "hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
             isPast && "opacity-50",
             isLive
               ? "border-foreground/30 bg-card shadow-sm dark:border-white/20 dark:bg-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
@@ -1351,7 +1351,7 @@ export default function EconomicNews() {
                         <p className="text-sm font-semibold text-foreground">
                           {format(new Date(date), 'EEEE, MMM d')}
                         </p>
-                        <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/30">
+                        <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/30 cursor-default hover:bg-pnl-positive/10 hover:text-pnl-positive hover:border-pnl-positive/30">
                           {events.length} {events.length === 1 ? 'event' : 'events'}
                         </Badge>
                         <div className="h-px flex-1 bg-border/60 dark:bg-white/10" />
@@ -1367,7 +1367,7 @@ export default function EconomicNews() {
                     <p className="text-sm font-semibold text-foreground">
                       {format(selectedDate, 'EEEE, MMM d')}
                     </p>
-                    <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/30">
+                    <Badge className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/30 cursor-default hover:bg-pnl-positive/10 hover:text-pnl-positive hover:border-pnl-positive/30">
                       {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
                     </Badge>
                     <div className="h-px flex-1 bg-border/60 dark:bg-white/10" />

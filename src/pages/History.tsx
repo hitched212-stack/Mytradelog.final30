@@ -95,6 +95,7 @@ export default function History() {
   
   const [sortField, setSortField] = useState<'date' | 'symbol' | 'pnl'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [directionFilter, setDirectionFilter] = useState<'all' | 'long' | 'short'>('all');
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [zoomImages, setZoomImages] = useState<string[]>([]);
@@ -133,6 +134,13 @@ export default function History() {
       );
     }
 
+    // Direction filter
+    if (directionFilter !== 'all') {
+      result = result.filter(trade => 
+        directionFilter === 'long' ? trade.direction === 'long' : trade.direction === 'short'
+      );
+    }
+
     // Sort
     result.sort((a, b) => {
       let comparison = 0;
@@ -147,7 +155,7 @@ export default function History() {
     });
 
     return result;
-  }, [trades, searchQuery, sortField, sortDirection, dateRange]);
+  }, [trades, searchQuery, sortField, sortDirection, dateRange, directionFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredTrades.length / itemsPerPage);
@@ -233,100 +241,120 @@ export default function History() {
   return (
     <div className="min-h-screen p-4 md:p-6 pb-32 md:pb-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Trade History</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {filteredTrades.length} total trades
-          </p>
-        </div>
+      <div>
+        <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          {filteredTrades.length} total trades
+        </p>
+      </div>
 
-        {/* Search and Filter */}
-        <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
-          <div className="relative flex-1 md:w-72 md:flex-none">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by symbol, direction..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-9"
-            />
-          </div>
-          
-          {/* Date Range Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "h-10 gap-2",
-                  dateRange.from ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
-                  ) : (
-                    format(dateRange.from, 'MMM dd')
-                  )
-                ) : 'Date Range'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={(range) => {
-                  setDateRange(range || { from: undefined, to: undefined });
-                  setCurrentPage(1);
-                }}
-                numberOfMonths={2}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-              {dateRange.from && (
-                <div className="p-3 border-t border-border">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full text-muted-foreground"
-                    onClick={() => {
-                      setDateRange({ from: undefined, to: undefined });
-                      setCurrentPage(1);
-                    }}
-                  >
-                    Clear date filter
-                  </Button>
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
-          
-          {/* Sort Filter */}
-          <Select 
-            value={`${sortField}-${sortDirection}`}
-            onValueChange={(value) => {
-              const [field, direction] = value.split('-') as ['date' | 'pnl', 'asc' | 'desc'];
-              setSortField(field);
-              setSortDirection(direction);
+      {/* Search, Filter, and Direction Buttons - All on one row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by symbol, direction..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-          >
-            <SelectTrigger className="w-[140px] md:w-[160px]">
-              <SlidersHorizontal className="h-4 w-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date-desc">Newest First</SelectItem>
-              <SelectItem value="date-asc">Oldest First</SelectItem>
-              <SelectItem value="pnl-desc">Best Trade</SelectItem>
-              <SelectItem value="pnl-asc">Worst Trade</SelectItem>
-            </SelectContent>
-          </Select>
+            className="pl-9 h-10 rounded-xl bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors"
+          />
+        </div>
+        
+        {/* Date Range Picker */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "h-10 gap-2 rounded-xl bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3 flex-shrink-0",
+                dateRange.from ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="h-4 w-4" />
+              {dateRange.from ? (
+                dateRange.to ? (
+                  `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                ) : (
+                  format(dateRange.from, 'MMM dd')
+                )
+              ) : 'Date Range'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={(range) => {
+                setDateRange(range || { from: undefined, to: undefined } as any);
+                setCurrentPage(1);
+              }}
+              numberOfMonths={2}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+            {dateRange.from && (
+              <div className="p-3 border-t border-border">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full text-muted-foreground"
+                  onClick={() => {
+                    setDateRange({ from: undefined, to: undefined });
+                    setCurrentPage(1);
+                  }}
+                >
+                  Clear date filter
+                </Button>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+        
+        {/* Sort Filter */}
+        <Select 
+          value={`${sortField}-${sortDirection}`}
+          onValueChange={(value) => {
+            const [field, direction] = value.split('-') as ['date' | 'pnl', 'asc' | 'desc'];
+            setSortField(field);
+            setSortDirection(direction);
+            setCurrentPage(1);
+          }}
+        >
+          <SelectTrigger className="w-[140px] md:w-[160px] h-10 px-3 py-2 rounded-xl bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors text-sm flex-shrink-0">
+            <SlidersHorizontal className="h-4 w-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date-desc">Newest First</SelectItem>
+            <SelectItem value="date-asc">Oldest First</SelectItem>
+            <SelectItem value="pnl-desc">Best Trade</SelectItem>
+            <SelectItem value="pnl-asc">Worst Trade</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Direction Filter Buttons */}
+        <div className="flex gap-2 bg-card/50 border border-border/40 rounded-2xl p-1 flex-shrink-0">
+          {[
+            { value: 'all' as const, label: 'All trades' },
+            { value: 'long' as const, label: 'Buy side' },
+            { value: 'short' as const, label: 'Sell side' },
+          ].map(option => (
+            <button
+              key={option.value}
+              onClick={() => setDirectionFilter(option.value)}
+              className={cn(
+                'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ease-out whitespace-nowrap',
+                directionFilter === option.value
+                  ? 'bg-foreground text-background shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -376,7 +404,7 @@ export default function History() {
                       <span className="text-sm text-muted-foreground">—</span>
                     ) : (
                       <span className={cn(
-                        "text-base font-display font-bold tabular-nums",
+                        "text-base font-display font-bold tabular-nums whitespace-nowrap",
                         trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
                       )}>
                         {formatPnl(trade.pnlAmount)}
@@ -713,7 +741,7 @@ export default function History() {
                         </Badge>
                       ) : (
                         <span className={cn(
-                          "font-display font-bold tabular-nums text-sm",
+                          "font-display font-bold tabular-nums text-sm whitespace-nowrap",
                           trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
                         )}>
                           {formatPnl(trade.pnlAmount)}

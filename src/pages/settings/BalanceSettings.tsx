@@ -43,7 +43,7 @@ export default function BalanceSettings() {
             <Wallet className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Account Balance</h1>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Account Balance</h1>
             <p className="text-sm text-muted-foreground">Your trading capital</p>
           </div>
         </div>

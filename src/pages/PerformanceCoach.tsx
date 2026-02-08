@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { RefreshCw, User, Bot, Plus, History, X, MessageSquare, ArrowUp, Image as ImageIcon } from 'lucide-react';
+import { RefreshCw, User, Bot, Plus, History, X, MessageSquare, ArrowUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useTrades } from '@/hooks/useTrades';
@@ -84,13 +84,8 @@ export default function PerformanceCoach() {
   const [userInput, setUserInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [pendingImages, setPendingImages] = useState<{
-    url: string;
-    file: File;
-  }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const hasTrades = trades.length > 0;
   const hasInitializedRef = useRef(false);
 
@@ -127,57 +122,24 @@ export default function PerformanceCoach() {
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }
   }, [userInput]);
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const newImages: {
-      url: string;
-      file: File;
-    }[] = [];
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        newImages.push({
-          url: URL.createObjectURL(file),
-          file
-        });
-      }
-    });
-    setPendingImages(prev => [...prev, ...newImages]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-  const removeImage = (index: number) => {
-    setPendingImages(prev => {
-      const newImages = [...prev];
-      URL.revokeObjectURL(newImages[index].url);
-      newImages.splice(index, 1);
-      return newImages;
-    });
-  };
+
   const handleSendMessage = async (question?: string) => {
     const messageText = question || userInput.trim();
-    if (!messageText && pendingImages.length === 0 || isLoading) return;
-    const imagesToSend = [...pendingImages];
+    if (!messageText || isLoading) return;
     setUserInput('');
-    setPendingImages([]);
     setIsLoading(true);
     try {
       // Get or create conversation
       let conversationId = currentConversationId;
       if (!conversationId) {
-        conversationId = await createConversation(messageText || 'Image analysis');
+        conversationId = await createConversation(messageText);
         if (!conversationId) throw new Error('Failed to create conversation');
       } else if (messages.length === 0) {
-        await updateConversationTitle(conversationId, messageText || 'Image analysis');
-      }
-
-      // Build message content with images
-      let fullMessage = messageText;
-      if (imagesToSend.length > 0) {
-        fullMessage = `${messageText}\n\n[${imagesToSend.length} image(s) attached for analysis]`;
+        await updateConversationTitle(conversationId, messageText);
       }
 
       // Add user message
-      const userMessage = await addMessage(conversationId, 'user', fullMessage);
+      const userMessage = await addMessage(conversationId, 'user', messageText);
       if (!userMessage) throw new Error('Failed to save message');
 
       // Get historical context for personalization
@@ -193,11 +155,8 @@ export default function PerformanceCoach() {
       // Add historical context summary if available
       const historicalContext = historicalMessages.filter(m => m.conversationId !== conversationId).slice(0, 20).map(m => `[${m.role}]: ${m.content}`).join('\n');
 
-      // Prepare question with image context
-      let questionWithContext = messageText;
-      if (imagesToSend.length > 0) {
-        questionWithContext = `${messageText}\n\nNote: The user has attached ${imagesToSend.length} image(s) (likely trading charts or screenshots). Please acknowledge and provide relevant analysis based on their question.`;
-      }
+      // Prepare question with context
+      const questionWithContext = messageText;
       const {
         data,
         error: fnError
@@ -333,8 +292,8 @@ export default function PerformanceCoach() {
             <div className="flex items-center gap-3">
               
               <div>
-                <h1 className="text-lg font-semibold text-foreground">AI Coach</h1>
-                <p className="text-xs text-muted-foreground">Your trading assistant</p>
+                <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">AI Coach</h1>
+                <p className="text-xs text-muted-foreground mt-1">Your trading assistant</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -354,17 +313,10 @@ export default function PerformanceCoach() {
               <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
             </div> : messages.length === 0 ? <div className="flex flex-col items-center justify-center h-full text-center px-4">
               
-              <h2 className="text-xl font-semibold mb-2 text-foreground">How can I help?</h2>
-              <p className="text-sm text-muted-foreground max-w-sm mb-6">
+              <h2 className="text-2xl font-semibold mb-2 text-foreground">How can I help?</h2>
+              <p className="text-sm text-muted-foreground max-w-sm">
                 Ask me anything about trading or your trading performance
               </p>
-              
-              {/* Preset Questions */}
-              <div className="grid grid-cols-2 gap-2 w-full max-w-md">
-                {PRESET_QUESTIONS.map((question, i) => <button key={i} onClick={() => handleSendMessage(question)} disabled={isLoading} className="text-left text-xs p-3 rounded-xl bg-card/50 border border-border/50 hover:bg-muted/50 transition-colors disabled:opacity-50 text-foreground">
-                    {question}
-                  </button>)}
-              </div>
             </div> : <>
               {messages.map(message => <div key={message.id} className={cn("flex gap-3 max-w-[85%]", message.role === 'user' ? "ml-auto flex-row-reverse" : "")}>
                   <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border border-border/50", message.role === 'user' ? "bg-foreground/10" : "bg-foreground/10")}>
@@ -392,53 +344,42 @@ export default function PerformanceCoach() {
         {/* Input Area */}
         <div className="shrink-0 px-4 pb-4 md:px-6 md:pb-6 flex justify-center">
           <div className="flex flex-col w-full max-w-2xl">
-            {/* Pending Images Preview */}
-            {pendingImages.length > 0 && <div className="flex gap-2 mb-3 flex-wrap px-1">
-                {pendingImages.map((img, index) => <div key={index} className="relative">
-                    <img src={img.url} alt={`Pending ${index + 1}`} className="h-16 w-16 object-cover rounded-lg border border-border" />
-                    <button onClick={() => removeImage(index)} className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90 transition-colors">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>)}
-              </div>}
-            
+            {/* Preset Questions */}
+            {messages.length === 0 && !isLoadingMessages && (
+              <div className="grid grid-cols-4 gap-2 w-full mb-3">
+                {PRESET_QUESTIONS.map((question, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSendMessage(question)}
+                    disabled={isLoading}
+                    className="text-left text-xs px-3 py-2 rounded-xl bg-card/50 border border-border/50 hover:bg-muted/50 transition-colors disabled:opacity-50 text-foreground"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* ChatGPT-style Input Container */}
             <div className="flex items-end gap-2 bg-card/80 border border-border/50 rounded-2xl px-4 py-3 shadow-sm hover:border-border/80 transition-colors focus-within:border-border focus-within:bg-card">
-              {/* Attach Button */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/5 shrink-0" title="Add attachment">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Add Image
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleNewChat}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    New Chat
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              
               {/* Text Input */}
-              <Textarea ref={textareaRef} value={userInput} onChange={e => setUserInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask anything about your trading..." disabled={isLoading} className="flex-1 min-h-[44px] max-h-[120px] bg-transparent border-0 resize-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 p-0 m-0 leading-relaxed" rows={1} />
-              
-              {/* Hidden file input */}
-              <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" />
+              <Textarea ref={textareaRef} value={userInput} onChange={e => setUserInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="ask me anything about trading..." disabled={isLoading} className="flex-1 min-h-[44px] max-h-[120px] bg-transparent border-0 resize-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 p-0 m-0 leading-relaxed" rows={1} />
               
               {/* Send Button */}
               <Button 
                 onClick={() => handleSendMessage()} 
-                disabled={isLoading || (!userInput.trim() && pendingImages.length === 0)} 
+                disabled={isLoading || !userInput.trim()} 
                 size="icon" 
                 className="h-8 w-8 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 disabled:hover:bg-foreground transition-all"
               >
                 {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
               </Button>
             </div>
+            
+            {/* Disclaimer */}
+            <p className="text-xs text-muted-foreground text-center mt-2 px-4">
+              AI Coach can make mistakes. Consider checking important information.
+            </p>
           </div>
         </div>
       </div>

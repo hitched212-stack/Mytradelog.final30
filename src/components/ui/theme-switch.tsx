@@ -18,6 +18,7 @@ export function ThemeSwitch({ value, onChange }: ThemeSwitchProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, left: 0 });
+  const [isReady, setIsReady] = useState(false);
 
   useLayoutEffect(() => {
     const activeIndex = themes.findIndex((t) => t.value === value);
@@ -32,8 +33,15 @@ export function ThemeSwitch({ value, onChange }: ThemeSwitchProps) {
         width: buttonRect.width,
         left: buttonRect.left - containerRect.left,
       });
+      
+      if (!isReady) {
+        // Use requestAnimationFrame to ensure the indicator is positioned before showing
+        requestAnimationFrame(() => {
+          setIsReady(true);
+        });
+      }
     }
-  }, [value]);
+  }, [value, isReady]);
 
   return (
     <div 
@@ -42,7 +50,10 @@ export function ThemeSwitch({ value, onChange }: ThemeSwitchProps) {
     >
       {/* Sliding indicator */}
       <div
-        className="absolute top-1 bottom-1 rounded-full bg-background border border-border shadow-sm transition-all duration-300 ease-out"
+        className={cn(
+          "absolute top-1 bottom-1 rounded-full bg-background border border-border shadow-sm ease-out",
+          isReady ? "opacity-100 transition-all duration-300" : "opacity-0"
+        )}
         style={{
           width: indicatorStyle.width,
           left: indicatorStyle.left,

@@ -45,7 +45,7 @@ export default function ProfileSettings() {
             <User className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Profile</h1>
             <p className="text-sm text-muted-foreground">Your personal details</p>
           </div>
         </div>

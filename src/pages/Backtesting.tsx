@@ -661,8 +661,8 @@ export default function Backtesting() {
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 relative">
         <div className="flex items-center justify-between px-4 py-4 md:px-6">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Backtesting</h1>
-            <p className="text-sm text-muted-foreground">Test and analyze your strategies</p>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Backtesting</h1>
+            <p className="text-xs text-muted-foreground mt-1">Test and analyze your strategies</p>
           </div>
           <Button
             size="sm"

@@ -34,7 +34,7 @@ export default function CurrencySettings() {
               <DollarSign className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Currency</h1>
+              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Currency</h1>
               <p className="text-sm text-muted-foreground">Display preference</p>
             </div>
           </div>

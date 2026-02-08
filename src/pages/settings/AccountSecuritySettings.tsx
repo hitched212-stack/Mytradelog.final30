@@ -121,7 +121,7 @@ export default function AccountSecuritySettings() {
           >
             <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
           </button>
-          <h1 className="text-lg font-semibold">Account Security</h1>
+          <h1 className="text-sm font-bold uppercase tracking-widest">Account Security</h1>
         </div>
       </header>
 

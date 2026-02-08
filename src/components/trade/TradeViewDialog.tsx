@@ -134,7 +134,7 @@ export function TradeViewDialogContent({
   }];
   const currentEmotion = EMOTION_LABELS.find(e => e.value === trade.emotionalState) || EMOTION_LABELS[2];
   const EmotionIcon = currentEmotion.icon;
-  return <div className="w-full max-w-6xl mx-auto h-full flex flex-col flex-1 min-h-0">
+  return <div className="w-full max-w-7xl mx-auto h-full flex flex-col flex-1 min-h-0">
       <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative">
         {/* Dot pattern - only show when enabled */}
         {isGlassEnabled && (
@@ -207,11 +207,11 @@ export function TradeViewDialogContent({
                 <div>
                   <span className="text-sm text-muted-foreground">Result</span>
                   {trade.isPaperTrade || trade.noTradeTaken ? (
-                    <div className="text-2xl font-bold text-muted-foreground">—</div>
+                    <div className="text-xl font-semibold font-display text-muted-foreground">—</div>
                   ) : (
-                    <div className={cn('text-2xl font-bold', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                    <div className={cn('text-xl font-semibold font-display tabular-nums', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
                       {formatPnl(trade.pnlAmount)}
-                      <span className="text-sm font-normal ml-2">
+                      <span className={cn('text-sm font-normal font-display ml-2', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
                         ({trade.pnlAmount >= 0 ? '+' : ''}{pnlPercentage.toFixed(2)}%)
                       </span>
                     </div>
@@ -226,19 +226,24 @@ export function TradeViewDialogContent({
                     No Trade
                   </span>
                 ) : (
-                  <span className={cn('px-3 py-1 rounded text-sm font-semibold uppercase', trade.pnlAmount >= 0 ? 'bg-pnl-positive/20 text-pnl-positive' : 'bg-pnl-negative/20 text-pnl-negative')}>
+                  <span className={cn(
+                    'inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide uppercase whitespace-nowrap border',
+                    trade.pnlAmount >= 0 
+                      ? 'bg-pnl-positive/10 text-pnl-positive border-pnl-positive/40'
+                      : 'bg-pnl-negative/10 text-pnl-negative border-pnl-negative/40'
+                  )}>
                     {trade.pnlAmount >= 0 ? 'WIN' : 'LOSS'}
                   </span>
                 )}
               </div>
 
               {/* Trade Details - Grid */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Entry</span>
                   <span className="text-sm font-medium text-foreground tabular-nums">{trade.entryPrice?.toLocaleString() || '0'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Stop Loss</span>
                   <span className="text-sm font-medium text-foreground tabular-nums">
                     {trade.stopLoss ? trade.stopLoss.toLocaleString() : null}
@@ -247,27 +252,27 @@ export function TradeViewDialogContent({
                     {!trade.stopLoss && !trade.stopLossPips ? '-' : null}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Take Profit</span>
                   <span className="text-sm font-medium text-foreground tabular-nums">{trade.takeProfit?.toLocaleString() || '0'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Lot Size</span>
                   <span className="text-sm font-medium text-foreground tabular-nums">{trade.lotSize?.toString() || '0'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Entry Time</span>
                   <span className="text-sm font-medium text-foreground">{trade.entryTime || '-'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Duration</span>
                   <span className="text-sm font-medium text-foreground">{trade.holdingTime || '-'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Risk:Reward</span>
                   <span className="text-sm font-medium text-foreground">{trade.riskRewardRatio || '-'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Grade</span>
                   <span className={cn(
                     "text-sm font-medium px-2 py-0.5 rounded",
@@ -281,7 +286,7 @@ export function TradeViewDialogContent({
               {/* Rules Compliance & Category */}
               <div className="space-y-3">
                 {/* Category Row */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Category</span>
                   <span className="text-sm font-medium text-foreground capitalize">{(trade as any).category || '-'}</span>
                 </div>
@@ -342,7 +347,7 @@ export function TradeViewDialogContent({
 
               {/* Strategy */}
               {trade.strategy && (
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <span className="text-sm text-muted-foreground">Strategy</span>
                   <span className="text-sm font-medium text-foreground truncate ml-2">{trade.strategy}</span>
                 </div>
@@ -641,7 +646,7 @@ export function TradeViewDialogContent({
             </div>}
 
           {/* PRE-MARKET TAB */}
-          {activeTab === 'pre-market' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
+          {activeTab === 'pre-market' && <div className="space-y-6">
               {(() => {
                 // Parse pre-market notes to extract timeframe sections
                 // Handle both [Timeframe]\nnotes and [Timeframe]\n formats (image with no notes)
@@ -715,7 +720,7 @@ export function TradeViewDialogContent({
             </div>}
 
           {/* POST-MARKET TAB */}
-          {activeTab === 'post-market' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
+          {activeTab === 'post-market' && <div className="space-y-6">
               {(() => {
                 // Parse post-market notes to extract timeframe sections
                 // Handle both [Timeframe]\nnotes and [Timeframe]\n formats (image with no notes)
@@ -791,7 +796,7 @@ export function TradeViewDialogContent({
           {/* EMOTIONS TAB */}
           {activeTab === 'emotions' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
               {/* Emotional State */}
-              {trade.emotionalState && <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+              {trade.emotionalState && <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
                   <EmotionIcon className={cn('h-5 w-5 flex-shrink-0', currentEmotion.color)} />
                   <span className="text-sm text-muted-foreground">Mood:</span>
                   <span className="text-sm font-medium text-foreground">{currentEmotion.label}</span>

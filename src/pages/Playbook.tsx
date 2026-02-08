@@ -535,8 +535,8 @@ export default function Playbook() {
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 relative">
         <div className="flex items-center justify-between px-4 py-4 md:px-6">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Playbook</h1>
-            <p className="text-sm text-muted-foreground">Your trading setups library</p>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Playbook</h1>
+            <p className="text-xs text-muted-foreground mt-1">Your trading setups library</p>
           </div>
           <Button
             size="sm"

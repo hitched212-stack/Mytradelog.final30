@@ -2,8 +2,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { ChevronRight, User, Palette, LogOut, KeyRound, CreditCard, ShieldAlert, Eye, EyeOff, Mail } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronRight, User, LogOut, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +11,54 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+
+// Custom filled icons
+const KeyRoundIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm3 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+  </svg>
+);
+
+const MailIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+  </svg>
+);
+
+const CreditCardIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+  </svg>
+);
+
+const PaletteIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+  </svg>
+);
+
+const ShieldAlertIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v7h-2V7zm1 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+  </svg>
+);
+
+const GlobeIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+  </svg>
+);
 
 interface SettingsItemProps {
   icon: React.ElementType;
@@ -76,12 +120,59 @@ function SettingsSection({ title, children, isGlassEnabled, patternId }: { title
   );
 }
 
+const TIMEZONE_GROUPS = [
+  {
+    region: 'Americas',
+    timezones: [
+      { value: 'America/New_York', label: 'EST', name: 'New York' },
+      { value: 'America/Chicago', label: 'CST', name: 'Chicago' },
+      { value: 'America/Denver', label: 'MST', name: 'Denver' },
+      { value: 'America/Los_Angeles', label: 'PST', name: 'Los Angeles' },
+    ]
+  },
+  {
+    region: 'Europe',
+    timezones: [
+      { value: 'Europe/London', label: 'GMT', name: 'London' },
+      { value: 'Europe/Frankfurt', label: 'CET', name: 'Frankfurt' },
+      { value: 'Europe/Paris', label: 'CET', name: 'Paris' },
+      { value: 'Europe/Amsterdam', label: 'CET', name: 'Amsterdam' },
+    ]
+  },
+  {
+    region: 'Asia',
+    timezones: [
+      { value: 'Asia/Dubai', label: 'GST', name: 'Dubai' },
+      { value: 'Asia/Hong_Kong', label: 'HKT', name: 'Hong Kong' },
+      { value: 'Asia/Tokyo', label: 'JST', name: 'Tokyo' },
+      { value: 'Asia/Singapore', label: 'SGT', name: 'Singapore' },
+    ]
+  },
+  {
+    region: 'Oceania',
+    timezones: [
+      { value: 'Australia/Sydney', label: 'AEST', name: 'Sydney' },
+      { value: 'Australia/Melbourne', label: 'AEST', name: 'Melbourne' },
+    ]
+  }
+];
+
+function getTimeInTimezone(date: Date, timezone: string): string {
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: timezone,
+    hour12: true,
+  });
+}
+
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { settings, setUsername } = useSettings();
   const { preferences, setTimeZone } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const [timeZoneInput, setTimeZoneInput] = useState(preferences.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [usernameInput, setUsernameInput] = useState(settings.username || '');
@@ -94,6 +185,12 @@ export default function SettingsPage() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Update time every second for live preview
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSaveUsername = async () => {
     const saved = await setUsername(usernameInput);
@@ -220,39 +317,48 @@ export default function SettingsPage() {
       <div className="px-4 md:px-6 lg:px-8 space-y-6">
         {/* Time Zone Section */}
         <SettingsSection title="Time Zone" isGlassEnabled={isGlassEnabled} patternId="settings-timezone-dots">
-          <div className="p-4 flex flex-col gap-3">
-            <Label htmlFor="timezone-select" className="text-base font-semibold text-foreground mb-1">Time Zone</Label>
-            <div className="relative">
-              <select
-                id="timezone-select"
-                value={timeZoneInput}
-                onChange={e => setTimeZoneInput(e.target.value)}
-                className="w-full h-12 px-4 py-2 rounded-xl bg-white border border-gray-300 shadow-md text-lg font-semibold text-black dark:bg-neutral-900 dark:text-white dark:border-border focus:outline-none appearance-none transition-all font-montserrat"
-                style={{ WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none', fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}
-              >
-                {/* Main trading time zones */}
-                <option value="America/New_York" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>EST (New York)</option>
-                <option value="America/Chicago" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>CST (Chicago)</option>
-                <option value="America/Denver" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>MST (Denver)</option>
-                <option value="America/Los_Angeles" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>PST (Los Angeles)</option>
-                <option value="Europe/London" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>GMT (London)</option>
-                <option value="Europe/Frankfurt" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>CET (Frankfurt)</option>
-                <option value="Asia/Tokyo" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>JST (Tokyo)</option>
-                <option value="Asia/Hong_Kong" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>HKT (Hong Kong)</option>
-                <option value="Australia/Sydney" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>AEST (Sydney)</option>
-              </select>
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-montserrat" style={{ fontFamily: 'Montserrat, Inter, Roboto, Arial, sans-serif' }}>
-                ▼
-              </span>
+          <div className="p-4 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <GlobeIcon className="w-4 h-4 text-primary" />
+                <Label className="text-sm font-semibold text-foreground">Time Zone</Label>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground">Current time</div>
+                <div className="text-lg font-bold text-foreground">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
+              </div>
             </div>
+
+            <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
+              <SelectTrigger className="w-full rounded-lg bg-muted/40 border-border/60">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {TIMEZONE_GROUPS.map((group) => (
+                  <div key={group.region}>
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {group.region}
+                    </div>
+                    {group.timezones.map((tz) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        <span className="font-medium">{tz.label}</span>
+                        <span className="text-muted-foreground"> • {tz.name}</span>
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <p className="text-xs text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
+
             <Button
               onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
-              className="w-full mt-2 text-base h-11 rounded-xl"
+              className="w-full mt-1 text-sm h-10 rounded-lg"
               disabled={preferences.timeZone === timeZoneInput}
             >
-              Save Time Zone
+              Save
             </Button>
-            <p className="text-xs text-muted-foreground mt-1">Your economic calendar will show news events in this time zone.</p>
           </div>
         </SettingsSection>
         {/* Account Section */}
@@ -260,7 +366,7 @@ export default function SettingsPage() {
           <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
             <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left group border-b border-border/50">
               <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                <KeyRound className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+                <KeyRoundIcon className="h-5 w-5 text-foreground/70" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-base text-foreground">Change Password</p>
@@ -331,7 +437,7 @@ export default function SettingsPage() {
           <Collapsible open={showEmailChange} onOpenChange={setShowEmailChange}>
             <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left group border-b border-border/50">
               <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                <Mail className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+                <MailIcon className="h-5 w-5 text-foreground/70" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-base text-foreground">Change Email</p>
@@ -372,19 +478,19 @@ export default function SettingsPage() {
             </CollapsibleContent>
           </Collapsible>
           <SettingsItem
-            icon={CreditCard}
+            icon={CreditCardIcon}
             title="Billing & Subscription"
             subtitle="Manage your plan and payment method"
             onClick={() => navigate('/settings/billing')}
           />
           <SettingsItem
-            icon={Palette}
+            icon={PaletteIcon}
             title="Appearance"
             subtitle="Theme, accent color & effects"
             onClick={() => navigate('/settings/preferences')}
           />
           <SettingsItem
-            icon={ShieldAlert}
+            icon={ShieldAlertIcon}
             title="Account Security"
             subtitle="Erase data or delete account"
             onClick={() => navigate('/settings/security')}

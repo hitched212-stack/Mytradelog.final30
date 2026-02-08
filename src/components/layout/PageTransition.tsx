@@ -17,10 +17,10 @@ export function PageTransition({ children, className }: PageTransitionProps) {
       <motion.div
         key="page-transition"
         className={`h-full w-full ${className || ''}`}
-        initial={{ opacity: 0 }}
+        initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
+        transition={{ duration: 0 }}
       >
         {children}
       </motion.div>

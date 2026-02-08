@@ -108,8 +108,8 @@ const AccountCard = memo(({
       className={cn(
         'group relative overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer',
         isActive
-          ? 'border-foreground/20 bg-card shadow-lg'
-          : 'border-border/50 bg-card/50 hover:border-foreground/10 hover:bg-card/80',
+          ? 'border-foreground/30 bg-card shadow-lg'
+          : 'border-border/60 bg-card/70 hover:border-border/80 hover:bg-card',
         isArchived && 'opacity-50 cursor-default'
       )}
     >
@@ -130,11 +130,14 @@ const AccountCard = memo(({
                   {account.name}
                 </h3>
                 {isActive && (
-                  <CheckCircle2 className="h-4 w-4 text-pnl-positive flex-shrink-0" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-pnl-positive/10 text-pnl-positive text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Active
+                  </span>
                 )}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-foreground/5">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-foreground/5">
                   {config.label}
                 </span>
                 {account.broker_name && (
@@ -150,9 +153,10 @@ const AccountCard = memo(({
           {/* Right side - Balance and actions */}
           <div className="flex items-center gap-2">
             <div className="text-right">
-              <span className="text-sm font-semibold text-foreground font-outfit tabular-nums">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Balance</span>
+              <div className="text-sm font-semibold text-foreground font-outfit tabular-nums">
                 {formatBalance(balance, account.currency)}
-              </span>
+              </div>
             </div>
 
             <DropdownMenu>
@@ -160,7 +164,7 @@ const AccountCard = memo(({
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-transparent active:bg-transparent"
+                  className="h-8 w-8 opacity-100 transition-opacity hover:bg-foreground/5 active:bg-foreground/10"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -456,10 +460,15 @@ export default function AccountsSettings() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 h-14">
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">Trading Accounts</h1>
-            <p className="text-xs text-muted-foreground">Manage your portfolios</p>
+        <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 h-16">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-foreground/5 border border-border/60 flex items-center justify-center">
+              <AccountIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trading Accounts</h1>
+              <p className="text-xs text-muted-foreground">Manage your portfolios</p>
+            </div>
           </div>
           <button
             onClick={() => navigate('/dashboard')}
@@ -474,18 +483,18 @@ export default function AccountsSettings() {
         {/* Top Row: Stats + Add Button */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Quick Stats */}
-          <div className="flex gap-3">
-            <div className="px-4 py-2 rounded-xl bg-card border border-border/50 text-center min-w-[80px]">
-              <p className="text-2xl font-bold text-foreground">{accounts.length}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
+          <div className="grid grid-cols-3 gap-3 w-full md:w-auto">
+            <div className="px-4 py-3 rounded-2xl bg-card/70 border border-border/60 text-center min-w-[96px]">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{accounts.length}</p>
             </div>
-            <div className="px-4 py-2 rounded-xl bg-card border border-border/50 text-center min-w-[80px]">
-              <p className="text-2xl font-bold text-foreground">{activeAccounts.length}</p>
-              <p className="text-xs text-muted-foreground">Active</p>
+            <div className="px-4 py-3 rounded-2xl bg-card/70 border border-border/60 text-center min-w-[96px]">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Active</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{activeAccounts.length}</p>
             </div>
-            <div className="px-4 py-2 rounded-xl bg-card border border-border/50 text-center min-w-[80px]">
-              <p className="text-2xl font-bold text-foreground">{archivedAccounts.length}</p>
-              <p className="text-xs text-muted-foreground">Archived</p>
+            <div className="px-4 py-3 rounded-2xl bg-card/70 border border-border/60 text-center min-w-[96px]">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Archived</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{archivedAccounts.length}</p>
             </div>
           </div>
 
@@ -493,7 +502,7 @@ export default function AccountsSettings() {
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button
-                className="h-11 bg-foreground text-background hover:opacity-90 rounded-xl text-sm font-medium px-6"
+                className="h-11 bg-foreground text-background hover:opacity-90 rounded-xl text-sm font-semibold px-6 shadow-sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Account

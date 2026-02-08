@@ -47,73 +47,60 @@ export default function GoalsSettings() {
 
   const goalPeriods = [{
     key: 'daily' as const,
-    label: 'Daily Goal',
-    description: 'Target profit per trading day'
+    label: 'Daily'
   }, {
     key: 'weekly' as const,
-    label: 'Weekly Goal',
-    description: 'Target profit per week'
+    label: 'Weekly'
   }, {
     key: 'monthly' as const,
-    label: 'Monthly Goal',
-    description: 'Target profit per month'
+    label: 'Monthly'
   }, {
     key: 'yearly' as const,
-    label: 'Yearly Goal',
-    description: 'Target profit per year'
+    label: 'Yearly'
   }];
 
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="px-4 pt-6 pb-4 md:px-6 lg:px-8">
+      <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-foreground">P&L Goals</h1>
+          <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">P&L Goals</h1>
           <p className="text-sm text-muted-foreground">Set your trading targets</p>
         </div>
       </header>
 
-      <div className="px-4 md:px-6 lg:px-8 space-y-6">
-        {/* Goal Settings */}
-        <div className="space-y-4">
-          {goalPeriods.map(({ key, label, description }) => (
-            <div 
-              key={key} 
-              className="rounded-2xl bg-card border border-border/50 overflow-hidden hover:border-border transition-colors"
-            >
-              <div className="p-5">
-                {/* Header */}
-                <div className="mb-4">
-                  <label className="text-sm font-semibold text-foreground block">
-                    {label}
-                  </label>
-                  <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-                </div>
-
-                {/* Input */}
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-display font-bold tabular-nums text-base">
-                    {currencySymbol}
-                  </span>
-                  <Input
-                    type="number"
-                    value={goals[key]}
-                    onChange={(e) => setGoalsLocal((prev) => ({
-                      ...prev,
-                      [key]: e.target.value
-                    }))}
-                    className="pl-10 h-12 font-display font-bold tabular-nums bg-muted/30 border-border/50 text-lg rounded-xl focus:ring-2 focus:ring-primary/20"
-                    placeholder="0.00"
-                    step="0.01"
-                  />
-                </div>
-              </div>
+      <div className="px-4 md:px-6 lg:px-8 space-y-4">
+        {/* Goal Settings - Compact Row Layout */}
+        {goalPeriods.map(({ key, label }) => (
+          <div 
+            key={key} 
+            className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/50 hover:border-border transition-colors"
+          >
+            {/* Label */}
+            <div className="flex-1">
+              <span className="text-sm font-medium text-foreground">{label}</span>
             </div>
-          ))}
-        </div>
+
+            {/* Value with Border */}
+            <div className="flex items-center gap-2 flex-shrink-0 px-4 py-2 rounded-lg border border-border/60 bg-muted/50">
+              <span className="text-sm text-muted-foreground font-medium">{currencySymbol}</span>
+              <input
+                type="number"
+                value={goals[key]}
+                onChange={(e) => setGoalsLocal((prev) => ({
+                  ...prev,
+                  [key]: e.target.value
+                }))}
+                className="w-20 px-0 py-0 h-auto font-display font-bold tabular-nums bg-transparent border-0 focus:ring-0 text-sm text-right text-foreground"
+                placeholder="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+        ))}
 
         {/* Save Button */}
-        <div className="sticky bottom-20 md:bottom-6 pt-4">
+        <div className="sticky bottom-20 md:bottom-6 pt-6">
           <Button
             onClick={handleSave}
             className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-lg font-semibold"

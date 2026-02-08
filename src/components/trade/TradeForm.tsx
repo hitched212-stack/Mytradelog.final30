@@ -741,7 +741,7 @@ export function TradeForm({
         >
           
           {/* GENERAL TAB */}
-          {activeTab === 'general' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
+          {activeTab === 'general' && <div className="space-y-6">
               {/* Trade Type Selector - Smooth Switch */}
               <div className="space-y-2">
                 <span className="text-sm font-medium text-foreground">Trade Type</span>
@@ -1102,7 +1102,7 @@ export function TradeForm({
             </div>}
 
           {/* CHART ANALYSIS TAB */}
-          {activeTab === 'chart-analysis' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
+          {activeTab === 'chart-analysis' && <div className="space-y-6">
               {/* Chart Before Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -1196,7 +1196,7 @@ export function TradeForm({
             </div>}
 
           {/* PRE MARKET FORECAST TAB */}
-          {activeTab === 'pre-market-forecast' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
+          {activeTab === 'pre-market-forecast' && <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-semibold text-foreground">Pre Market Forecast</Label>
                 <Button type="button" variant="outline" size="sm" onClick={addPreMarketChart} className="h-7 text-xs transition-all duration-200 hover:scale-[1.02]">
@@ -1237,7 +1237,7 @@ export function TradeForm({
             </div>}
 
           {/* POST MARKET FORECAST TAB */}
-          {activeTab === 'post-market-forecast' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
+          {activeTab === 'post-market-forecast' && <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-semibold text-foreground">Post Market Review</Label>
                 <Button type="button" variant="outline" size="sm" onClick={addPostMarketChart} className="h-7 text-xs transition-all duration-200 hover:scale-[1.02]">
@@ -1278,9 +1278,9 @@ export function TradeForm({
             </div>}
 
           {/* EMOTIONS TAB */}
-          {activeTab === 'emotions' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
+          {activeTab === 'emotions' && <div className="space-y-6">
               {/* Emotional State Rating - Redesigned */}
-              <div className="space-y-4 p-4 md:p-5 rounded-xl border border-border/50 bg-card">
+              <div className="space-y-4 p-4 md:p-5 rounded-xl border border-border/60 bg-card">
                 <Label className="text-sm font-semibold text-foreground">How are you feeling?</Label>
                 
               {/* Emotion Selector Pills */}
@@ -1322,9 +1322,9 @@ export function TradeForm({
               </div>
 
               {/* Overall Emotions */}
-              <div className="p-4 rounded-xl border border-border/50 bg-card">
+              <div className="p-4 rounded-xl border border-border/60 bg-card">
                 <span className="text-xs font-medium text-muted-foreground mb-3 block">Overall Emotions</span>
-                <Textarea name="overallEmotions" value={formData.overallEmotions} onChange={handleChange} placeholder="Describe your emotions and thoughts about this trade..." rows={4} className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
+                <Textarea name="overallEmotions" value={formData.overallEmotions} onChange={handleChange} placeholder="Describe your emotions and thoughts about this trade..." rows={4} className="bg-background/50 border-border/60 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
               </div>
             </div>}
 
