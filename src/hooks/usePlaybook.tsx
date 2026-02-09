@@ -129,6 +129,7 @@ export function usePlaybook(folderId?: string | null) {
           session: setup.session,
           day_of_week: setup.day_of_week,
           date: setup.date,
+          entry_time: setup.entry_time,
           has_news: setup.has_news,
           news_impact: setup.news_impact,
           news_events: setup.news_events as any,

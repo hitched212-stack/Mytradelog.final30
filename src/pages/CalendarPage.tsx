@@ -57,10 +57,13 @@ export default function CalendarPage() {
     settings
   } = useSettings();
   const { activeAccount } = useAccount();
-  // Use active account's currency, fallback to profile settings
-  const currencySymbol = activeAccount?.currency 
-    ? getCurrencySymbol(activeAccount.currency as Currency) 
-    : getCurrencySymbol(settings.currency);
+  // Use active account's currency, fallback to profile settings (match dashboard)
+  const currencySymbol = useMemo(
+    () => (activeAccount?.currency
+      ? getCurrencySymbol(activeAccount.currency as any)
+      : getCurrencySymbol(settings.currency)),
+    [activeAccount?.currency, settings.currency]
+  );
 
   // Format PnL with "k" suffix for 1000+ values, show 2 decimal places otherwise
   const formatPnlWithK = (value: number, includeSign = true) => {
@@ -658,15 +661,24 @@ export default function CalendarPage() {
                                 {/* Date number - top left */}
                                 <div className={cn(
                                   'absolute top-0.5 left-0.5 text-[10px] font-medium',
-                                  isTodayDate ? 'text-primary font-bold' : 'text-muted-foreground'
+                                  isTodayDate ? 'font-bold' : 'text-foreground/80'
                                 )}>
-                                  {format(day, 'd')}
+                                  {isTodayDate ? (
+                                    <span className="relative inline-flex items-center justify-center w-5 h-5">
+                                      <span className="absolute inset-0 rounded-full bg-black border border-black/90 dark:bg-white/90 dark:border-white/90" />
+                                        <span className="relative z-10 text-white dark:text-black">
+                                        {format(day, 'd')}
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    format(day, 'd')
+                                  )}
                                 </div>
 
                                 {/* Trade info - centered */}
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="text-xs font-semibold w-full text-center px-0.5 truncate"
+                                    <div className="text-xs font-semibold font-display tabular-nums w-full text-center px-0.5 truncate"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
@@ -684,7 +696,7 @@ export default function CalendarPage() {
                             <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
                               Week {weekIndex + 1}
                             </div>
-                            <div className="text-xs font-bold font-display mb-0.5 w-full text-center truncate tabular-nums"
+                            <div className="text-xs font-bold font-display tabular-nums mb-0.5 w-full text-center truncate"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
@@ -723,13 +735,22 @@ export default function CalendarPage() {
                               >
                                 <div className={cn(
                                   'absolute top-0.5 left-0.5 text-[10px] font-medium',
-                                  isTodayDate ? 'text-primary font-bold' : 'text-muted-foreground'
+                                  isTodayDate ? 'font-bold' : 'text-foreground/80'
                                 )}>
-                                  {format(day, 'd')}
+                                  {isTodayDate ? (
+                                    <span className="relative inline-flex items-center justify-center w-5 h-5">
+                                      <span className="absolute inset-0 rounded-full bg-black border border-black/90 dark:bg-white/90 dark:border-white/90" />
+                                        <span className="relative z-10 text-white dark:text-black">
+                                        {format(day, 'd')}
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    format(day, 'd')
+                                  )}
                                 </div>
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="text-[10px] font-semibold w-full text-center px-0.5 truncate tracking-tight"
+                                    <div className="text-[10px] font-semibold font-display tabular-nums w-full text-center px-0.5 truncate tracking-tight"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
@@ -747,7 +768,7 @@ export default function CalendarPage() {
                             <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
                               Wk {weekIndex + 1}
                             </div>
-                            <div className="text-[9px] font-bold font-display mb-0.5 w-full text-center truncate tabular-nums leading-none tracking-tight"
+                            <div className="text-[9px] font-bold font-display tabular-nums mb-0.5 w-full text-center truncate leading-none tracking-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>

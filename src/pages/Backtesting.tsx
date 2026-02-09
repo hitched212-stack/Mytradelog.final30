@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Plus, Search, X, FolderPlus, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Search, X, FolderPlus, Calendar, MoreVertical } from 'lucide-react';
 import { SymbolIcon } from '@/components/ui/SymbolIcon';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImageZoomDialog } from '@/components/ui/ImageZoomDialog';
 import { ExpandableGalleryCard } from '@/components/ui/ExpandableGalleryCard';
-import { FolderAccordion } from '@/components/folders/FolderAccordion';
 import { FolderDialog } from '@/components/folders/FolderDialog';
 import { ImageUpload } from '@/components/trade/ImageUpload';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useBacktests, BacktestInsert, Backtest } from '@/hooks/useBacktests';
@@ -32,13 +32,11 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableCard } from '@/components/ui/SortableCard';
@@ -50,21 +48,11 @@ export default function Backtesting() {
   const { preferences } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const { user } = useAuth();
-  const { folders, isLoading: foldersLoading, createFolder, updateFolder, deleteFolder, duplicateFolder, reorderFolders } = useFolders('backtest');
+  const { folders, isLoading: foldersLoading, createFolder, updateFolder, deleteFolder, duplicateFolder } = useFolders('backtest');
   const { backtests: allBacktests = [], isLoading: backtestsLoading } = useBacktests();
 
-  // Track if initial load has completed (regardless of whether data exists)
-  const [hasHydrated, setHasHydrated] = useState(false);
-  
-  useEffect(() => {
-    // Mark as hydrated once loading is complete (even if no data exists)
-    if (!foldersLoading && !backtestsLoading) {
-      setHasHydrated(true);
-    }
-  }, [foldersLoading, backtestsLoading]);
-
-  // Only show skeleton on very first load when we haven't hydrated before
-  const showSkeleton = (foldersLoading || backtestsLoading) && !hasHydrated;
+  // Only show skeleton if actually loading and no data exists yet
+  const showSkeleton = (foldersLoading || backtestsLoading) && folders.length === 0 && allBacktests.length === 0;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -77,19 +65,7 @@ export default function Backtesting() {
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && active.id !== over.id) {
-      const oldIndex = folders.findIndex((f) => f.id === active.id);
-      const newIndex = folders.findIndex((f) => f.id === over.id);
-      
-      const newOrder = arrayMove(folders, oldIndex, newIndex);
-      reorderFolders.mutate(newOrder.map(f => f.id));
-    }
-  };
   
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -165,27 +141,6 @@ export default function Backtesting() {
 
   const getBacktestCount = (folderId: string) => getBacktestsForFolder(folderId).length;
 
-  const toggleFolder = (folderId: string) => {
-    setExpandedFolders(prev => {
-      const next = new Set(prev);
-      if (next.has(folderId)) {
-        next.delete(folderId);
-      } else {
-        next.add(folderId);
-      }
-      return next;
-    });
-  };
-
-  // Calculate folder win rate from all backtests in folder
-  const getFolderWinRate = (folderId: string) => {
-    const backtests = getBacktestsForFolder(folderId);
-    if (backtests.length === 0) return 0;
-    const totalWins = backtests.reduce((sum, b) => sum + (b.wins || 0), 0);
-    const totalLosses = backtests.reduce((sum, b) => sum + (b.losses || 0), 0);
-    return calculateWinRate(totalWins, totalLosses);
-  };
-
   const filteredFolders = folders.filter(folder =>
     folder.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     folder.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,6 +150,17 @@ export default function Backtesting() {
       b.symbol?.toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
+
+  useEffect(() => {
+    if (!filteredFolders.length) {
+      setActiveFolderId(null);
+      return;
+    }
+
+    if (!activeFolderId || !filteredFolders.some(folder => folder.id === activeFolderId)) {
+      setActiveFolderId(filteredFolders[0].id);
+    }
+  }, [activeFolderId, filteredFolders]);
 
   // Calculate win rate from wins/losses
   const calculateWinRate = (wins: number, losses: number) => {
@@ -653,6 +619,32 @@ export default function Backtesting() {
     </div>
   );
 
+  const totalBacktests = allBacktests.length;
+  const totalFolders = folders.length;
+  const sessionCounts = allBacktests.reduce<Record<string, number>>((acc, backtest) => {
+    const session = backtest.session?.trim();
+    if (session) {
+      acc[session] = (acc[session] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  const strategyCounts = allBacktests.reduce<Record<string, number>>((acc, backtest) => {
+    const strategy = backtest.strategy?.trim();
+    if (strategy) {
+      acc[strategy] = (acc[strategy] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  const topSessionEntry = Object.entries(sessionCounts).sort((a, b) => b[1] - a[1])[0];
+  const topSessionLabel = topSessionEntry?.[0] || '—';
+  const topSessionSubtitle = topSessionEntry ? `${topSessionEntry[1]} backtests` : 'No session data yet';
+  const topStrategyEntry = Object.entries(strategyCounts).sort((a, b) => b[1] - a[1])[0];
+  const topStrategyLabel = topStrategyEntry?.[0] || '—';
+  const topStrategySubtitle = topStrategyEntry ? `${topStrategyEntry[1]} backtests` : 'No strategy data yet';
+  const activeFolder = filteredFolders.find(folder => folder.id === activeFolderId) || null;
+  const activeFolderBacktests = activeFolder ? getBacktestsForFolder(activeFolder.id) : [];
+  const activeFolderCount = activeFolder ? getBacktestCount(activeFolder.id) : 0;
+
 
   return (
     <PageTransition>
@@ -660,13 +652,14 @@ export default function Backtesting() {
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 relative">
         <div className="flex items-center justify-between px-4 py-4 md:px-6">
-          <div>
+          <div className="space-y-1">
             <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Backtesting</h1>
-            <p className="text-xs text-muted-foreground mt-1">Test and analyze your strategies</p>
+            <p className="text-xs text-muted-foreground">Test and analyze your strategies</p>
           </div>
           <Button
             size="sm"
-            className="rounded-xl gap-2"
+            variant="outline"
+            className="rounded-2xl gap-2 bg-card/60 border-border/50 shadow-sm hover:bg-card"
             onClick={() => {
               setEditingFolder(null);
               setIsFolderDialogOpen(true);
@@ -678,17 +671,43 @@ export default function Backtesting() {
         </div>
       </header>
 
-      <main className="px-4 py-6 md:px-6 space-y-4 relative z-10">
+      <main className="px-4 py-6 md:px-6 space-y-6 relative z-10">
+        {/* Metrics */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
+            <div className="text-xs font-medium text-muted-foreground">Top Session</div>
+            <div className="mt-2 text-lg font-semibold text-foreground">{topSessionLabel}</div>
+            <div className="text-xs text-muted-foreground mt-1">{topSessionSubtitle}</div>
+          </div>
+          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
+            <div className="text-xs font-medium text-muted-foreground">Top Strategy</div>
+            <div className="mt-2 text-lg font-semibold text-foreground">{topStrategyLabel}</div>
+            <div className="text-xs text-muted-foreground mt-1">{topStrategySubtitle}</div>
+          </div>
+          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
+            <div className="text-xs font-medium text-muted-foreground">Total Backtests</div>
+            <div className="mt-2 text-lg font-semibold text-foreground">{totalBacktests}</div>
+            <div className="text-xs text-muted-foreground mt-1">Across your strategies</div>
+          </div>
+          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
+            <div className="text-xs font-medium text-muted-foreground">Folders</div>
+            <div className="mt-2 text-lg font-semibold text-foreground">{totalFolders}</div>
+            <div className="text-xs text-muted-foreground mt-1">Organized collections</div>
+          </div>
+        </section>
+
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search folders and backtests..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 rounded-xl bg-muted/50 border-border/50"
-          />
-        </div>
+        <section className="rounded-2xl border border-border/50 bg-card/60 p-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search folders and backtests..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-xl bg-muted/50 border-border/50"
+            />
+          </div>
+        </section>
 
         {/* Content */}
         {showSkeleton ? (
@@ -704,118 +723,182 @@ export default function Backtesting() {
             </div>
             <h3 className="text-lg font-medium text-foreground mb-1">No folders yet</h3>
             <p className="text-sm text-muted-foreground mb-4">Create your first folder to organize your backtests</p>
-            <Button onClick={() => setIsFolderDialogOpen(true)} className="rounded-xl gap-2">
+            <Button
+              onClick={() => setIsFolderDialogOpen(true)}
+              variant="outline"
+              className="rounded-2xl gap-2 bg-card/60 border-border/50 shadow-sm hover:bg-card"
+            >
               <FolderPlus className="h-4 w-4" />
               Create Folder
             </Button>
           </div>
         ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={filteredFolders.map(f => f.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-2">
-                {filteredFolders.map((folder) => {
-                  const folderBacktests = getBacktestsForFolder(folder.id);
-                  return (
-                    <FolderAccordion
-                      key={folder.id}
-                      folder={folder}
-                      itemCount={folderBacktests.length}
-                      isExpanded={expandedFolders.has(folder.id)}
-                      onToggle={() => toggleFolder(folder.id)}
-                      winRate={getFolderWinRate(folder.id)}
-                      showWinRate={true}
-                      onEdit={() => {
-                        setEditingFolder(folder);
-                        setIsFolderDialogOpen(true);
-                      }}
-                      onDuplicate={() => duplicateFolder.mutate(folder)}
-                      onDelete={() => setDeleteFolderConfirm(folder)}
-                    >
-                      {folderBacktests.length === 0 ? (
-                        <div className="flex items-center justify-between py-4 px-2 text-sm text-muted-foreground">
-                          <span>No backtests yet</span>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 text-xs gap-1.5"
-                            onClick={() => openCreateInFolder(folder.id)}
-                          >
-                            <Plus className="h-3 w-3" />
-                            Add Backtest
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                            onDragEnd={(event) => {
-                              const { active, over } = event;
-                              if (over && active.id !== over.id) {
-                                const oldIndex = folderBacktests.findIndex((b) => b.id === active.id);
-                                const newIndex = folderBacktests.findIndex((b) => b.id === over.id);
-                                const newOrder = arrayMove(folderBacktests, oldIndex, newIndex);
-                                reorderBacktests.mutate(newOrder.map(b => b.id));
-                              }
-                            }}
-                          >
-                            <SortableContext
-                              items={folderBacktests.map(b => b.id)}
-                              strategy={rectSortingStrategy}
-                            >
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {folderBacktests.map((backtest) => (
-                                  <SortableCard key={backtest.id} id={backtest.id}>
-                                    <ExpandableGalleryCard
-                                      title={backtest.name}
-                                      subtitle={backtest.symbol || backtest.strategy || ''}
-                                      image={backtest.images?.[0]}
-                                      symbol={backtest.symbol}
-                                      onViewClick={() => openView(backtest)}
-                                      onEditClick={() => openEdit(backtest)}
-                                      onDeleteClick={() => setDeleteConfirmId(backtest.id)}
-                                      isGlassEnabled={isGlassEnabled}
-                                      details={[
-                                        { label: 'Symbol', value: backtest.symbol || '-' },
-                                        { label: 'Win Rate', value: `${backtest.win_rate?.toFixed(0) || 0}%` },
-                                        { label: 'Trades', value: String(backtest.total_trades || 0) },
-                                      ]}
-                                      onImageClick={() => {
-                                        if (backtest.images?.length) {
-                                          setZoomImages(backtest.images);
-                                          setZoomOpen(true);
-                                        }
-                                      }}
-                                    />
-                                  </SortableCard>
-                                ))}
-                              </div>
-                            </SortableContext>
-                          </DndContext>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="w-full h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-                            onClick={() => openCreateInFolder(folder.id)}
-                          >
-                            <Plus className="h-3 w-3" />
-                            Add Backtest
-                          </Button>
-                        </div>
+          <div className="space-y-4">
+            {/* Folder Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {filteredFolders.map((folder) => {
+                const count = getBacktestCount(folder.id);
+                const isActive = folder.id === activeFolder?.id;
+                return (
+                  <div key={folder.id} className="relative">
+                    <button
+                      onClick={() => setActiveFolderId(folder.id)}
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 text-sm font-medium border transition-colors whitespace-nowrap",
+                        isActive
+                          ? "bg-white text-black border-black/10 dark:bg-black dark:text-white dark:border-white/10"
+                          : "bg-muted/50 text-foreground border-border/50 hover:bg-muted"
                       )}
-                    </FolderAccordion>
-                  );
-                })}
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: folder.color || '#8b5cf6' }}
+                      />
+                      <span>{folder.name}</span>
+                      <span
+                        className={cn(
+                          "min-w-[1.5rem] h-5 rounded-full text-xs flex items-center justify-center px-1",
+                          isActive ? "bg-black/5 text-black dark:bg-white/10 dark:text-white" : "bg-foreground/10 text-foreground"
+                        )}
+                      >
+                        {count}
+                      </span>
+                      {isActive && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <span
+                              className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/5 text-black hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                              onClick={(event) => event.stopPropagation()}
+                              role="button"
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </span>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditingFolder(folder);
+                                setIsFolderDialogOpen(true);
+                              }}
+                            >
+                              Edit Folder
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => duplicateFolder.mutate(folder)}>
+                              Duplicate Folder
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setDeleteFolderConfirm(folder)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              Delete Folder
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Active Folder Header */}
+            {activeFolder && (
+              <div className="flex items-center justify-between rounded-2xl border border-border/50 bg-card/60 p-4">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: activeFolder.color || '#8b5cf6' }}
+                  />
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">{activeFolder.name}</div>
+                    <div className="text-xs text-muted-foreground">{activeFolderCount} backtests</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={() => openCreateInFolder(activeFolder.id)}
+                  >
+                    <Plus className="h-3 w-3 mr-1.5" />
+                    Add Backtest
+                  </Button>
+                </div>
               </div>
-            </SortableContext>
-          </DndContext>
+            )}
+
+            {/* Active Folder Content */}
+            {activeFolder && (
+              activeFolderBacktests.length === 0 ? (
+                <div className="flex items-center justify-between py-4 px-2 text-sm text-muted-foreground">
+                  <span>No backtests yet</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-xs gap-1.5"
+                    onClick={() => openCreateInFolder(activeFolder.id)}
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add Backtest
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={(event) => {
+                      const { active, over } = event;
+                      if (over && active.id !== over.id) {
+                        const oldIndex = activeFolderBacktests.findIndex((b) => b.id === active.id);
+                        const newIndex = activeFolderBacktests.findIndex((b) => b.id === over.id);
+                        const newOrder = arrayMove(activeFolderBacktests, oldIndex, newIndex);
+                        reorderBacktests.mutate(newOrder.map(b => b.id));
+                      }
+                    }}
+                  >
+                    <SortableContext
+                      items={activeFolderBacktests.map(b => b.id)}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {activeFolderBacktests.map((backtest) => (
+                          <SortableCard key={backtest.id} id={backtest.id}>
+                            <ExpandableGalleryCard
+                              title={backtest.name}
+                              subtitle={[
+                                backtest.entry_time || '',
+                                backtest.date ? format(new Date(backtest.date), 'MMM d') : '',
+                                backtest.day_of_week || ''
+                              ].filter(Boolean).join(' • ')}
+                              image={backtest.images?.[0]}
+                              symbol={backtest.symbol}
+                              onViewClick={() => openView(backtest)}
+                              onEditClick={() => openEdit(backtest)}
+                              onDeleteClick={() => setDeleteConfirmId(backtest.id)}
+                              isGlassEnabled={isGlassEnabled}
+                              details={[
+                                { label: 'Symbol', value: backtest.symbol || '-' },
+                                { label: 'Win Rate', value: `${backtest.win_rate?.toFixed(0) || 0}%` },
+                                { label: 'Trades', value: String(backtest.total_trades || 0) },
+                              ]}
+                              onImageClick={() => {
+                                if (backtest.images?.length) {
+                                  setZoomImages(backtest.images);
+                                  setZoomOpen(true);
+                                }
+                              }}
+                            />
+                          </SortableCard>
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              )
+            )}
+          </div>
         )}
       </main>
 

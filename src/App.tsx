@@ -51,7 +51,16 @@ const isMobileDevice = () => {
 
 
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh and won't refetch
+      gcTime: 10 * 60 * 1000, // 10 minutes - keep data in cache
+      refetchOnWindowFocus: false, // Don't refetch when user returns to tab
+      refetchOnMount: false, // Don't refetch when component mounts if data exists
+    },
+  },
+});
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();

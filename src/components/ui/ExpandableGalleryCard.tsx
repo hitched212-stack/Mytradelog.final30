@@ -65,8 +65,8 @@ export function ExpandableGalleryCard({
     <>
       <Card
         className={cn(
-          'rounded-2xl border overflow-hidden transition-all duration-300 group relative',
-          'hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+          'rounded-3xl border overflow-hidden transition-all duration-300 group relative',
+          'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
           isGlassEnabled
             ? 'border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl'
             : 'bg-card border-border/50 shadow-sm'
@@ -85,7 +85,7 @@ export function ExpandableGalleryCard({
         )}
         {/* Image Section - Full width at top */}
         <div 
-          className="relative aspect-[2/1] overflow-hidden cursor-pointer"
+          className="relative aspect-[16/9] overflow-hidden cursor-pointer"
           onClick={handleImageClick}
         >
           {image ? (
@@ -101,29 +101,42 @@ export function ExpandableGalleryCard({
               )}
             </div>
           )}
+          {displayStats && displayStats.length > 0 && (
+            <div className="absolute left-3 bottom-3 flex flex-wrap gap-2">
+              {displayStats.map((stat, index) => (
+                <div
+                  key={index}
+                  className="rounded-full bg-background/85 text-foreground text-[11px] px-2.5 py-1 border border-border/50 shadow-sm"
+                >
+                  <span className="text-muted-foreground mr-1">{stat.label}:</span>
+                  <span className="font-medium">{stat.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         
-        
+        {/* Title Section */}
+        {title && (
+          <div className="px-4 py-2">
+            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/90 truncate">
+              {title}
+            </div>
+          </div>
+        )}
+
         {/* Footer with Stats, Title and Menu */}
         <div className="bg-muted/30 border-t border-border/50 relative z-10">
           <Separator className="bg-border/50" />
-          <div className="flex items-center justify-between px-4 py-2">
-            <div className="flex items-center gap-0 min-w-0 flex-1">
-              {displayStats && displayStats.length > 0 && displayStats.map((stat, index) => (
-                <div key={index} className="flex items-center">
-                  <span className="text-xs text-muted-foreground font-medium">
-                    {stat.value}
-                  </span>
-                  <Separator orientation="vertical" className="mx-3 h-3 bg-border" />
-                </div>
-              ))}
-              {/* Title/Notes at the end */}
-              <span className="text-xs text-muted-foreground font-medium truncate">
-                {title}
-              </span>
+          <div className="flex items-center justify-between gap-2 px-4 py-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {subtitle && (
+                <span className="text-[10px] text-muted-foreground bg-background/50 border border-border/50 rounded-full px-2 py-0.5 truncate">
+                  {subtitle}
+                </span>
+              )}
             </div>
-            
-            {/* 3-dot menu at bottom right */}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

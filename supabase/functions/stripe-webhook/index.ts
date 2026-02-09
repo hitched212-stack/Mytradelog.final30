@@ -74,153 +74,196 @@ serve(async (req) => {
   }
 
   // Handle the event
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      let userId = session.metadata?.user_id;
-      
-      // Get customer email from session, or fetch from Stripe if needed
-      let customerEmail = session.customer_details?.email || session.customer_email;
-      
-      // If still no email, fetch customer from Stripe
-      if (!customerEmail && session.customer) {
-        try {
-          const customer = await stripe.customers.retrieve(session.customer as string);
-          if (customer && !customer.deleted) {
-            customerEmail = customer.email;
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        let userId = session.metadata?.user_id;
+        
+        // Get customer email from session, or fetch from Stripe if needed
+        let customerEmail = session.customer_details?.email || session.customer_email;
+        
+        // If still no email, fetch customer from Stripe
+        if (!customerEmail && session.customer) {
+          try {
+            const customer = await stripe.customers.retrieve(session.customer as string);
+            if (customer && !customer.deleted) {
+              customerEmail = customer.email;
+            }
+          } catch (err) {
+            console.error('Error fetching customer:', err);
           }
-        } catch (err) {
-          console.error('Error fetching customer:', err);
         }
-      }
-      
-      // If no user_id in metadata, try to find user by email
-      if (!userId && customerEmail) {
-        const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
-        if (userError) {
-          console.error('Error fetching users:', userError);
-          return new Response('Database error', { status: 500 });
+        
+        // If no user_id in metadata, try to find user by email
+        if (!userId && customerEmail) {
+          const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+          if (userError) {
+            console.error('Error fetching users:', userError);
+            return new Response(JSON.stringify({ error: 'Database error', details: userError.message }), { 
+              status: 500,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+
+          const user = userData.users.find(u => u.email === customerEmail);
+          if (!user) {
+            console.error('No user found with email:', customerEmail);
+            return new Response(JSON.stringify({ error: 'User not found', email: customerEmail }), { 
+              status: 404,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+          userId = user.id;
         }
 
-        const user = userData.users.find(u => u.email === customerEmail);
-        if (!user) {
-          console.error('No user found with email:', customerEmail);
-          return new Response(JSON.stringify({ error: 'User not found', email: customerEmail }), { 
-            status: 404,
+        if (!userId) {
+          console.error('No user_id in session metadata and no email');
+          return new Response(JSON.stringify({ error: 'No user_id found' }), { 
+            status: 400,
             headers: { 'Content-Type': 'application/json' }
           });
         }
-        userId = user.id;
-      }
 
-      if (!userId) {
-        console.error('No user_id in session metadata and no email');
-        return new Response('No user_id', { status: 400 });
-      }
-
-      // Fetch subscription to get accurate period end
-      let currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      if (session.subscription) {
-        try {
-          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-          currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
-        } catch (err) {
-          console.error('Error fetching subscription:', err);
-        }
-      }
-
-      // Calculate the amount from the checkout session
-      const amountInCents = session.amount_total || 0;
-
-      const { error } = await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: userId,
-          status: 'active',
-          plan_type: session.metadata?.plan_type || 'monthly',
-          stripe_customer_id: session.customer,
-          stripe_subscription_id: session.subscription,
-          amount: amountInCents,
-          current_period_end: currentPeriodEnd,
-        }, { onConflict: 'user_id' });
-
-      if (error) {
-        console.error('Error updating subscription:', error);
-        return new Response('Database error', { status: 500 });
-      }
-      break;
-    }
-
-    case 'invoice.payment_succeeded': {
-      const invoice = event.data.object;
-      const customerEmail = invoice.customer_email;
-      const customerId = invoice.customer;
-      const subscriptionId = invoice.subscription;
-
-      if (!customerEmail) {
-        console.error('No customer email in invoice');
-        return new Response('No customer email', { status: 400 });
-      }
-
-      // Try to find user by existing stripe_customer_id first
-      const { data: profileByStripeId } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('stripe_customer_id', customerId)
-        .single();
-
-      let userId = profileByStripeId?.user_id;
-
-      // If not found by customer ID, validate email and match to user
-      if (!userId) {
-        const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
-        if (userError) {
-          console.error('Error fetching users:', userError);
-          return new Response('Database error', { status: 500 });
+        // Fetch subscription to get accurate period end
+        let currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        if (session.subscription) {
+          try {
+            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+            if (subscription?.current_period_end && typeof subscription.current_period_end === 'number') {
+              currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+            }
+          } catch (err) {
+            console.error('Error fetching subscription:', err);
+          }
         }
 
-        const user = userData.users.find(u => u.email === customerEmail);
-        if (!user) {
-          console.error('Payment email does not match any account:', customerEmail);
-          return new Response('Payment email must match account email', { status: 404 });
-        }
-        userId = user.id;
+        // Calculate the amount from the checkout session
+        const amountInCents = session.amount_total || 0;
 
-        // Store the stripe_customer_id in profiles for future use
-        await supabase
+        const { error } = await supabase
+          .from('subscriptions')
+          .upsert({
+            user_id: userId,
+            status: 'active',
+            plan_type: session.metadata?.plan_type || 'monthly',
+            stripe_customer_id: session.customer,
+            stripe_subscription_id: session.subscription,
+            amount: amountInCents,
+            current_period_end: currentPeriodEnd,
+          }, { onConflict: 'user_id' });
+
+        if (error) {
+          console.error('Error updating subscription:', error);
+          return new Response(JSON.stringify({ error: 'Database error', details: error.message }), { 
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        console.log(`Checkout session completed for user ${userId}`);
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        const customerEmail = invoice.customer_email;
+        const customerId = invoice.customer;
+        const subscriptionId = invoice.subscription;
+
+        if (!customerEmail) {
+          console.error('No customer email in invoice');
+          return new Response(JSON.stringify({ error: 'No customer email' }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Try to find user by existing stripe_customer_id first
+        const { data: profileByStripeId } = await supabase
           .from('profiles')
-          .update({ stripe_customer_id: customerId })
-          .eq('user_id', userId);
-      }
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .single();
 
-      // Determine plan type from invoice line items
-      let planType: 'monthly' | 'annual' = 'monthly';
-      if (invoice.lines?.data?.[0]?.price?.recurring?.interval === 'year') {
-        planType = 'annual';
-      }
+        let userId = profileByStripeId?.user_id;
 
-      // Capture the amount in cents from the invoice
-      const amountInCents = invoice.lines?.data?.[0]?.price?.unit_amount || 0;
+        // If not found by customer ID, validate email and match to user
+        if (!userId) {
+          const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+          if (userError) {
+            console.error('Error fetching users:', userError);
+            return new Response(JSON.stringify({ error: 'Database error', details: userError.message }), { 
+              status: 500,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
 
-      const { error } = await supabase
-        .from('subscriptions')
-        .upsert({
+          const user = userData.users.find(u => u.email === customerEmail);
+          if (!user) {
+            console.error('Payment email does not match any account:', customerEmail);
+            return new Response(JSON.stringify({ error: 'Payment email must match account email' }), { 
+              status: 404,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+          userId = user.id;
+
+          // Store the stripe_customer_id in profiles for future use
+          await supabase
+            .from('profiles')
+            .update({ stripe_customer_id: customerId })
+            .eq('user_id', userId);
+        }
+
+        // Determine plan type from invoice line items
+        let planType: 'monthly' | 'annual' = 'monthly';
+        if (invoice.lines?.data?.[0]?.price?.recurring?.interval === 'year') {
+          planType = 'annual';
+        }
+
+        // Capture the amount in cents from the invoice
+        const amountInCents = invoice.lines?.data?.[0]?.price?.unit_amount || 0;
+
+        const subscriptionUpdateData: any = {
           user_id: userId,
           status: 'active',
           plan_type: planType,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           amount: amountInCents,
-          current_period_end: new Date(invoice.lines.data[0].period.end * 1000).toISOString(),
-          current_period_start: new Date(invoice.lines.data[0].period.start * 1000).toISOString(),
-        }, { onConflict: 'user_id' });
+        };
 
-      if (error) {
-        console.error('Error updating subscription:', error);
-        return new Response('Database error', { status: 500 });
+        // Only add period dates if we have valid data
+        if (invoice.lines?.data?.[0]?.period?.end && typeof invoice.lines.data[0].period.end === 'number') {
+          try {
+            subscriptionUpdateData.current_period_end = new Date(invoice.lines.data[0].period.end * 1000).toISOString();
+          } catch (err) {
+            console.error('Error converting period end timestamp:', err);
+          }
+        }
+
+        if (invoice.lines?.data?.[0]?.period?.start && typeof invoice.lines.data[0].period.start === 'number') {
+          try {
+            subscriptionUpdateData.current_period_start = new Date(invoice.lines.data[0].period.start * 1000).toISOString();
+          } catch (err) {
+            console.error('Error converting period start timestamp:', err);
+          }
+        }
+
+        const { error } = await supabase
+          .from('subscriptions')
+          .upsert(subscriptionUpdateData, { onConflict: 'user_id' });
+
+        if (error) {
+          console.error('Error updating subscription:', error);
+          return new Response(JSON.stringify({ error: 'Database error', details: error.message }), { 
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        console.log(`Invoice payment succeeded for user ${userId}`);
+        break;
       }
-      break;
-    }
 
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted': {
@@ -232,32 +275,71 @@ serve(async (req) => {
 
       const updateData: any = {
         status,
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
       };
+
+      // Only update period_end if we have a valid timestamp
+      if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
+        try {
+          updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+        } catch (err) {
+          console.error('Error converting period end timestamp:', err);
+        }
+      }
 
       // Only update amount if we have it
       if (amountInCents !== null) {
         updateData.amount = amountInCents;
       }
 
-      const { error } = await supabase
-        .from('subscriptions')
-        .update(updateData)
-        .eq('stripe_subscription_id', subscription.id);
+      try {
+        const { error } = await supabase
+          .from('subscriptions')
+          .update(updateData)
+          .eq('stripe_subscription_id', subscription.id);
 
-      if (error) {
-        console.error('Error updating subscription:', error);
-        return new Response('Database error', { status: 500 });
+        if (error) {
+          console.error('Error updating subscription:', error);
+          return new Response(JSON.stringify({ 
+            error: 'Database error', 
+            details: error.message 
+          }), { 
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        console.log(`Subscription ${subscription.id} updated to status: ${status}`);
+      } catch (err) {
+        console.error('Error in subscription update handler:', err);
+        return new Response(JSON.stringify({ 
+          error: 'Internal server error', 
+          details: err instanceof Error ? err.message : 'Unknown error'
+        }), { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
       break;
     }
 
-    default:
-      console.log(`Unhandled event type: ${event.type}`);
-  }
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
 
-  return new Response(JSON.stringify({ received: true }), {
-    headers: { 'Content-Type': 'application/json' },
-    status: 200,
-  });
+    return new Response(JSON.stringify({ received: true }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    });
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Error handling webhook event:', err);
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: errorMessage,
+      eventType: event.type
+    }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 });
