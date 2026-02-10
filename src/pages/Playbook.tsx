@@ -84,8 +84,9 @@ export default function Playbook() {
   const { folders, isLoading: foldersLoading, createFolder, updateFolder, deleteFolder, duplicateFolder } = useFolders('playbook');
   const { setups: allSetups = [], isLoading: setupsLoading } = usePlaybook();
 
-  // Only show skeleton if actually loading and no data exists yet
-  const showSkeleton = (foldersLoading || setupsLoading) && folders.length === 0 && allSetups.length === 0;
+  // Show skeleton while initial load is happening
+  const isInitialLoading = foldersLoading || setupsLoading;
+  const showSkeleton = isInitialLoading && folders.length === 0 && allSetups.length === 0;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

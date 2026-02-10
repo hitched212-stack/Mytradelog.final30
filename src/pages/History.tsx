@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTrades } from '@/hooks/useTrades';
 import { useSettings } from '@/hooks/useSettings';
@@ -75,6 +75,7 @@ const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 export default function History() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const { trades, isLoading, deleteTrade, duplicateTrade } = useTrades();
   const { settings } = useSettings();
@@ -103,6 +104,16 @@ export default function History() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [deleteTradeId, setDeleteTradeId] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+
+  useEffect(() => {
+    const tradeId = searchParams.get('tradeId');
+    if (!tradeId || isLoading) return;
+    const trade = trades.find(t => t.id === tradeId);
+    if (trade) {
+      setSelectedTrade(trade);
+      setViewDialogOpen(true);
+    }
+  }, [searchParams, trades, isLoading]);
 
   const currency = (activeAccount?.currency || settings.currency) as Currency;
   const currencySymbol = getCurrencySymbol(currency);
@@ -912,7 +923,17 @@ export default function History() {
       </div>
 
       {/* Trade View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+      <Dialog
+        open={viewDialogOpen}
+        onOpenChange={(open) => {
+          setViewDialogOpen(open);
+          if (!open) {
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete('tradeId');
+            setSearchParams(nextParams, { replace: true });
+          }
+        }}
+      >
         <DialogContent 
           className="max-w-4xl sm:max-h-[90vh] p-0 gap-0 sm:overflow-hidden"
           hideCloseButton

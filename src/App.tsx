@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AccountProvider, useAccount } from "@/hooks/useAccount";
 import { PreferencesProvider } from "@/hooks/usePreferences";
+import { useTradingPreferences } from "@/hooks/useTradingPreferences";
 import { useDataStore } from "@/store/dataStore";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SplashScreen } from "@/components/layout/SplashScreen";
@@ -80,6 +81,8 @@ function ProtectedLayout() {
   const { user, loading: authLoading } = useAuth();
   const { activeAccount, accounts, loading: accountLoading } = useAccount();
   const { setIsHydrating } = useDataStore();
+  // Preload trading preferences
+  useTradingPreferences();
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'active' | 'inactive'>('loading');
   const [supabaseError, setSupabaseError] = useState<boolean>(false);
 

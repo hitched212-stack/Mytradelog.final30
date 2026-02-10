@@ -17,7 +17,7 @@ const defaultPreferences: TradingPreferences = {
 export function useTradingPreferences() {
   const { user } = useAuth();
   const [preferences, setPreferencesState] = useState<TradingPreferences>(defaultPreferences);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastUserIdRef = useRef<string | null>(null);
   const hasFetchedRef = useRef(false);
