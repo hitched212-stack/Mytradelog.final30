@@ -162,6 +162,10 @@ export default function History() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedTrades = filteredTrades.slice(startIndex, startIndex + itemsPerPage);
 
+  // Calculate buy and sell counts
+  const buyCounts = filteredTrades.filter(t => t.direction === 'long').length;
+  const sellCounts = filteredTrades.filter(t => t.direction === 'short').length;
+
   const handleSort = (field: 'date' | 'symbol' | 'pnl') => {
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -240,47 +244,76 @@ export default function History() {
 
   return (
     <div className="min-h-screen p-4 md:p-6 pb-32 md:pb-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
-        <p className="text-sm text-muted-foreground mt-2">
-          {filteredTrades.length} total trades
-        </p>
-      </div>
+      {/* Header with Integrated Search, Filters, and Stats */}
+      <div className="flex items-center justify-between rounded-2xl border border-border/50 bg-card/60 p-4 gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{filteredTrades.length} total trades</p>
+          </div>
+        </div>
 
-      {/* Search, Filter, and Direction Buttons - All on one row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 min-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Stats Section */}
+        <div className="hidden lg:flex items-center gap-4 px-4 border-l border-border/50">
+          <div className="text-center">
+            <div className="text-xs font-medium text-muted-foreground">Buys</div>
+            <div className="text-sm font-semibold text-foreground">{buyCounts}</div>
+          </div>
+          <div className="w-px h-6 bg-border/50" />
+          <div className="text-center">
+            <div className="text-xs font-medium text-muted-foreground">Sells</div>
+            <div className="text-sm font-semibold text-foreground">{sellCounts}</div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative flex-1 min-w-xs hidden md:flex">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder="Search by symbol, direction..."
+            placeholder="Search by symbol..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="pl-9 h-10 rounded-xl bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors"
+            className="pl-8 h-8 rounded-lg bg-muted/50 border-border/50 text-xs"
           />
         </div>
-        
+
+        {/* Mobile Search - shown on small screens */}
+        <div className="relative flex-1 min-w-xs md:hidden">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-8 h-8 rounded-lg bg-muted/50 border-border/50 text-xs"
+          />
+        </div>
+
         {/* Date Range Picker */}
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                "h-10 gap-2 rounded-xl bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3 flex-shrink-0",
+                "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm",
                 dateRange.from ? "text-foreground" : "text-muted-foreground"
               )}
             >
               <CalendarIcon className="h-4 w-4" />
-              {dateRange.from ? (
-                dateRange.to ? (
-                  `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
-                ) : (
-                  format(dateRange.from, 'MMM dd')
-                )
-              ) : 'Date Range'}
+              <span className="hidden md:inline">
+                {dateRange.from ? (
+                  dateRange.to ? (
+                    `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                  ) : (
+                    format(dateRange.from, 'MMM dd')
+                  )
+                ) : 'Date'}
+              </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
@@ -323,30 +356,30 @@ export default function History() {
             setCurrentPage(1);
           }}
         >
-          <SelectTrigger className="w-[140px] md:w-[160px] h-10 px-3 py-2 rounded-xl bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors text-sm flex-shrink-0">
+          <SelectTrigger className="w-auto h-9 px-3 py-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted text-sm flex-shrink-0">
             <SlidersHorizontal className="h-4 w-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Sort by" />
+            <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="date-desc">Newest First</SelectItem>
-            <SelectItem value="date-asc">Oldest First</SelectItem>
-            <SelectItem value="pnl-desc">Best Trade</SelectItem>
-            <SelectItem value="pnl-asc">Worst Trade</SelectItem>
+            <SelectItem value="date-desc">Newest</SelectItem>
+            <SelectItem value="date-asc">Oldest</SelectItem>
+            <SelectItem value="pnl-desc">Best</SelectItem>
+            <SelectItem value="pnl-asc">Worst</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Direction Filter Buttons */}
-        <div className="flex gap-2 bg-card/50 border border-border/40 rounded-2xl p-1 flex-shrink-0">
+        <div className="flex gap-1 bg-muted/30 rounded-xl p-1 flex-shrink-0">
           {[
-            { value: 'all' as const, label: 'All trades' },
-            { value: 'long' as const, label: 'Buy side' },
-            { value: 'short' as const, label: 'Sell side' },
+            { value: 'all' as const, label: 'All' },
+            { value: 'long' as const, label: 'Buy' },
+            { value: 'short' as const, label: 'Sell' },
           ].map(option => (
             <button
               key={option.value}
               onClick={() => setDirectionFilter(option.value)}
               className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ease-out whitespace-nowrap',
+                'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ease-out whitespace-nowrap',
                 directionFilter === option.value
                   ? 'bg-foreground text-background shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'

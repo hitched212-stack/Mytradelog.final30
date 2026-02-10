@@ -519,15 +519,44 @@ export default function Playbook() {
     }
     return acc;
   }, {});
+  
+  // Calculate average entry time
+  const getAverageEntryTime = (setups: PlaybookSetup[]) => {
+    const timesWithSetups = setups.filter(s => s.entry_time && s.entry_time.trim());
+    if (timesWithSetups.length === 0) return '—';
+    
+    const totalMinutes = timesWithSetups.reduce((sum, setup) => {
+      const [hours, minutes] = setup.entry_time!.split(':').map(Number);
+      return sum + (hours * 60 + minutes);
+    }, 0);
+    
+    const avgMinutes = Math.round(totalMinutes / timesWithSetups.length);
+    const hours = Math.floor(avgMinutes / 60);
+    const mins = avgMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+  
+  // Calculate most common trading day
+  const getDayOfWeekCounts = (setups: PlaybookSetup[]) => {
+    const dayCounts = setups.reduce<Record<string, number>>((acc, setup) => {
+      const day = setup.day_of_week?.trim();
+      if (day) {
+        acc[day] = (acc[day] || 0) + 1;
+      }
+      return acc;
+    }, {});
+    return Object.entries(dayCounts).length > 0 ? Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0][0] : '—';
+  };
+  
   const topSessionEntry = Object.entries(sessionCounts).sort((a, b) => b[1] - a[1])[0];
   const topSessionLabel = topSessionEntry?.[0] || '—';
-  const topSessionSubtitle = topSessionEntry ? `${topSessionEntry[1]} setups` : 'No session data yet';
   const topStrategyEntry = Object.entries(strategyCounts).sort((a, b) => b[1] - a[1])[0];
   const topStrategyLabel = topStrategyEntry?.[0] || '—';
-  const topStrategySubtitle = topStrategyEntry ? `${topStrategyEntry[1]} setups` : 'No strategy data yet';
   const activeFolder = filteredFolders.find(folder => folder.id === activeFolderId) || null;
   const activeFolderSetups = activeFolder ? getSetupsForFolder(activeFolder.id) : [];
   const activeFolderCount = activeFolder ? getSetupCount(activeFolder.id) : 0;
+  const avgEntryTime = getAverageEntryTime(activeFolderSetups);
+  const mostCommonDay = getDayOfWeekCounts(activeFolderSetups);
 
   return (
     <PageTransition>
@@ -557,43 +586,6 @@ export default function Playbook() {
       </header>
 
       <main className="px-4 py-6 md:px-6 space-y-6 relative z-10">
-        {/* Metrics */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
-            <div className="text-xs font-medium text-muted-foreground">Top Session</div>
-            <div className="mt-2 text-lg font-semibold text-foreground">{topSessionLabel}</div>
-            <div className="text-xs text-muted-foreground mt-1">{topSessionSubtitle}</div>
-          </div>
-          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
-            <div className="text-xs font-medium text-muted-foreground">Top Strategy</div>
-            <div className="mt-2 text-lg font-semibold text-foreground">{topStrategyLabel}</div>
-            <div className="text-xs text-muted-foreground mt-1">{topStrategySubtitle}</div>
-          </div>
-          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
-            <div className="text-xs font-medium text-muted-foreground">Total Setups</div>
-            <div className="mt-2 text-lg font-semibold text-foreground">{totalSetups}</div>
-            <div className="text-xs text-muted-foreground mt-1">Across your playbook</div>
-          </div>
-          <div className="rounded-2xl border border-border/50 bg-card/60 p-3 shadow-sm">
-            <div className="text-xs font-medium text-muted-foreground">Folders</div>
-            <div className="mt-2 text-lg font-semibold text-foreground">{totalFolders}</div>
-            <div className="text-xs text-muted-foreground mt-1">Organized collections</div>
-          </div>
-        </section>
-
-        {/* Search */}
-        <section className="rounded-2xl border border-border/50 bg-card/60 p-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search folders and setups..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-xl bg-muted/50 border-border/50"
-            />
-          </div>
-        </section>
-
         {/* Content */}
         {showSkeleton ? (
           <div className="space-y-3">
@@ -686,10 +678,10 @@ export default function Playbook() {
               })}
             </div>
 
-            {/* Active Folder Header */}
+            {/* Active Folder Header with Metrics */}
             {activeFolder && (
               <div className="flex items-center justify-between rounded-2xl border border-border/50 bg-card/60 p-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: activeFolder.color || '#8b5cf6' }}
@@ -699,7 +691,31 @@ export default function Playbook() {
                     <div className="text-xs text-muted-foreground">{activeFolderCount} setups</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                {/* Metrics */}
+                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-border/50">
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-muted-foreground">Top Session</div>
+                    <div className="text-sm font-semibold text-foreground">{topSessionLabel}</div>
+                  </div>
+                  <div className="w-px h-6 bg-border/50" />
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-muted-foreground">Top Strategy</div>
+                    <div className="text-sm font-semibold text-foreground">{topStrategyLabel}</div>
+                  </div>
+                  <div className="w-px h-6 bg-border/50" />
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-muted-foreground">Avg Entry Time</div>
+                    <div className="text-sm font-semibold text-foreground">{avgEntryTime}</div>
+                  </div>
+                  <div className="w-px h-6 bg-border/50" />
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-muted-foreground">Most Common Day</div>
+                    <div className="text-sm font-semibold text-foreground">{mostCommonDay}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 ml-4">
                   <Button
                     variant="outline"
                     size="sm"
