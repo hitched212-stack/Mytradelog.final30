@@ -110,6 +110,7 @@ export function useTrades() {
   const { activeAccount, isSwitching } = useAccount();
   const { trades, tradesLoaded, currentAccountId, previousTrades, isTransitioning, setTrades, setCurrentAccountId, setTradesLoaded } = useDataStore();
   const hasFetchedRef = useRef(false);
+  const recentlyUpdatedRef = useRef<Set<string>>(new Set());
 
   // Fetch trades from database for the active account - with fast retry logic
   const fetchTrades = useCallback(async (retryCount = 0, silent = false): Promise<void> => {
@@ -169,6 +170,8 @@ export function useTrades() {
   useEffect(() => {
     if (!user) return;
 
+    let refetchTimeout: NodeJS.Timeout | null = null;
+
     const channel = supabase
       .channel(`trades-${user.id}`)
       .on(
@@ -179,16 +182,29 @@ export function useTrades() {
           table: 'trades',
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          // Only refetch if we have an active account and not switching
-          if (activeAccount && !isSwitching) {
-            fetchTrades();
+        (payload) => {
+          // Skip refetch if this trade was just updated optimistically
+          const tradeId = payload.new?.id || payload.old?.id;
+          if (tradeId && recentlyUpdatedRef.current.has(tradeId)) {
+            // Remove from recently updated set after a delay
+            setTimeout(() => recentlyUpdatedRef.current.delete(tradeId), 2000);
+            return;
           }
+
+          // Debounce refetch to allow optimistic updates to settle and database to process
+          if (refetchTimeout) clearTimeout(refetchTimeout);
+          refetchTimeout = setTimeout(() => {
+            // Only refetch if we have an active account and not switching
+            if (activeAccount && !isSwitching) {
+              fetchTrades();
+            }
+          }, 500); // 500ms debounce to ensure database has processed the update
         }
       )
       .subscribe();
 
     return () => {
+      if (refetchTimeout) clearTimeout(refetchTimeout);
       supabase.removeChannel(channel);
     };
   }, [user?.id]); // Only depend on user.id to prevent channel recreation
@@ -300,6 +316,11 @@ export function useTrades() {
         : trade
     );
     setTrades(optimisticTrades);
+    
+    // Mark this trade as recently updated to skip premature real-time refetch
+    recentlyUpdatedRef.current.add(id);
+    // Clear the flag after a delay
+    setTimeout(() => recentlyUpdatedRef.current.delete(id), 2000);
 
     try {
       const updateData: Record<string, unknown> = {};

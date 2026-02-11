@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Trade, TradeDirection, TradeCategory, TradeStatus, TRADE_CATEGORIES, getCurrencySymbol, NewsImpact, NEWS_IMPACTS, NewsEvent } from '@/types/trade';
 import { useTrades } from '@/hooks/useTrades';
@@ -175,6 +175,9 @@ export function TradeForm({
 
   // Get trading rules from cloud-synced preferences
   const { tradingRules } = useTradingPreferences();
+
+  // Track if form has been initialized to prevent re-initialization on re-renders
+  const isInitialized = useRef(false);
 
   // Dismiss all toasts when component unmounts (navigating away)
   useEffect(() => {
@@ -425,7 +428,9 @@ export function TradeForm({
     };
   };
   useEffect(() => {
-    if (editTrade) {
+    if (editTrade && !isInitialized.current) {
+      isInitialized.current = true;
+      
       // Recalculate pnl percentage based on current account balance
       const accountBalance = activeAccount?.starting_balance || 0;
       const calculatedPnlPercentage = accountBalance > 0 
@@ -484,7 +489,7 @@ export function TradeForm({
       const postMarketNotes = editTrade.postMarketNotes || '';
       setPostMarketCharts(parseNotesToCharts(postMarketNotes, postMarketImages));
     }
-  }, [editTrade]);
+  }, [editTrade?.id]);
   const handlePnlAmountChange = (value: string) => {
     setFormData(prev => {
       const pnlAmount = parseFloat(value) || 0;

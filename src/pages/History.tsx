@@ -510,15 +510,23 @@ export default function History() {
                     >
                       No Trade
                     </Badge>
-                  ) : trade.status === 'open' ? (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-pnl-positive/10">
-                      <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-pnl-positive" />
-                      <span className="text-[10px] font-medium text-pnl-positive">Open</span>
-                    </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/50">
-                      <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
-                      <span className="text-[10px] font-medium text-muted-foreground">Closed</span>
+                    <div className={cn(
+                      "flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-colors duration-0",
+                      trade.status === 'open' ? "bg-pnl-positive/10" : "bg-muted/50"
+                    )}>
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full transition-colors duration-0",
+                        trade.status === 'open' 
+                          ? "border-[1.5px] border-pnl-positive" 
+                          : "bg-muted-foreground"
+                      )} />
+                      <span className={cn(
+                        "text-[10px] font-medium transition-colors duration-0",
+                        trade.status === 'open' ? "text-pnl-positive" : "text-muted-foreground"
+                      )}>
+                        {trade.status === 'open' ? 'Open' : 'Closed'}
+                      </span>
                     </div>
                   )}
 
@@ -660,17 +668,27 @@ export default function History() {
                   >
                     {/* Status */}
                     <TableCell className="px-4">
-                      {trade.status === 'open' ? (
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-pnl-positive/10 border border-pnl-positive/30">
-                          <div className="w-1.5 h-1.5 rounded-full bg-pnl-positive animate-pulse" />
-                          <span className="text-xs font-semibold text-pnl-positive">OPEN</span>
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/50 border border-muted/50">
-                          <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                          <span className="text-xs font-semibold text-muted-foreground">CLOSED</span>
-                        </div>
-                      )}
+                      <div className={cn(
+                        "inline-flex items-center gap-2 px-2.5 py-1 rounded-md transition-colors duration-0",
+                        trade.status === 'open' 
+                          ? "bg-pnl-positive/10 border border-pnl-positive/30"
+                          : "bg-muted/50 border border-muted/50"
+                      )}>
+                        <div className={cn(
+                          "w-1.5 h-1.5 rounded-full transition-colors duration-0",
+                          trade.status === 'open' 
+                            ? "bg-pnl-positive animate-pulse"
+                            : "bg-muted-foreground/40"
+                        )} />
+                        <span className={cn(
+                          "text-xs font-semibold transition-colors duration-0",
+                          trade.status === 'open' 
+                            ? "text-pnl-positive"
+                            : "text-muted-foreground"
+                        )}>
+                          {trade.status === 'open' ? 'OPEN' : 'CLOSED'}
+                        </span>
+                      </div>
                     </TableCell>
 
                     {/* Pair - Symbol with icon */}
@@ -946,9 +964,9 @@ export default function History() {
               currencySymbol={currencySymbol}
               formatPnl={formatPnl}
               onClose={() => setViewDialogOpen(false)}
-              onEdit={() => {
+              onEdit={(tab) => {
                 setViewDialogOpen(false);
-                navigate(`/edit/${selectedTrade.id}`);
+                navigate(`/edit/${selectedTrade.id}${tab ? `?tab=${tab}` : ''}`);
               }}
               onViewForecast={() => {}}
               onImageClick={handleImageClick}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Palette, Check, Plus, Trash2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Palette, Check, Plus, Trash2, Sparkles, Grid3x3 } from 'lucide-react';
 import { usePreferences, ColorPreset } from '@/hooks/usePreferences';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -197,7 +197,7 @@ export default function PreferencesSettings() {
               <div className="flex items-center justify-between py-4">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-xl bg-muted/50 flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                    <Grid3x3 className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
                   </div>
                   <div>
                     <span className="text-sm font-medium text-foreground">Dot Pattern</span>

@@ -129,6 +129,7 @@ export default function Analytics() {
       return {
         totalPnl: 0,
         winRate: 0,
+        pnlPercentage: 0,
         totalTrades: 0,
         profitFactor: 0,
         avgRR: 0,
@@ -204,9 +205,15 @@ export default function Analytics() {
     // Calculate average stop loss pips
     const tradesWithPips = filteredTrades.filter(t => t.stopLossPips && t.stopLossPips > 0);
     const avgStopLossPips = tradesWithPips.length > 0 ? tradesWithPips.reduce((sum, t) => sum + (t.stopLossPips || 0), 0) / tradesWithPips.length : 0;
+    
+    // Calculate PNL percentage based on account starting balance
+    const startingBalance = activeAccount?.starting_balance || 0;
+    const pnlPercentage = startingBalance > 0 ? (totalPnl / startingBalance * 100) : 0;
+    
     return {
       totalPnl,
       winRate,
+      pnlPercentage,
       totalTrades: filteredTrades.length,
       profitFactor,
       avgRR,
@@ -936,9 +943,9 @@ export default function Analytics() {
             {/* Left: Income info */}
             <div>
               <div className="flex items-start justify-between gap-4">
-                <p className="text-xs text-white mb-1 md:mb-2 font-semibold uppercase tracking-wider">Total Pnl</p>
+                <p className="text-xs text-foreground mb-1 md:mb-2 font-semibold uppercase tracking-wider">Total Pnl</p>
                 <span className={cn("text-sm font-medium font-display tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
-                  {stats.totalPnl >= 0 ? '+' : '-'}{Math.abs(stats.winRate).toFixed(2)}%
+                  {stats.totalPnl >= 0 ? '+' : ''}{stats.pnlPercentage.toFixed(2)}%
                 </span>
               </div>
               <p className={cn("text-3xl tracking-tight md:text-3xl font-display font-bold tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>

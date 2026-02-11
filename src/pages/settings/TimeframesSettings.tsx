@@ -70,7 +70,7 @@ export default function TimeframesSettings() {
   });
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-32">
       <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
         <button
           onClick={() => navigate('/settings')}
@@ -87,7 +87,7 @@ export default function TimeframesSettings() {
         </div>
       </header>
 
-      <div className="px-4 md:px-6 lg:px-8">
+      <div className="px-4 md:px-6 lg:px-8 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Available Timeframes */}
           <div className="rounded-2xl bg-card border border-border/50 overflow-hidden shadow-sm">
@@ -105,7 +105,7 @@ export default function TimeframesSettings() {
               </div>
             </div>
 
-            <div className="p-4 max-h-[600px] overflow-y-auto">
+            <div className="p-4 max-h-[463px] overflow-y-auto">
               {filteredAvailableTimeframes.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-sm text-muted-foreground">
@@ -118,12 +118,12 @@ export default function TimeframesSettings() {
                     <button
                       key={tf.value}
                       onClick={() => handleAddTimeframe(tf.value)}
-                      className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/50 hover:border-border transition-colors text-left"
+                      className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50 transition-all duration-200 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 active:scale-[0.98] text-left group"
                     >
                       <span className="text-sm font-medium text-foreground">
                         {tf.label}
                       </span>
-                      <span className="text-xs text-muted-foreground">Add</span>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">Add</span>
                     </button>
                   ))}
                 </div>
@@ -162,7 +162,7 @@ export default function TimeframesSettings() {
               </div>
             </div>
 
-            <div className="p-4 max-h-[600px] overflow-y-auto">
+            <div className="p-4 max-h-[463px] overflow-y-auto">
               {selectedTimeframes.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-sm text-muted-foreground">
@@ -187,7 +187,7 @@ export default function TimeframesSettings() {
                     return (
                       <div
                         key={value}
-                        className="flex items-center justify-between p-3 rounded-lg border transition-colors"
+                        className="flex items-center justify-between p-3 rounded-lg border transition-all duration-200 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 active:scale-[0.98] group cursor-default"
                         style={{
                           backgroundColor: `${profitColor}15`,
                           borderColor: `${profitColor}30`
@@ -200,7 +200,7 @@ export default function TimeframesSettings() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveTimeframe(value)}
-                          className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                          className="h-7 text-xs text-muted-foreground hover:text-foreground transition-all duration-200"
                         >
                           Remove
                         </Button>
