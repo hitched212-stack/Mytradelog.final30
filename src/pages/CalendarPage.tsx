@@ -586,7 +586,7 @@ export default function CalendarPage() {
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
                 <div className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1 text-center mb-1">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                    <div key={i} className="py-1 text-[10px] font-medium text-muted-foreground">
+                    <div key={i} className="h-6 flex items-center justify-center rounded-md border border-border/40 bg-muted/20 text-[10px] font-medium text-muted-foreground">
                       {day}
                     </div>
                   ))}
@@ -595,7 +595,7 @@ export default function CalendarPage() {
                 {/* Mobile headers - Mon to Fri only */}
                 <div className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 text-center mb-1">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                    <div key={i} className="py-1 text-[10px] font-medium text-muted-foreground">
+                    <div key={i} className="h-6 flex items-center justify-center rounded-md border border-border/40 bg-muted/20 text-[10px] font-medium text-muted-foreground">
                       {day}
                     </div>
                   ))}
@@ -663,16 +663,7 @@ export default function CalendarPage() {
                                   'absolute top-0.5 left-0.5 text-[10px] font-medium',
                                   isTodayDate ? 'font-bold' : 'text-foreground/80'
                                 )}>
-                                  {isTodayDate ? (
-                                    <span className="relative inline-flex items-center justify-center w-5 h-5">
-                                      <span className="absolute inset-0 rounded-full bg-black border border-black/90 dark:bg-white/90 dark:border-white/90" />
-                                        <span className="relative z-10 text-white dark:text-black">
-                                        {format(day, 'd')}
-                                      </span>
-                                    </span>
-                                  ) : (
-                                    format(day, 'd')
-                                  )}
+                                  {format(day, 'd')}
                                 </div>
 
                                 {/* Trade info - centered */}
@@ -737,16 +728,7 @@ export default function CalendarPage() {
                                   'absolute top-0.5 left-0.5 text-[10px] font-medium',
                                   isTodayDate ? 'font-bold' : 'text-foreground/80'
                                 )}>
-                                  {isTodayDate ? (
-                                    <span className="relative inline-flex items-center justify-center w-5 h-5">
-                                      <span className="absolute inset-0 rounded-full bg-black border border-black/90 dark:bg-white/90 dark:border-white/90" />
-                                        <span className="relative z-10 text-white dark:text-black">
-                                        {format(day, 'd')}
-                                      </span>
-                                    </span>
-                                  ) : (
-                                    format(day, 'd')
-                                  )}
+                                  {format(day, 'd')}
                                 </div>
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-2">
