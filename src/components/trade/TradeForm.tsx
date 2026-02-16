@@ -687,10 +687,10 @@ export function TradeForm({
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
   return <form onSubmit={handleSubmit} className="w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
       <div className={cn(
-        "md:rounded-xl border-0 md:border shadow-xl flex flex-col flex-1 min-h-0 relative overflow-hidden",
+        "flex flex-col flex-1 min-h-0 relative overflow-hidden md:rounded-xl border-0 md:border shadow-xl\",
         isGlassEnabled
-          ? "border-border/50 bg-card/95 dark:bg-card/80 md:backdrop-blur-xl"
-          : "border-border/50 bg-card md:backdrop-blur-xl"
+          ? \"border-border/50 bg-card/95 dark:bg-card/80 md:backdrop-blur-xl\"
+          : \"border-border/50 bg-card md:backdrop-blur-xl\"
       )} onClick={(e) => e.stopPropagation()}>
         {/* Dot pattern - only show when glass is enabled */}
         {isGlassEnabled && (
@@ -703,8 +703,8 @@ export function TradeForm({
             <rect width="100%" height="100%" fill="url(#tradeform-dots)" />
           </svg>
         )}
-        {/* Header with safe area padding for mobile app */}
-        <div className="px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] border-b border-border/50 bg-muted/50 relative z-10">
+        {/* Header - sticky on mobile and desktop */}
+        <div className="sticky top-0 z-10 px-4 md:px-6 py-4 border-b border-border/50 bg-muted/50 relative">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">
               {editTrade ? 'Edit Trade' : 'Add Trade'}
@@ -1337,8 +1337,8 @@ export function TradeForm({
           <input type="hidden" name="pnlPercentage" value={formData.pnlPercentage} />
         </div>
 
-        {/* Footer - fixed at bottom on mobile, inline for desktop */}
-        <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto px-4 md:px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-border/50 bg-card/95 backdrop-blur-xl flex-shrink-0 z-50">
+        {/* Footer - sticky on all breakpoints with safe area padding */}
+        <div className="sticky md:relative bottom-0 px-4 md:px-6 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-border/50 bg-card/95 backdrop-blur-xl flex-shrink-0 z-40">
           <Button type="submit" className="w-full h-11 md:h-10 text-sm rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]" disabled={isSubmitting}>
             {isSubmitting ? <>
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />

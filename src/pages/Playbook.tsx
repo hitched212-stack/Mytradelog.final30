@@ -918,8 +918,8 @@ export default function Playbook() {
               : "bg-card"
           )}>
             {/* Dot pattern removed - these pages should not have dot background */}
-            {/* Header matching TradeViewDialog style */}
-            <div className="flex-shrink-0 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] border-b border-border/50 bg-muted/30 dark:bg-white/[0.02] relative z-10">
+            {/* Header - sticky with safe area padding */}
+            <div className="sticky top-0 z-10 px-4 md:px-6 py-4 border-b border-border/50 bg-muted/30 dark:bg-white/[0.02] relative">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   {selectedSetup?.symbol && <SymbolIcon symbol={selectedSetup.symbol} size="md" />}
