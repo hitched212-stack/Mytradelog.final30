@@ -687,10 +687,10 @@ export function TradeForm({
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
   return <form onSubmit={handleSubmit} className="w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
       <div className={cn(
-        "flex flex-col flex-1 min-h-0 relative overflow-hidden md:rounded-xl border-0 md:border shadow-xl\",
+        "flex flex-col flex-1 min-h-0 relative overflow-hidden md:rounded-xl border-0 md:border shadow-xl",
         isGlassEnabled
-          ? \"border-border/50 bg-card/95 dark:bg-card/80 md:backdrop-blur-xl\"
-          : \"border-border/50 bg-card md:backdrop-blur-xl\"
+          ? "border-border/50 bg-card/95 dark:bg-card/80 md:backdrop-blur-xl"
+          : "border-border/50 bg-card md:backdrop-blur-xl"
       )} onClick={(e) => e.stopPropagation()}>
         {/* Dot pattern - only show when glass is enabled */}
         {isGlassEnabled && (
