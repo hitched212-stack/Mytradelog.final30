@@ -825,12 +825,11 @@ export function TradeViewDialogContent({
 
         {/* Footer - same style as TradeForm with safe area padding */}
         <div 
-          className="flex-shrink-0 border-t border-border bg-card flex gap-2 sm:sticky sm:bottom-0"
+          className="flex-shrink-0 border-t border-border bg-card flex gap-2 sm:sticky sm:bottom-0 [padding-bottom:max(2.5rem,calc(env(safe-area-inset-bottom)+1rem))] sm:[padding-bottom:1rem]"
           style={{
             paddingLeft: 'max(1rem, env(safe-area-inset-left))',
             paddingRight: 'max(1rem, env(safe-area-inset-right))',
-            paddingTop: '1rem',
-            paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))'
+            paddingTop: '1rem'
           }}
         >
           <Button variant="outline" className="flex-1" onClick={() => onEdit(activeTab)}>
