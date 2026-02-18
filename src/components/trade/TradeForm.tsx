@@ -705,7 +705,7 @@ export function TradeForm({
         )}
         {/* Header - sticky on mobile and desktop */}
         <div 
-          className="sticky top-0 z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 border-b border-border/50 bg-muted/50 relative sm:-mt-0 -mt-[env(safe-area-inset-top)]"
+          className="sticky top-0 z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 border-b border-border/50 bg-muted/50 relative before:absolute before:top-0 before:left-0 before:right-0 before:h-[env(safe-area-inset-top)] before:bg-muted/50 before:-mt-[env(safe-area-inset-top)] before:sm:hidden"
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">

@@ -149,7 +149,7 @@ export function TradeViewDialogContent({
         )}
         {/* Header - theme-aware with safe area padding */}
         <div 
-          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 sm:-mt-0 -mt-[env(safe-area-inset-top)]"
+          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 before:absolute before:top-0 before:left-0 before:right-0 before:h-[env(safe-area-inset-top)] before:bg-muted/30 dark:before:bg-white/[0.02] before:-mt-[env(safe-area-inset-top)] before:sm:hidden"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
