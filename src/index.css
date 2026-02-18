@@ -244,15 +244,6 @@ body {
   .font-mono {
     font-family: var(--font-mono);
   }
-
-  /* Mobile safe area support for notch/status bar */
-  @supports (padding: max(0px)) {
-    body {
-      padding-left: max(0px, env(safe-area-inset-left));
-      padding-right: max(0px, env(safe-area-inset-right));
-      padding-bottom: max(0px, env(safe-area-inset-bottom));
-    }
-  }
 }
 
 @layer utilities {

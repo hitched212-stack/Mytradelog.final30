@@ -78,8 +78,8 @@ export function MobileSidebar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   return <div className="md:hidden">
-      {/* Fixed Header with Menu Button - Safe area for notch */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card/70 border-b border-border/40 flex items-center justify-between px-4 pt-safe" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', height: 'max(3.5rem, calc(3.5rem + env(safe-area-inset-top)))' }}>
+      {/* Fixed Header with Menu Button */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-card/70 border-b border-border/40 h-14 flex items-center justify-between px-4">
         <NavLink to="/dashboard" className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20">
             <TrendingUp className="h-4 w-4 text-emerald-400" />
@@ -139,7 +139,7 @@ export function MobileSidebar() {
         </Sheet>
       </header>
 
-      {/* Spacer for fixed header - accounts for notch */}
-      <div style={{ height: 'max(3.5rem, calc(3.5rem + env(safe-area-inset-top)))' }} />
+      {/* Spacer for fixed header */}
+      <div className="h-14" />
     </div>;
 }
