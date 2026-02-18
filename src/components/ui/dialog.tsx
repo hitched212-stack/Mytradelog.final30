@@ -42,10 +42,15 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         fullScreenOnMobile
-          ? "fixed z-50 bg-card text-foreground shadow-xl inset-0 flex flex-col w-full h-full sm:inset-auto sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-w-lg sm:max-h-[90vh] sm:h-auto sm:w-[calc(100%-2rem)] sm:rounded-2xl sm:border sm:border-border/50 focus:outline-none focus-visible:outline-none"
+          ? "fixed z-50 bg-background text-foreground shadow-xl inset-0 flex flex-col w-full h-full sm:inset-auto sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-w-lg sm:max-h-[90vh] sm:h-auto sm:w-[calc(100%-2rem)] sm:rounded-2xl sm:border sm:border-border/50 focus:outline-none focus-visible:outline-none"
           : "fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-lg max-h-[85vh] translate-x-[-50%] translate-y-[-50%] gap-4 border border-border/50 bg-card text-foreground p-6 shadow-xl rounded-2xl overflow-y-auto focus:outline-none focus-visible:outline-none",
         className,
       )}
+      style={fullScreenOnMobile ? {
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      } : undefined}
       onOpenAutoFocus={(e) => e.preventDefault()}
       {...props}
     >
