@@ -136,9 +136,6 @@ export function TradeViewDialogContent({
   const EmotionIcon = currentEmotion.icon;
   return <div className="w-full h-full flex flex-col flex-1 min-h-0">
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
-        {/* Background extension for notch area on mobile */}
-        <div className="absolute top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-muted/30 dark:bg-white/[0.02] sm:hidden z-[5]" />
-        
         {/* Dot pattern - only show when enabled */}
         {isGlassEnabled && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
@@ -152,7 +149,7 @@ export function TradeViewDialogContent({
         )}
         {/* Header - theme-aware with safe area padding */}
         <div 
-          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-4 pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-4"
+          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 sm:-mt-0 -mt-[env(safe-area-inset-top)]"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
