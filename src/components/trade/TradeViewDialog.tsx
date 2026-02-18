@@ -147,9 +147,22 @@ export function TradeViewDialogContent({
             <rect width="100%" height="100%" fill="url(#tradeview-dots)" />
           </svg>
         )}
+        {/* Notch background filler on mobile */}
+        <div 
+          className="sm:hidden"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 'env(safe-area-inset-top)',
+            backgroundColor: 'rgb(var(--color-muted) / 0.3)',
+            zIndex: 5
+          }}
+        />
         {/* Header - theme-aware with safe area padding */}
         <div 
-          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 before:absolute before:top-0 before:left-0 before:right-0 before:h-[env(safe-area-inset-top)] before:bg-muted/30 dark:before:bg-white/[0.02] before:-mt-[env(safe-area-inset-top)] before:sm:hidden"
+          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
