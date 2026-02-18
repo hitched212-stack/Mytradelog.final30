@@ -279,26 +279,13 @@ export function Sidebar({
     <motion.aside
       className={cn(
         "hidden md:flex flex-col fixed top-4 left-4 z-40 rounded-2xl shadow-2xl overflow-hidden",
-        isGlassEnabled
-          ? "bg-sidebar/95 dark:bg-sidebar/80 backdrop-blur-xl border border-sidebar-border/30"
-          : "bg-sidebar border border-sidebar-border/30"
+        "bg-card/70 border border-border/40"
       )}
       style={{ height: "calc(100vh - 32px)" }}
       initial={false}
       animate={{ width: isCollapsed ? 64 : 256 }}
       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
     >
-      {/* Dot pattern - only show when glass is enabled */}
-      {isGlassEnabled && (
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="sidebar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-              <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#sidebar-dots)" />
-        </svg>
-      )}
       {/* Header with Account Switcher */}
       <div className="p-3">
         <DropdownMenu>

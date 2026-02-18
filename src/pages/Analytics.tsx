@@ -921,23 +921,7 @@ export default function Analytics() {
       <div className="px-4 py-6 md:px-6 space-y-6 max-w-7xl mx-auto">
         
         {/* Equity Curve with Net P&L - Premium Dark Fintech Style */}
-        <div className={cn(
-          "rounded-2xl p-4 md:p-6 pb-4 relative overflow-hidden border transition-all duration-300",
-          preferences.liquidGlassEnabled
-            ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-            : "border-border/50 bg-card"
-        )}>
-          {/* Dot pattern - only show when glass is enabled */}
-          {preferences.liquidGlassEnabled && (
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="analytics-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                  <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#analytics-dots)" />
-            </svg>
-          )}
+        <div className="rounded-2xl p-4 md:p-6 pb-4 relative overflow-hidden border border-border/40 bg-card/70">
           {/* Header with Net P&L and Chart Toggle */}
           <div className="flex items-start justify-between mb-6 md:mb-8">
             {/* Left: Income info */}

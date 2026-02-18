@@ -360,29 +360,13 @@ export default function CalendarPage() {
   const worstDay = useMemo(() => {
     return dayOfWeekStats.reduce((worst, day) => day.pnl < worst.pnl ? day : worst, dayOfWeekStats[0]);
   }, [dayOfWeekStats]);
-    return <div className="min-h-screen pb-24">
+    return <div className="min-h-screen bg-background pb-24">
       <div className="px-4 pt-2 md:px-6 md:pt-6 lg:px-8">
         <div className="flex flex-col gap-4">
           {/* Main Calendar Section - Full width on desktop */}
           <div className="w-full space-y-3">
             {/* Goal Progress Card - Professional Design */}
-            <div className={cn(
-              "rounded-2xl border relative overflow-hidden transition-all duration-300",
-              preferences.liquidGlassEnabled
-                ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                : "border-border/50 bg-card"
-            )}>
-              {/* Dot pattern - only show when glass is enabled */}
-              {preferences.liquidGlassEnabled && (
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <pattern id="calendar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                      <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#calendar-dots)" />
-                </svg>
-              )}
+            <div className="rounded-2xl border border-border/40 bg-card/70 relative overflow-hidden">
               <div className="relative p-5">
                 {/* Header with Month and Period Filters */}
                 <div className="flex items-center justify-between mb-6">
@@ -392,7 +376,7 @@ export default function CalendarPage() {
                     </h3>
                     <p className="text-xs text-muted-foreground">{goalLabel}</p>
                   </div>
-                  <div className="flex gap-1 p-1 bg-muted/30 rounded-lg border border-border/30">
+                  <div className="flex gap-1 p-1 bg-card/50 rounded-lg border border-border/40">
                     {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                         {period}
                       </button>)}
@@ -522,24 +506,11 @@ export default function CalendarPage() {
                       key={index}
                       onClick={() => handleMonthClick(monthData.month)}
                       className={cn(
-                        'group p-3 sm:p-4 rounded-xl transition-all text-left relative overflow-hidden',
-                        preferences.liquidGlassEnabled
-                          ? 'border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl hover:bg-card'
-                          : 'bg-card border border-border/50 hover:border-border hover:bg-muted/30',
-                        isCurrentMonth && 'border-primary/40 bg-primary/5'
+                        'group p-3 sm:p-4 rounded-xl text-left relative overflow-hidden border',
+                        'bg-card/70 border-border/40',
+                        isCurrentMonth && 'border-primary/50 bg-primary/10'
                       )}
                     >
-                      {/* Dot pattern - only show when glass is enabled */}
-                      {preferences.liquidGlassEnabled && (
-                        <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <pattern id={`month-dots-${index}`} x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-                              <circle cx="1" cy="1" r="0.75" className="fill-foreground/[0.08] dark:fill-foreground/[0.05]" />
-                            </pattern>
-                          </defs>
-                          <rect width="100%" height="100%" fill={`url(#month-dots-${index})`} />
-                        </svg>
-                      )}
                       <div className="relative flex flex-col justify-between min-h-[80px] sm:min-h-[100px]">
                         {/* Month Header - Short name on mobile */}
                         <span className={cn(
@@ -586,7 +557,7 @@ export default function CalendarPage() {
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
                 <div className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1 text-center mb-1">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                    <div key={i} className="h-6 flex items-center justify-center rounded-md border border-border/40 bg-muted/20 text-[10px] font-medium text-muted-foreground">
+                    <div key={i} className="h-6 flex items-center justify-center rounded-md border border-border/40 bg-card/70 text-[10px] font-medium text-muted-foreground">
                       {day}
                     </div>
                   ))}
@@ -595,7 +566,7 @@ export default function CalendarPage() {
                 {/* Mobile headers - Mon to Fri only */}
                 <div className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 text-center mb-1">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                    <div key={i} className="h-6 flex items-center justify-center rounded-md border border-border/40 bg-muted/20 text-[10px] font-medium text-muted-foreground">
+                    <div key={i} className="h-6 flex items-center justify-center rounded-md border border-border/40 bg-card/70 text-[10px] font-medium text-muted-foreground">
                       {day}
                     </div>
                   ))}
@@ -648,10 +619,10 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-16 md:h-20 rounded-md flex flex-col items-center justify-center p-1 transition-all relative border',
+                                  'h-16 md:h-20 rounded-md flex flex-col items-center justify-center p-1 relative border',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
                                   isTodayDate && 'ring-2 ring-primary/60',
-                                  tradeCount === 0 && 'bg-muted/30 border-border/30 hover:bg-muted/40'
+                                  tradeCount === 0 && 'bg-card/70 border-border/40'
                                 )}
                                 style={tradeCount > 0 ? {
                                   backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.15)`,
@@ -683,7 +654,7 @@ export default function CalendarPage() {
                           })}
                           
                           {/* Weekly Summary */}
-                          <div className="h-16 md:h-20 w-16 md:w-20 flex flex-col items-center justify-center rounded-md p-1.5 bg-muted/30 border border-border/30">
+                          <div className="h-16 md:h-20 w-16 md:w-20 flex flex-col items-center justify-center rounded-md p-1.5 bg-card/70 border border-border/40">
                             <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
                               Week {weekIndex + 1}
                             </div>
@@ -714,10 +685,10 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-16 rounded-md flex flex-col items-center justify-center p-1 transition-all relative border',
+                                  'h-16 rounded-md flex flex-col items-center justify-center p-1 relative border',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
                                   isTodayDate && 'ring-2 ring-primary/60',
-                                  tradeCount === 0 && 'bg-muted/30 border-border/30 hover:bg-muted/40'
+                                  tradeCount === 0 && 'bg-card/70 border-border/40'
                                 )}
                                 style={tradeCount > 0 ? {
                                   backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.15)`,
@@ -746,7 +717,7 @@ export default function CalendarPage() {
                           })}
                           
                           {/* Weekly Summary - Mobile */}
-                          <div className="h-16 w-14 flex flex-col items-center justify-center rounded-md p-1.5 bg-muted/30 border border-border/30">
+                          <div className="h-16 w-14 flex flex-col items-center justify-center rounded-md p-1.5 bg-card/70 border border-border/40">
                             <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
                               Wk {weekIndex + 1}
                             </div>
@@ -788,23 +759,7 @@ export default function CalendarPage() {
           {viewMode === 'year' ? (
             /* Year View - Only Performance by Day */
             <div className="w-full">
-              <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
-                preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
-              )}>
-                {/* Dot pattern - only show when glass is enabled */}
-                {preferences.liquidGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="year-performance-dots" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-                        <circle cx="1" cy="1" r="0.75" className="fill-foreground/[0.08] dark:fill-foreground/[0.05]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#year-performance-dots)" />
-                  </svg>
-                )}
+              <div className="rounded-2xl border border-border/40 bg-card/70 p-4 relative overflow-hidden">
                 <div className="relative">
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Performance by Day ({format(currentMonth, 'yyyy')})</h3>
                   <div className="space-y-1.5">
@@ -850,23 +805,7 @@ export default function CalendarPage() {
             /* Month View - All Stats */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Monthly Summary */}
-              <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
-                preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
-              )}>
-                {/* Dot pattern - only show when glass is enabled */}
-                {preferences.liquidGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="summary-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#summary-dots)" />
-                  </svg>
-                )}
+              <div className="rounded-2xl border border-border/40 bg-card/70 p-4 relative overflow-hidden">
                 <div className="relative">
                   <h3 className="text-sm font-medium text-muted-foreground mb-4">Monthly Summary</h3>
                   
@@ -905,23 +844,7 @@ export default function CalendarPage() {
               </div>
 
               {/* Best & Worst Trade */}
-              {bestTrade && <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
-                preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
-              )}>
-                  {/* Dot pattern - only show when glass is enabled */}
-                  {preferences.liquidGlassEnabled && (
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                      <defs>
-                        <pattern id="bestworst-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                          <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill="url(#bestworst-dots)" />
-                    </svg>
-                  )}
+              {bestTrade && <div className="rounded-2xl border border-border/40 bg-card/70 p-4 relative overflow-hidden">
                   <div className="relative">
                     <h3 className="text-sm font-medium text-muted-foreground mb-4">Best & Worst</h3>
                     
@@ -962,23 +885,7 @@ export default function CalendarPage() {
                 </div>}
 
               {/* Performance by Day */}
-              <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
-                preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
-              )}>
-                {/* Dot pattern - only show when glass is enabled */}
-                {preferences.liquidGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="dayperf-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#dayperf-dots)" />
-                  </svg>
-                )}
+              <div className="rounded-2xl border border-border/40 bg-card/70 p-4 relative overflow-hidden">
                 <div className="relative">
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Performance by Day</h3>
                   <div className="space-y-1.5">

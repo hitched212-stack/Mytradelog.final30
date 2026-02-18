@@ -497,15 +497,10 @@ interface StatCardProps {
 function StatCard({ label, value, subtext, icon, iconColor, valueColor, highlighted, changePercent }: StatCardProps) {
   return (
     <div className={cn(
-      "rounded-2xl border bg-card p-4 relative overflow-hidden group transition-all duration-300",
-      "dark:bg-gradient-to-br dark:from-white/5 dark:to-white/[0.02] dark:border-white/10 dark:backdrop-blur-xl dark:hover:from-white/10 dark:hover:to-white/[0.05]",
-      "border-border shadow-sm hover:bg-muted/50",
-      "hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
-      highlighted && "border-pnl-positive/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]",
+      "rounded-2xl border bg-card/70 p-4 relative overflow-hidden",
+      "border-border/40",
+      highlighted && "border-pnl-positive/40 bg-card/70"
     )}>
-      {/* Glass highlight effect - dark mode only */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden dark:block" />
-      
       {/* Icon in top right */}
       <div className="absolute top-4 right-4">
         <div className={cn("p-2 rounded-xl bg-muted/50", iconColor)}>

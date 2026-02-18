@@ -277,7 +277,7 @@ export function BalanceCard({
       "rounded-2xl border p-4 md:p-6 relative overflow-hidden",
       isGlassEnabled
         ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-        : "border-border/50 bg-card"
+        : "border-border/40 bg-card/70"
     )}>
       {/* Dot pattern overlay - matching nav bar style */}
       {isGlassEnabled && (

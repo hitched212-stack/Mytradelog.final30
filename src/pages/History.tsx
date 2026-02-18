@@ -591,8 +591,8 @@ export default function History() {
       <div className={cn(
         "hidden md:block rounded-xl border overflow-hidden relative",
         isGlassEnabled
-          ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-          : "border-border/50 bg-card"
+          ? "border-border/50 bg-background/95 dark:bg-background/80 backdrop-blur-xl"
+          : "border-border/50 bg-background"
       )}>
         {/* Dot pattern - only show when glass is enabled */}
         {isGlassEnabled && (
