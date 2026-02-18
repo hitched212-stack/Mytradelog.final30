@@ -134,8 +134,8 @@ export function TradeViewDialogContent({
   }];
   const currentEmotion = EMOTION_LABELS.find(e => e.value === trade.emotionalState) || EMOTION_LABELS[2];
   const EmotionIcon = currentEmotion.icon;
-  return <div className="w-full h-full flex flex-col flex-1 min-h-0 bg-background sm:max-w-7xl sm:mx-auto sm:rounded-xl sm:border sm:border-border/50">
-      <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-background sm:bg-card/95 dark:sm:bg-card/80 dark:sm:backdrop-blur-xl shadow-none sm:shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative">
+  return <div className="w-full h-full flex flex-col flex-1 min-h-0 bg-card sm:max-w-7xl sm:mx-auto sm:rounded-xl sm:border sm:border-border/50">
+      <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-card sm:bg-card/95 dark:sm:bg-card/80 dark:sm:backdrop-blur-xl shadow-none sm:shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative">
         {/* Dot pattern - only show when enabled */}
         {isGlassEnabled && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
@@ -149,11 +149,12 @@ export function TradeViewDialogContent({
         )}
         {/* Header - theme-aware with safe area padding */}
         <div 
-          className="px-4 md:px-6 py-4 border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10"
+          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10"
           style={{
-            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1rem, env(safe-area-inset-right))',
-            paddingTop: 'max(1rem, env(safe-area-inset-top))'
+            paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+            paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+            paddingTop: 'calc(1rem + env(safe-area-inset-top))',
+            paddingBottom: '1rem'
           }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -195,12 +196,13 @@ export function TradeViewDialogContent({
 
         {/* Scrollable Content - touch-friendly scrolling for mobile */}
         <div 
-          className="flex-1 overflow-y-auto px-4 md:px-6 py-6 md:py-8 overscroll-y-contain touch-pan-y min-h-0"
+          className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y min-h-0"
           style={{ 
             WebkitOverflowScrolling: 'touch',
-            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1rem, env(safe-area-inset-right))',
-            paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))'
+            paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+            paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+            paddingTop: '1.5rem',
+            paddingBottom: '1.5rem'
           }}
         >
           
@@ -832,11 +834,12 @@ export function TradeViewDialogContent({
 
         {/* Footer - same style as TradeForm with safe area padding */}
         <div 
-          className="px-4 md:px-6 py-4 border-t border-border flex-shrink-0"
+          className="border-t border-border flex-shrink-0"
           style={{
-            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1rem, env(safe-area-inset-right))',
-            paddingBottom: 'max(1rem, env(safe-area-inset-bottom))'
+            paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+            paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+            paddingTop: '1rem',
+            paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))'
           }}
         >
           <div className="flex gap-2">
