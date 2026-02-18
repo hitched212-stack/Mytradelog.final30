@@ -1339,9 +1339,15 @@ export function TradeForm({
           <input type="hidden" name="pnlPercentage" value={formData.pnlPercentage} />
         </div>
 
-        {/* Footer - sticky on all breakpoints with safe area padding */}
+        {/* Footer - sticky on mobile with safe area padding */}
         <div 
-          className="sticky md:relative bottom-0 px-4 md:px-6 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-4 border-t border-border/50 bg-card/95 backdrop-blur-xl flex-shrink-0 z-40"
+          className="sticky md:relative bottom-0 border-t border-border/50 bg-card/70 flex-shrink-0 z-40"
+          style={{
+            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+            paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            paddingTop: '1rem',
+            paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))'
+          }}
         >
           <Button type="submit" className="w-full h-11 md:h-10 text-sm rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]" disabled={isSubmitting}>
             {isSubmitting ? <>

@@ -34,30 +34,36 @@ export default function EditTrade() {
 
   return (
     <div 
-      className="fixed inset-0 flex flex-col bg-card"
+      className="fixed inset-0 bg-background"
       style={{
         top: 0,
         left: 0,
         right: 0,
         bottom: 0
       }}
-      onClick={(e) => {
-        // Prevent clicks on empty space from causing issues
-        if (e.target === e.currentTarget) {
-          e.preventDefault();
-        }
-      }}
     >
-      {/* Blurred backdrop effect - only on desktop */}
-      <div className="hidden md:block fixed inset-0 bg-background/80 backdrop-blur-md -z-10 pointer-events-none" />
-      
-      {/* Full screen on mobile, centered on desktop */}
+      {/* Content wrapper with safe area */}
       <div 
-        className="flex-1 flex justify-center md:px-4 lg:px-8 min-h-0" 
+        className="h-full flex flex-col"
         style={{ 
+          paddingTop: 'env(safe-area-inset-top)',
           paddingLeft: 'env(safe-area-inset-left)',
-          paddingRight: 'env(safe-area-inset-right)',
-          paddingBottom: 'env(safe-area-inset-bottom)'
+          paddingRight: 'env(safe-area-inset-right)'
+        }}
+      >
+        {/* Scrollable content area */}
+        <div 
+          className="flex-1 overflow-y-auto flex justify-center md:px-4 lg:px-8"
+          style={{
+            paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)'
+          }}
+        >
+          <div className="w-full md:max-w-2xl">
+            <TradeForm trade={trade} />
+          </div>
+        </div>
+      </div>
+    </div>
         }}
       >
         <div className="w-full md:max-w-2xl flex flex-col min-h-0">
