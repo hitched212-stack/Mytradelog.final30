@@ -859,7 +859,7 @@ export default function Playbook() {
             </div>
             
             {/* Fixed footer with safe area */}
-            <div className="flex-shrink-0 px-5 pt-3 sm:px-6 flex gap-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 border-t border-border/30">
+            <div className="flex-shrink-0 px-5 pt-3 sm:px-6 flex gap-3 [padding-bottom:max(5rem,calc(env(safe-area-inset-bottom)+2rem))] sm:[padding-bottom:1.5rem] border-t border-border/30">
               <Button variant="outline" className="flex-1 rounded-xl h-12" onClick={() => setIsCreateOpen(false)}>
                 Cancel
               </Button>
@@ -896,7 +896,7 @@ export default function Playbook() {
             </div>
             
             {/* Fixed footer with safe area */}
-            <div className="flex-shrink-0 px-5 pt-3 sm:px-6 flex gap-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 border-t border-border/30 bg-card">
+            <div className="flex-shrink-0 px-5 pt-3 sm:px-6 flex gap-3 [padding-bottom:max(5rem,calc(env(safe-area-inset-bottom)+2rem))] sm:[padding-bottom:1.5rem] border-t border-border/30 bg-card">
               <Button variant="outline" className="flex-1 rounded-xl h-12" onClick={() => setIsEditOpen(false)}>
                 Cancel
               </Button>
@@ -1094,7 +1094,7 @@ export default function Playbook() {
             )}
             
             {/* Fixed footer with safe area */}
-            <div className="flex-shrink-0 px-5 pt-3 sm:px-6 flex gap-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 border-t border-border/30">
+            <div className="flex-shrink-0 px-5 pt-3 sm:px-6 flex gap-3 [padding-bottom:max(5rem,calc(env(safe-area-inset-bottom)+2rem))] sm:[padding-bottom:1.5rem] border-t border-border/30">
               <Button variant="outline" className="flex-1 rounded-xl h-12" onClick={() => setIsViewOpen(false)}>
                 Close
               </Button>

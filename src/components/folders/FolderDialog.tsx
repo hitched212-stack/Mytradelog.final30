@@ -228,7 +228,7 @@ export function FolderDialog({ open, onOpenChange, folder, onSave, isLoading, ty
           
           {/* Footer */}
           <div 
-            className="flex-shrink-0 px-5 pt-3 flex gap-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-5 border-t border-border/30"
+            className="flex-shrink-0 px-5 pt-3 flex gap-3 [padding-bottom:max(5rem,calc(env(safe-area-inset-bottom)+2rem))] sm:[padding-bottom:1.25rem] border-t border-border/30"
           >
             <Button 
               variant="outline" 
