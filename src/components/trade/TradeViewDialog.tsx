@@ -830,7 +830,7 @@ export function TradeViewDialogContent({
             paddingLeft: 'max(1rem, env(safe-area-inset-left))',
             paddingRight: 'max(1rem, env(safe-area-inset-right))',
             paddingTop: '1rem',
-            paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))'
+            paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))'
           }}
         >
           <Button variant="outline" className="flex-1" onClick={() => onEdit(activeTab)}>
