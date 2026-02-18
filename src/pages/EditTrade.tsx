@@ -59,15 +59,8 @@ export default function EditTrade() {
           }}
         >
           <div className="w-full md:max-w-2xl">
-            <TradeForm trade={trade} />
+            <TradeForm editTrade={trade} />
           </div>
-        </div>
-      </div>
-    </div>
-        }}
-      >
-        <div className="w-full md:max-w-2xl flex flex-col min-h-0">
-          <TradeForm editTrade={trade} />
         </div>
       </div>
     </div>
