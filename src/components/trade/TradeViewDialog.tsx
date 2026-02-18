@@ -190,9 +190,10 @@ export function TradeViewDialogContent({
 
         {/* Scrollable Content - touch-friendly scrolling for mobile */}
         <div 
-          className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y min-h-0 px-4 md:px-6 py-6 md:py-8 pb-safe"
+          className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y min-h-0 px-4 md:px-6 py-6 md:py-8"
           style={{ 
-            WebkitOverflowScrolling: 'touch'
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))'
           }}
         >
           
@@ -824,12 +825,12 @@ export function TradeViewDialogContent({
 
         {/* Footer - same style as TradeForm with safe area padding */}
         <div 
-          className="flex-shrink-0 border-t border-border bg-card flex gap-2"
+          className="flex-shrink-0 border-t border-border bg-card flex gap-2 sm:sticky sm:bottom-0"
           style={{
             paddingLeft: 'max(1rem, env(safe-area-inset-left))',
             paddingRight: 'max(1rem, env(safe-area-inset-right))',
             paddingTop: '0.75rem',
-            paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))'
+            paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))'
           }}
         >
           <Button variant="outline" className="flex-1" onClick={() => onEdit(activeTab)}>
