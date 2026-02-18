@@ -134,8 +134,8 @@ export function TradeViewDialogContent({
   }];
   const currentEmotion = EMOTION_LABELS.find(e => e.value === trade.emotionalState) || EMOTION_LABELS[2];
   const EmotionIcon = currentEmotion.icon;
-  return <div className="w-full max-w-7xl mx-auto h-full flex flex-col flex-1 min-h-0">
-      <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative">
+  return <div className="w-full max-w-7xl mx-auto h-full flex flex-col flex-1 min-h-0 sm:rounded-xl sm:border sm:border-border/50">
+      <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-background sm:bg-card/95 dark:sm:bg-card/80 dark:backdrop-blur-xl shadow-none sm:shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative">
         {/* Dot pattern - only show when enabled */}
         {isGlassEnabled && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
