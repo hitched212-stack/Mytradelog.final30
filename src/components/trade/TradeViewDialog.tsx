@@ -825,11 +825,8 @@ export function TradeViewDialogContent({
 
         {/* Footer - same style as TradeForm with safe area padding */}
         <div 
-          className="flex-shrink-0 border-t border-border bg-card flex gap-2 sm:sticky sm:bottom-0"
+          className="flex-shrink-0 border-t border-border bg-card flex gap-2 px-4 md:px-6 pt-3 sm:pb-4 sm:sticky sm:bottom-0"
           style={{
-            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1rem, env(safe-area-inset-right))',
-            paddingTop: '0.75rem',
             paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 0.75rem))'
           }}
         >
@@ -841,6 +838,13 @@ export function TradeViewDialogContent({
             Close
           </Button>
         </div>
+        <style dangerouslySetInnerHTML={{__html: `
+          @media (min-width: 640px) {
+            .flex-shrink-0.border-t.border-border.bg-card.flex.gap-2 {
+              padding-bottom: 1rem !important;
+            }
+          }
+        `}} />
       </div>
     </div>;
 }
