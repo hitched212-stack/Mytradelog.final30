@@ -55,7 +55,6 @@ export default function EditTrade() {
       <div 
         className="flex-1 flex justify-center md:px-4 lg:px-8 min-h-0" 
         style={{ 
-          paddingTop: 'calc(0.5rem + env(safe-area-inset-top))',
           paddingLeft: 'env(safe-area-inset-left)',
           paddingRight: 'env(safe-area-inset-right)',
           paddingBottom: 'env(safe-area-inset-bottom)'

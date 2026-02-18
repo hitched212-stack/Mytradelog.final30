@@ -704,7 +704,15 @@ export function TradeForm({
           </svg>
         )}
         {/* Header - sticky on mobile and desktop */}
-        <div className="sticky top-0 z-10 px-4 md:px-6 py-4 border-b border-border/50 bg-muted/50 relative">
+        <div 
+          className="sticky top-0 z-10 border-b border-border/50 bg-muted/50 relative"
+          style={{
+            paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+            paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+            paddingTop: 'calc(1rem + env(safe-area-inset-top))',
+            paddingBottom: '1rem'
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">
               {editTrade ? 'Edit Trade' : 'Add Trade'}
@@ -1338,7 +1346,15 @@ export function TradeForm({
         </div>
 
         {/* Footer - sticky on all breakpoints with safe area padding */}
-        <div className="sticky md:relative bottom-0 px-4 md:px-6 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-border/50 bg-card/95 backdrop-blur-xl flex-shrink-0 z-40">
+        <div 
+          className="sticky md:relative bottom-0 border-t border-border/50 bg-card/95 backdrop-blur-xl flex-shrink-0 z-40"
+          style={{
+            paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+            paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+            paddingTop: '1rem',
+            paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))'
+          }}
+        >
           <Button type="submit" className="w-full h-11 md:h-10 text-sm rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]" disabled={isSubmitting}>
             {isSubmitting ? <>
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />

@@ -834,12 +834,12 @@ export function TradeViewDialogContent({
 
         {/* Footer - same style as TradeForm with safe area padding */}
         <div 
-          className="border-t border-border flex-shrink-0"
+          className="border-t border-border flex-shrink-0 bg-card"
           style={{
             paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
             paddingRight: 'calc(1rem + env(safe-area-inset-right))',
             paddingTop: '1rem',
-            paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))'
+            paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))'
           }}
         >
           <div className="flex gap-2">
