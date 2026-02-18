@@ -135,7 +135,7 @@ export function TradeViewDialogContent({
   const currentEmotion = EMOTION_LABELS.find(e => e.value === trade.emotionalState) || EMOTION_LABELS[2];
   const EmotionIcon = currentEmotion.icon;
   return <div className="w-full h-full flex flex-col flex-1 min-h-0 bg-background sm:max-w-7xl sm:mx-auto sm:rounded-xl sm:border sm:border-border/50">
-      <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-background sm:bg-card/95 dark:sm:bg-card/80 dark:sm:backdrop-blur-xl shadow-none sm:shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative" style={{ paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
+      <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-background sm:bg-card/95 dark:sm:bg-card/80 dark:sm:backdrop-blur-xl shadow-none sm:shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative">
         {/* Dot pattern - only show when enabled */}
         {isGlassEnabled && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
@@ -148,7 +148,14 @@ export function TradeViewDialogContent({
           </svg>
         )}
         {/* Header - theme-aware with safe area padding */}
-        <div className="px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10">
+        <div 
+          className="px-4 md:px-6 py-4 border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10"
+          style={{
+            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+            paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            paddingTop: 'max(1rem, env(safe-area-inset-top))'
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <SymbolIcon symbol={trade.symbol} size="md" />
@@ -189,7 +196,12 @@ export function TradeViewDialogContent({
         {/* Scrollable Content - touch-friendly scrolling for mobile */}
         <div 
           className="flex-1 overflow-y-auto px-4 md:px-6 py-6 md:py-8 overscroll-y-contain touch-pan-y min-h-0"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          style={{ 
+            WebkitOverflowScrolling: 'touch',
+            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+            paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))'
+          }}
         >
           
           {/* GENERAL TAB */}
@@ -819,7 +831,14 @@ export function TradeViewDialogContent({
         </div>
 
         {/* Footer - same style as TradeForm with safe area padding */}
-        <div className="px-4 md:px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-border flex-shrink-0">
+        <div 
+          className="px-4 md:px-6 py-4 border-t border-border flex-shrink-0"
+          style={{
+            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+            paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom))'
+          }}
+        >
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => onEdit(activeTab)}>
               <Pencil className="h-4 w-4 mr-2" />
