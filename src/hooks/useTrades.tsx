@@ -402,6 +402,14 @@ export function useTrades() {
     }
 
     try {
+      // Get trade data to check for images (for future storage cleanup)
+      const tradeToDelete = trades.find(t => t.id === id);
+      
+      // Delete the trade from database
+      // Note: Images are currently stored as base64 in the database columns
+      // (images, preMarketImages, postMarketImages) and will be automatically
+      // deleted with the trade row. If migrating to Supabase Storage buckets
+      // in the future, add storage cleanup here before deleting the trade.
       const { error } = await supabase
         .from('trades')
         .delete()
