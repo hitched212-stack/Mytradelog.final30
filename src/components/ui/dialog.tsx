@@ -46,12 +46,6 @@ const DialogContent = React.forwardRef<
           : "fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-lg max-h-[85vh] translate-x-[-50%] translate-y-[-50%] gap-4 border border-border/50 bg-card text-foreground p-6 shadow-xl rounded-2xl overflow-y-auto focus:outline-none focus-visible:outline-none",
         className,
       )}
-      style={fullScreenOnMobile ? {
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      } : undefined}
       onOpenAutoFocus={(e) => e.preventDefault()}
       {...props}
     >

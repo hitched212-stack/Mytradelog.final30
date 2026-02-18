@@ -134,8 +134,8 @@ export function TradeViewDialogContent({
   }];
   const currentEmotion = EMOTION_LABELS.find(e => e.value === trade.emotionalState) || EMOTION_LABELS[2];
   const EmotionIcon = currentEmotion.icon;
-  return <div className="w-full h-full flex flex-col flex-1 min-h-0 bg-card sm:max-w-7xl sm:mx-auto sm:rounded-xl sm:border sm:border-border/50">
-      <div className="rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-card sm:bg-card/95 dark:sm:bg-card/80 dark:sm:backdrop-blur-xl shadow-none sm:shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden relative">
+  return <div className="w-full h-full flex flex-col flex-1 min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
         {/* Dot pattern - only show when enabled */}
         {isGlassEnabled && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
@@ -824,17 +824,15 @@ export function TradeViewDialogContent({
 
         {/* Footer - same style as TradeForm with safe area padding */}
         <div 
-          className="flex-shrink-0 px-4 md:px-6 pt-3 flex gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 border-t border-border bg-card"
+          className="flex-shrink-0 px-4 md:px-6 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 border-t border-border bg-card flex gap-2"
         >
-          <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" onClick={() => onEdit(activeTab)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button variant="outline" className="flex-1" onClick={onClose}>
-              Close
-            </Button>
-          </div>
+          <Button variant="outline" className="flex-1" onClick={() => onEdit(activeTab)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button variant="outline" className="flex-1" onClick={onClose}>
+            Close
+          </Button>
         </div>
       </div>
     </div>;
