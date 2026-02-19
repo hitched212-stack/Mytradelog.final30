@@ -79,7 +79,7 @@ export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   return <div className="md:hidden">
       {/* Fixed Header with Menu Button */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card/70 border-b border-border/40 h-14 flex items-center justify-between px-4">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-14 flex items-center justify-between px-4">
         <NavLink to="/dashboard" className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20">
             <TrendingUp className="h-4 w-4 text-emerald-400" />
@@ -93,10 +93,10 @@ export function MobileSidebar() {
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-64 p-0 bg-card/70 border-l border-border/40">
+          <SheetContent side="right" className="w-64 p-0 bg-card border-l border-border">
             <div className="flex flex-col h-full">
               {/* Header */}
-              <div className="p-4 border-b border-border/40 flex items-center justify-between">
+              <div className="p-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20">
                     <TrendingUp className="h-4 w-4 text-emerald-400" />
