@@ -232,7 +232,7 @@ export default function TermsPage() {
                 MyTradeLog offers both monthly and annual subscription plans. The Service is billed in advance on a
                 recurring and periodic basis (&quot;Billing Cycle&quot;).
               </p>
-              <div className="bg-zinc-900/50 border border-white/5 rounded-lg p-4 sm:p-5 mt-4">
+              <div className="bg-zinc-900/50 border border-transparent rounded-lg p-4 sm:p-5 mt-4">
                 <h3 className="text-white font-medium text-sm mb-2">Refund Policy</h3>
                 <p className="text-xs text-zinc-500 leading-relaxed">
                   We stand by our product and the value it provides. All sales are final, and we operate under a strict no-refund policy. Once a purchase is completed, no refunds will be issued under any circumstances, including partial use, dissatisfaction, or failure to cancel. You may cancel your subscription at any time to prevent future billing, but cancellation does not entitle you to a refund for any past or current billing period.

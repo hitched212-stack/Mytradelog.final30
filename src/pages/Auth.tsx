@@ -191,10 +191,10 @@ export default function Auth() {
   const handleSubmit = isSignUp ? handleSignUp : handleSignIn;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4 py-8 text-white">
       {/* Main Content Card */}
       <motion.div 
-        className="w-full max-w-[520px] bg-card border border-border/50 rounded-3xl p-12"
+        className="w-full max-w-[520px] rounded-3xl border border-transparent bg-zinc-950/90 p-12 shadow-2xl shadow-black/40"
         initial="hidden" 
         animate="visible" 
         variants={staggerContainer}
@@ -204,7 +204,7 @@ export default function Auth() {
           <h1 className="text-3xl font-semibold text-white mb-2">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
-          <p className="text-[#9ca3af] text-base">
+          <p className="text-zinc-400 text-base">
             {isSignUp ? "Sign up to get started" : 'Sign in to your account'}
           </p>
         </motion.div>
@@ -222,11 +222,11 @@ export default function Auth() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-white/90 mb-2">
                 Username
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
                   <User className="h-5 w-5" />
                 </div>
                 <Input
@@ -234,7 +234,7 @@ export default function Auth() {
                   placeholder="Enter your username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  className="h-12 pl-12 pr-4 bg-[#4a4a4a] border-transparent text-white placeholder:text-muted-foreground rounded-lg focus-visible:ring-0 focus-visible:border-transparent"
+                  className="h-12 rounded-lg border border-transparent bg-zinc-900/70 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-900/70 hover:border-transparent focus-visible:bg-zinc-900/70 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   required={isSignUp}
                 />
               </div>
@@ -243,11 +243,11 @@ export default function Auth() {
 
           {/* Email field */}
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-white/90 mb-2">
               Email
             </label>
             <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
                 <Mail className="h-5 w-5" />
               </div>
               <Input
@@ -255,7 +255,7 @@ export default function Auth() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="h-12 pl-12 pr-4 bg-[#4a4a4a] border-transparent text-white placeholder:text-muted-foreground rounded-lg focus-visible:ring-0 focus-visible:border-transparent"
+                className="h-12 rounded-lg border border-transparent bg-zinc-900/70 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-900/70 hover:border-transparent focus-visible:bg-zinc-900/70 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 required
               />
             </div>
@@ -263,11 +263,11 @@ export default function Auth() {
 
           {/* Password field */}
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-white/90 mb-2">
               Password
             </label>
             <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
                 <Lock className="h-5 w-5" />
               </div>
               <Input
@@ -275,13 +275,13 @@ export default function Auth() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="h-12 pl-12 pr-12 bg-[#4a4a4a] border-transparent text-white placeholder:text-muted-foreground rounded-lg focus-visible:ring-0 focus-visible:border-transparent"
+                className="h-12 rounded-lg border border-transparent bg-zinc-900/70 pl-12 pr-12 text-white placeholder:text-zinc-500 hover:bg-zinc-900/70 hover:border-transparent focus-visible:bg-zinc-900/70 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -293,7 +293,7 @@ export default function Auth() {
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-[#4a4a4a] border border-border rounded-lg space-y-2"
+              className="p-4 rounded-lg border border-transparent bg-zinc-900/70 space-y-2"
             >
               {passwordRequirements.map((req, index) => (
                 <div key={index} className="flex items-center gap-3">
@@ -305,7 +305,7 @@ export default function Auth() {
                   </div>
                   <span 
                     className="text-sm transition-colors"
-                    style={{ color: req.met ? '#4ade80' : 'hsl(var(--muted-foreground))' }}
+                    style={{ color: req.met ? '#4ade80' : 'rgb(148 163 184)' }}
                   >
                     {req.label}
                   </span>
@@ -319,20 +319,20 @@ export default function Auth() {
             <div className="text-right">
               <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="link" type="button" className="h-auto p-0 text-sm text-white hover:text-white/80 transition-colors">
+                  <Button variant="link" type="button" className="h-auto p-0 text-sm text-white/90 hover:text-white transition-colors">
                     Forgot password?
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md rounded-2xl bg-card border-border">
+                <DialogContent className="sm:max-w-md rounded-2xl border border-transparent bg-zinc-950">
                   <DialogHeader>
                     <DialogTitle className="text-xl text-white">Reset Password</DialogTitle>
-                    <DialogDescription className="text-muted-foreground">
+                    <DialogDescription className="text-zinc-400">
                       Enter your email address and we'll send you a link to reset your password.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleResetPassword} className="space-y-4 mt-4">
                     <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
                         <Mail className="h-5 w-5" />
                       </div>
                       <Input
@@ -340,7 +340,7 @@ export default function Auth() {
                         placeholder="Email address"
                         value={resetEmail}
                         onChange={e => setResetEmail(e.target.value)}
-                        className="h-12 pl-12 pr-4 bg-[#4a4a4a] border-transparent text-white placeholder:text-muted-foreground rounded-lg focus-visible:ring-0 focus-visible:border-transparent"
+                        className="h-12 rounded-lg border border-transparent bg-zinc-900/70 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-900/70 hover:border-transparent focus-visible:bg-zinc-900/70 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                         required
                       />
                     </div>
