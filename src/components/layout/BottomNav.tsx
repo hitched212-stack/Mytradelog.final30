@@ -6,17 +6,13 @@ import { usePreferences } from '@/hooks/usePreferences';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 
-// Custom 4-dot grid icon matching the reference
+// Custom 4-dot grid icon - filled rectangles matching sidebar
 const GridDotsIcon = ({ className }: { className?: string }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="currentColor" 
-    className={className}
-  >
-    <circle cx="7" cy="7" r="2.5" />
-    <circle cx="17" cy="7" r="2.5" />
-    <circle cx="7" cy="17" r="2.5" />
-    <circle cx="17" cy="17" r="2.5" />
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <rect x="3" y="3" width="8" height="8" rx="2" />
+    <rect x="13" y="3" width="8" height="8" rx="2" />
+    <rect x="3" y="13" width="8" height="8" rx="2" />
+    <rect x="13" y="13" width="8" height="8" rx="2" />
   </svg>
 );
 
@@ -38,20 +34,10 @@ const CalendarIcon = ({ className, strokeWidth = 1.5 }: { className?: string; st
   </svg>
 );
 
-// Custom news/globe icon - thin stroke style matching main nav
-const NewsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-    <path d="M2 12h20" />
+// Custom news/globe icon - filled matching sidebar
+const NewsIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
   </svg>
 );
 
@@ -74,107 +60,51 @@ const AnalyticsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; s
   </svg>
 );
 
-// Custom backtesting icon - premium layers/history style (matches sidebar)
-const BacktestIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-    <path d="M2 12l8.58 3.91a2 2 0 0 0 1.66 0L21 12" />
-    <path d="M2 17l8.58 3.91a2 2 0 0 0 1.66 0L21 17" />
+// Custom backtesting icon - filled rewind matching sidebar
+const BacktestIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M11 5L3 11l8 6v-6l8-6-8 6v-6z"/>
+    <path d="M21 5L13 11l8 6v-12z"/>
+    <rect x="2" y="5" width="2" height="12" fill="currentColor"/>
   </svg>
 );
 
-// Custom playbook icon - premium open book style
-const PlaybookIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-    <path d="M8 7h6" />
-    <path d="M8 11h8" />
+// Custom playbook icon - filled book matching sidebar
+const PlaybookIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 8h6v2H9V8zm0 4h6v2H9v-2z"/>
   </svg>
 );
 
-// Custom history icon - premium scroll/timeline style
-const HistoryIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-    <path d="M3 3v5h5" />
-    <path d="M12 7v5l4 2" />
+// Custom history icon - filled clock matching sidebar
+const HistoryIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/>
   </svg>
 );
 
-// Custom trading rules icon - minimal checklist
-const TradingRulesIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <line x1="10" y1="6" x2="21" y2="6" />
-    <line x1="10" y1="12" x2="21" y2="12" />
-    <line x1="10" y1="18" x2="21" y2="18" />
-    <polyline points="3 6 4 7 6 5" />
-    <polyline points="3 12 4 13 6 11" />
-    <polyline points="3 18 4 19 6 17" />
+// Custom trading rules icon - filled checklist matching sidebar
+const TradingRulesIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8.29 13.29L6.7 12.3a.996.996 0 111.41-1.41L10.7 13.3l5.18-5.19a.996.996 0 111.41 1.41l-5.88 5.88a.996.996 0 01-1.41 0z"/>
   </svg>
 );
 
-// Custom goals icon - target
-const GoalsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
+// Custom goals icon - target matching sidebar
+const GoalsIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="6" />
-    <circle cx="12" cy="12" r="2" />
+    <line x1="12" y1="2" x2="12" y2="6" />
+    <line x1="12" y1="18" x2="12" y2="22" />
+    <line x1="2" y1="12" x2="6" y2="12" />
+    <line x1="18" y1="12" x2="22" y2="12" />
   </svg>
 );
 
-// Custom timeframes icon - clock
-const TimeframesIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
+// Custom timeframes icon - filled clock matching sidebar
+const TimeframesIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/>
   </svg>
 );
 
@@ -188,14 +118,14 @@ export function BottomNav() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 40 });
   
-  const isMoreActive = ['/settings', '/news', '/coach', '/backtesting', '/playbook', '/history', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
+  const isMoreActive = ['/settings', '/news', '/coach', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
   
   // Calculate active index for the sliding indicator
   const getActiveIndex = () => {
     if (location.pathname === '/dashboard') return 0;
-    if (location.pathname === '/analytics') return 1;
-    if (location.pathname === '/calendar') return 2;
-    if (isMoreActive || moreOpen) return 3;
+    if (location.pathname === '/history') return 1;
+    if (location.pathname === '/analytics') return 3;
+    if (isMoreActive || moreOpen) return 4;
     return -1;
   };
 
@@ -297,6 +227,34 @@ export function BottomNav() {
             </div>
           </NavLink>
           
+          {/* History */}
+          <NavLink 
+            to="/history" 
+            data-nav-item
+            className="relative flex items-center justify-center z-10"
+          >
+            <div className="relative flex items-center justify-center w-12 h-12">
+              <HistoryIcon 
+                className={cn(
+                  'transition-all duration-300 ease-out',
+                  location.pathname === '/history' 
+                    ? 'h-[22px] w-[22px] text-foreground' 
+                    : 'h-5 w-5 text-muted-foreground'
+                )} 
+              />
+            </div>
+          </NavLink>
+
+          {/* Center Add Button - Box design */}
+          <NavLink 
+            to="/add" 
+            className="relative flex items-center justify-center z-10"
+          >
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-foreground text-background transition-all duration-200 active:scale-95">
+              <Plus className="h-5 w-5" strokeWidth={2.5} />
+            </div>
+          </NavLink>
+
           {/* Analytics */}
           <NavLink 
             to="/analytics" 
@@ -313,16 +271,6 @@ export function BottomNav() {
                 )} 
                 strokeWidth={1.5}
               />
-            </div>
-          </NavLink>
-
-          {/* Center Add Button - Box design */}
-          <NavLink 
-            to="/add" 
-            className="relative flex items-center justify-center z-10"
-          >
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-foreground text-background transition-all duration-200 hover:scale-105 active:scale-95">
-              <Plus className="h-5 w-5" strokeWidth={2.5} />
             </div>
           </NavLink>
 
@@ -358,15 +306,6 @@ export function BottomNav() {
                 >
                   <User className={cn('h-5 w-5', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.5} />
                   <span className={cn('text-sm', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')}>Profile</span>
-                </NavLink>
-                <NavLink 
-                  to="/history" 
-                  onClick={() => setMoreOpen(false)} 
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:bg-foreground/[0.08]"
-                  style={{ backgroundColor: location.pathname === '/history' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
-                >
-                  <HistoryIcon className={cn('h-5 w-5', location.pathname === '/history' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/history' ? 'text-foreground' : 'text-muted-foreground')}>History</span>
                 </NavLink>
                 <NavLink 
                   to="/news" 

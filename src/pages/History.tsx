@@ -402,160 +402,126 @@ export default function History() {
         </div>
       </div>
 
-      {/* Mobile Card View - Clean Cards */}
-      <div className="md:hidden space-y-3">
+      {/* Mobile Table View */}
+      <div className="md:hidden">
         {paginatedTrades.length === 0 ? (
           <div className="rounded-xl border border-border bg-card text-center py-12 text-muted-foreground">
             {searchQuery ? 'No trades match your search' : 'No trades recorded yet'}
           </div>
         ) : (
           <>
-            {paginatedTrades.map((trade) => (
-              <div
-                key={trade.id}
-                onClick={() => handleViewTrade(trade)}
-                className={cn(
-                  "rounded-xl border p-4 cursor-pointer active:bg-muted/30 transition-colors relative overflow-hidden",
-                  isGlassEnabled
-                    ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                    : "border-border/50 bg-card"
-                )}
-              >
-                {/* Dot pattern - only show when glass is enabled */}
-                {isGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id={`history-card-${trade.id}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill={`url(#history-card-${trade.id})`} />
-                  </svg>
-                )}
-                {/* Top Row: Symbol + Date | P&L */}
-                <div className="flex items-start justify-between gap-3 relative">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <SymbolIcon symbol={trade.symbol} size="md" />
-                    <div className="min-w-0">
-                      <span className="text-base font-semibold text-foreground block truncate">{trade.symbol}</span>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(trade.date), 'MMM dd, yyyy')} · {trade.noTradeTaken ? '—' : (trade.entryTime || '—')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    {(trade.isPaperTrade || trade.noTradeTaken) ? (
-                      <span className="text-sm text-muted-foreground">—</span>
-                    ) : (
-                      <span className={cn(
-                        "text-base font-display font-bold tabular-nums whitespace-nowrap",
-                        trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
-                      )}>
-                        {formatPnl(trade.pnlAmount)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Middle Row: Holding Time, News, Rules, Grade */}
-                <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
-                  {trade.holdingTime && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{trade.holdingTime}</span>
-                    </div>
-                  )}
-                  {trade.hasNews && (
-                    <div className="flex items-center gap-1 text-pnl-positive">
-                      <Check className="h-3 w-3" />
-                      <span>News</span>
-                    </div>
-                  )}
-                  {trade.brokenRules && trade.brokenRules.length > 0 ? (
-                    <div className="flex items-center gap-1 text-pnl-negative">
-                      <XCircle className="h-3 w-3" />
-                      <span>{trade.brokenRules.length} broken</span>
-                    </div>
-                  ) : trade.followedRulesList && trade.followedRulesList.length > 0 ? (
-                    <div className="flex items-center gap-1 text-pnl-positive">
-                      <Check className="h-3 w-3" />
-                      <span>Rules</span>
-                    </div>
-                  ) : null}
-                  {trade.performanceGrade && (
-                    <div className={cn(
-                      "flex items-center gap-1",
-                      trade.performanceGrade >= 3 ? "text-pnl-positive" :
-                      trade.performanceGrade >= 2 ? "text-amber-500" : "text-pnl-negative"
-                    )}>
-                      <span>Grade: {trade.performanceGrade}/3</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bottom Row: Status + Side badges */}
-                <div className="flex items-center gap-2 mt-2">
-                  {/* Status Badge */}
-                  {trade.isPaperTrade ? (
-                    <Badge 
-                      variant="outline" 
-                      className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap"
-                    >
-                      Paper
-                    </Badge>
-                  ) : trade.noTradeTaken ? (
-                    <Badge 
-                      variant="outline" 
-                      className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap"
-                    >
-                      No Trade
-                    </Badge>
-                  ) : (
-                    <div className={cn(
-                      "flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-colors duration-0",
-                      trade.status === 'open' ? "bg-pnl-positive/10" : "bg-muted/50"
-                    )}>
-                      <div className={cn(
-                        "w-1.5 h-1.5 rounded-full transition-colors duration-0",
-                        trade.status === 'open' 
-                          ? "border-[1.5px] border-pnl-positive" 
-                          : "bg-muted-foreground"
-                      )} />
-                      <span className={cn(
-                        "text-[10px] font-medium transition-colors duration-0",
-                        trade.status === 'open' ? "text-pnl-positive" : "text-muted-foreground"
-                      )}>
-                        {trade.status === 'open' ? 'Open' : 'Closed'}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Side Badge */}
-                  {trade.noTradeTaken ? (
-                    <span className="text-[10px] text-muted-foreground">—</span>
-                  ) : (
-                    <Badge 
-                      variant="outline"
-                      className={cn(
-                        "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide whitespace-nowrap border-0",
-                        trade.direction === 'long' 
-                          ? "bg-pnl-positive/10 text-pnl-positive" 
-                          : "bg-pnl-negative/10 text-pnl-negative"
-                      )}
-                    >
-                      {trade.direction === 'long' ? 'Long' : 'Short'}
-                    </Badge>
-                  )}
-
-                  {/* Strategy if exists */}
-                  {trade.strategy && (
-                    <span className="text-[10px] text-muted-foreground truncate">
-                      {trade.strategy}
-                    </span>
-                  )}
-                </div>
+            <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border/50 bg-muted/50">
+                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Symbol</th>
+                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Side</th>
+                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Date</th>
+                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">P&L</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedTrades.map((trade, index) => (
+                      <tr
+                        key={trade.id}
+                        onClick={() => handleViewTrade(trade)}
+                        className={cn(
+                          "border-b border-border/30 cursor-pointer active:bg-muted/50 transition-colors",
+                          index % 2 === 0 ? "bg-transparent" : "bg-muted/20"
+                        )}
+                      >
+                        <td className="py-3 px-3">
+                          <div className="font-semibold text-foreground whitespace-nowrap">{trade.symbol}</div>
+                        </td>
+                        <td className="py-3 px-3">
+                          {trade.noTradeTaken ? (
+                            <span className="text-muted-foreground text-[10px]">—</span>
+                          ) : (
+                            <Badge 
+                              className={cn(
+                                "inline-flex px-1.5 py-0.5 rounded text-[8px] font-semibold uppercase border-0 whitespace-nowrap",
+                                trade.direction === 'long' 
+                                  ? "bg-pnl-positive/10 text-pnl-positive" 
+                                  : "bg-pnl-negative/10 text-pnl-negative"
+                              )}
+                            >
+                              {trade.direction === 'long' ? 'L' : 'S'}
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-foreground whitespace-nowrap text-[11px]">
+                            {format(new Date(trade.date), 'MMM dd, yy')}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          {(trade.isPaperTrade || trade.noTradeTaken) ? (
+                            <span className="text-muted-foreground">—</span>
+                          ) : (
+                            <span className={cn(
+                              "font-display font-bold tabular-nums",
+                              trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                            )}>
+                              {formatPnl(trade.pnlAmount)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 hover:bg-muted/50 active:bg-muted/50 rounded-md"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-36">
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewTrade(trade);
+                              }}>
+                                <Eye className="h-3.5 w-3.5 mr-2" />
+                                <span className="text-xs">View</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/edit/${trade.id}`);
+                              }}>
+                                <Pencil className="h-3.5 w-3.5 mr-2" />
+                                <span className="text-xs">Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleDuplicateTrade(trade.id);
+                              }}>
+                                <Copy className="h-3.5 w-3.5 mr-2" />
+                                <span className="text-xs">Duplicate</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                className="text-destructive focus:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTradeId(trade.id);
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                <span className="text-xs">Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
+            </div>
 
             {/* Mobile Pagination */}
             <div className="flex items-center justify-between px-1 py-3">
@@ -606,7 +572,217 @@ export default function History() {
           </svg>
         )}
         <div className="overflow-x-auto relative">
-          <Table>
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {paginatedTrades.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <p className="text-sm">{searchQuery ? 'No trades match your search' : 'No trades recorded yet'}</p>
+              </div>
+            ) : (
+              paginatedTrades.map((trade, idx) => (
+                <div
+                  key={trade.id}
+                  onClick={() => handleViewTrade(trade)}
+                  className={cn(
+                    "rounded-xl border p-4 cursor-pointer relative overflow-hidden",
+                    "border-border/50 shadow-sm bg-card",
+                    "transition-colors duration-200"
+                  )}
+                >
+                  {/* Header Row: Symbol, Direction, Date */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <SymbolIcon symbol={trade.symbol} size="md" />
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-base font-bold text-foreground">{trade.symbol}</span>
+                          {!trade.noTradeTaken && (
+                            <Badge 
+                              className={cn(
+                                "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold tracking-wide uppercase whitespace-nowrap border-0",
+                                trade.direction === 'long' 
+                                  ? "bg-pnl-positive/10 text-pnl-positive" 
+                                  : "bg-pnl-negative/10 text-pnl-negative"
+                              )}
+                            >
+                              {trade.direction === 'long' ? 'LONG' : 'SHORT'}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{format(new Date(trade.date), 'MMM dd, yyyy')}</span>
+                          {trade.entryTime && !trade.noTradeTaken && (
+                            <>
+                              <span>•</span>
+                              <span>{trade.entryTime}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {trade.isPaperTrade ? (
+                        <Badge variant="outline" className="inline-flex items-center px-2 py-1 rounded-md text-[9px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
+                          Paper
+                        </Badge>
+                      ) : trade.noTradeTaken ? (
+                        <Badge variant="outline" className="inline-flex items-center px-2 py-1 rounded-md text-[9px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
+                          No Trade
+                        </Badge>
+                      ) : (
+                        <span className={cn(
+                          "font-display font-bold tabular-nums text-sm whitespace-nowrap",
+                          trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                        )}>
+                          {formatPnl(trade.pnlAmount)}
+                        </span>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 hover:bg-muted/50 active:bg-muted/50 rounded-md shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewTrade(trade);
+                          }}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/edit/${trade.id}`);
+                          }}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            handleDuplicateTrade(trade.id);
+                          }}>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Duplicate
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTradeId(trade.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+
+                  {/* Info Grid */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                    {/* Status */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Status</span>
+                      <div className={cn(
+                        "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md",
+                        trade.status === 'open' 
+                          ? "bg-pnl-positive/10 border border-pnl-positive/30"
+                          : "bg-muted/50 border border-muted/50"
+                      )}>
+                        <div className={cn(
+                          "w-1 h-1 rounded-full",
+                          trade.status === 'open' 
+                            ? "bg-pnl-positive animate-pulse"
+                            : "bg-muted-foreground/40"
+                        )} />
+                        <span className={cn(
+                          "text-[10px] font-semibold",
+                          trade.status === 'open' 
+                            ? "text-pnl-positive"
+                            : "text-muted-foreground"
+                        )}>
+                          {trade.status === 'open' ? 'OPEN' : 'CLOSED'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Duration */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Duration</span>
+                      <span className="font-medium text-foreground">
+                        {trade.holdingTime || '—'}
+                      </span>
+                    </div>
+
+                    {/* News */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">News</span>
+                      {trade.hasNews || (trade.newsEvents && trade.newsEvents.length > 0) || trade.newsType || trade.newsImpact || trade.newsTime ? (
+                        <span className="font-semibold text-pnl-positive">Yes</span>
+                      ) : (
+                        <span className="text-muted-foreground">No</span>
+                      )}
+                    </div>
+
+                    {/* Grade */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Grade</span>
+                      {trade.performanceGrade ? (
+                        <span className={cn(
+                          "font-semibold px-2 py-0.5 rounded-md",
+                          trade.performanceGrade >= 3 ? "bg-pnl-positive/15 text-pnl-positive" :
+                          trade.performanceGrade >= 2 ? "bg-amber-500/15 text-amber-500" : "bg-pnl-negative/15 text-pnl-negative"
+                        )}>
+                          {trade.performanceGrade}/3
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </div>
+
+                    {/* Strategy */}
+                    {!trade.noTradeTaken && trade.strategy && (
+                      <div className="col-span-2 flex items-center justify-between pt-1">
+                        <span className="text-muted-foreground">Strategy</span>
+                        <span className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded max-w-[150px] truncate">
+                          {trade.strategy}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Rules Status */}
+                    {(trade.brokenRules && trade.brokenRules.length > 0) || (trade.followedRulesList && trade.followedRulesList.length > 0) ? (
+                      <div className="col-span-2 flex items-center justify-between pt-1">
+                        <span className="text-muted-foreground">Rules</span>
+                        {trade.brokenRules && trade.brokenRules.length > 0 ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-1 h-1 rounded-full bg-pnl-negative/60"></div>
+                            <span className="font-medium text-pnl-negative">{trade.brokenRules.length} broken</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <Check className="w-3 h-3 text-pnl-positive" />
+                            <span className="font-medium text-pnl-positive">Followed</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow className="border-b border-border/50 hover:bg-transparent">
                 <TableHead className="h-12 font-semibold text-foreground text-xs uppercase tracking-wider px-4 py-3 w-[70px]">Status</TableHead>
@@ -662,7 +838,7 @@ export default function History() {
                     key={trade.id}
                     className={cn(
                       "border-b border-border/30 hover:bg-muted/40 transition-colors cursor-pointer h-14",
-                      idx % 2 === 0 ? "bg-transparent" : "bg-muted/10"
+                      idx % 2 === 0 ? "bg-transparent" : "bg-muted/20"
                     )}
                     onClick={() => handleViewTrade(trade)}
                   >

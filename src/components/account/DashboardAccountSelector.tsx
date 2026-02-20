@@ -71,7 +71,7 @@ export function DashboardAccountSelector() {
 
       <DropdownMenuContent 
         align="center" 
-        className="w-64 bg-card/95 backdrop-blur-xl border-border rounded-xl p-1.5"
+        className="w-52 md:w-64 bg-card/95 backdrop-blur-xl border-border rounded-xl p-1.5"
         sideOffset={8}
       >
         <div className="space-y-0.5">

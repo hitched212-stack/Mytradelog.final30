@@ -1129,32 +1129,32 @@ export default function CalendarPage() {
                   <rect width="100%" height="100%" fill="url(#calendar-dots)" />
                 </svg>
               )}
-              <div className="relative p-5">
+              <div className="relative p-4">
                 {/* Header with Month and Period Filters */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <div className="space-y-0.5">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       {format(currentMonth, 'MMMM yyyy')}
                     </h3>
-                    <p className="text-xs text-muted-foreground">{goalLabel}</p>
+                    <p className="text-[10px] text-muted-foreground">{goalLabel}</p>
                   </div>
-                  <div className="flex gap-1 p-1 bg-muted/30 rounded-lg border border-border/30">
-                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+                  <div className="flex gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/30">
+                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-200', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                         {period}
                       </button>)}
                   </div>
                 </div>
                 
                 {/* P&L Display */}
-                <div className="mb-4">
-                  <span className={cn('text-3xl font-bold font-display tabular-nums', currentPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                <div className="mb-3">
+                  <span className={cn('text-2xl font-bold font-display tabular-nums', currentPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
                     {formatPnlWithK(currentPnl)}
                   </span>
                 </div>
                 
                 {/* Progress Bar - Enhanced */}
-                <div className="space-y-2">
-                  <div className="h-3 rounded-full bg-muted/40 overflow-hidden border border-border/30">
+                <div className="space-y-1.5">
+                  <div className="h-2.5 rounded-full bg-muted/40 overflow-hidden border border-border/30">
                     <div className={cn('h-full rounded-full transition-all duration-500 relative overflow-hidden', currentPnl >= 0 ? 'bg-pnl-positive' : 'bg-pnl-negative')} style={{
                     width: `${Math.max(0, Math.min(goalProgress, 100))}%`
                   }}>
@@ -1162,7 +1162,7 @@ export default function CalendarPage() {
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
                     </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
+                  <div className="flex justify-between items-center text-[10px]">
                     <span className="text-muted-foreground font-medium">
                       {Math.round(goalProgress)}% of Goal
                     </span>
@@ -1176,11 +1176,11 @@ export default function CalendarPage() {
 
             {/* Calendar Navigation */}
             <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-1">
-                <Button variant="outline" size="icon" onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth} className="h-8 w-8">
+              <div className="flex items-center gap-0.5">
+                <Button variant="outline" size="icon" onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth} className="h-8 w-8 shrink-0">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-base font-medium text-foreground min-w-[60px] sm:min-w-[80px] text-center">
+                <span className="text-base font-medium text-foreground px-1 text-center whitespace-nowrap">
                   {viewMode === 'year' ? format(currentMonth, 'yyyy') : (
                     <>
                       <span className="sm:hidden">{format(currentMonth, 'MMM')}</span>
@@ -1188,13 +1188,13 @@ export default function CalendarPage() {
                     </>
                   )}
                 </span>
-                <Button variant="outline" size="icon" onClick={viewMode === 'year' ? handleNextYear : handleNextMonth} className="h-8 w-8">
+                <Button variant="outline" size="icon" onClick={viewMode === 'year' ? handleNextYear : handleNextMonth} className="h-8 w-8 shrink-0">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
                 <button 
                   onClick={handleToday} 
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all ml-2 cursor-pointer hover:opacity-90',
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all ml-1 cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0',
                     viewMode === 'month' ? '' : 'hidden',
                     'bg-foreground text-background'
                   )}
@@ -1202,13 +1202,13 @@ export default function CalendarPage() {
                   Today
                 </button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {viewMode === 'month' && (
-                  <div className="flex items-center gap-3 text-sm mr-2">
-                    <span className="text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <span className="text-muted-foreground whitespace-nowrap">
                       PnL: <span className={cn('font-display font-bold tabular-nums', monthlyPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>{formatPnlWithK(monthlyPnl)}</span>
                     </span>
-                    <span className="text-muted-foreground">Days: <span className="text-foreground font-medium">{tradingDays}</span></span>
+                    <span className="text-muted-foreground whitespace-nowrap hidden sm:inline">Days: <span className="text-foreground font-medium">{tradingDays}</span></span>
                   </div>
                 )}
                 {/* Mobile View Mode Toggle - Minimal M/Y switch */}

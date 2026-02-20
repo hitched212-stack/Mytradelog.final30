@@ -88,7 +88,7 @@ export function BalanceCard({
       }
       
       case '1W': {
-        // Last 7 days - show all days with 0 for days without trades
+        // Last 7 days - show only days with trades
         startDate = subDays(now, 6);
         startDate = startOfDay(startDate);
         label = 'this week';
@@ -116,22 +116,22 @@ export function BalanceCard({
           }
         });
         
-        // Create data points for all days in the period, filling gaps with 0
-        const allDays = eachDayOfInterval({ start: startDate, end: now });
-        allDays.forEach((day) => {
-          const dateStr = format(day, 'yyyy-MM-dd');
-          const pnl = dayPnlMap.get(dateStr)?.pnl ?? 0;
+        // Only show days that have trades
+        dayPnlMap.forEach((data, dateStr) => {
           dataPoints.push({
-            balance: pnl,
-            label: format(day, 'EEE'),
-            date: day
+            balance: data.pnl,
+            label: format(data.date, 'EEE'),
+            date: data.date
           });
         });
+        
+        // Sort by date
+        dataPoints.sort((a, b) => a.date.getTime() - b.date.getTime());
         break;
       }
       
       case '1M': {
-        // Last 30 days - show all days with 0 for days without trades
+        // Last 30 days - show only days with trades
         startDate = subDays(now, 29);
         startDate = startOfDay(startDate);
         label = 'this month';
@@ -159,17 +159,17 @@ export function BalanceCard({
           }
         });
         
-        // Create data points for all days in the period, filling gaps with 0
-        const allDays = eachDayOfInterval({ start: startDate, end: now });
-        allDays.forEach((day) => {
-          const dateStr = format(day, 'yyyy-MM-dd');
-          const pnl = dayPnlMap.get(dateStr)?.pnl ?? 0;
+        // Only show days that have trades
+        dayPnlMap.forEach((data, dateStr) => {
           dataPoints.push({
-            balance: pnl,
-            label: format(day, 'd'),
-            date: day
+            balance: data.pnl,
+            label: format(data.date, 'd'),
+            date: data.date
           });
         });
+        
+        // Sort by date
+        dataPoints.sort((a, b) => a.date.getTime() - b.date.getTime());
         break;
       }
       
@@ -301,7 +301,7 @@ export function BalanceCard({
       "rounded-2xl border p-4 md:p-6 relative overflow-hidden",
       isGlassEnabled
         ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-        : "border-border/40 bg-card/70"
+        : "border-border/50 bg-card"
     )}>
       {/* Dot pattern overlay - matching nav bar style */}
       {isGlassEnabled && (
@@ -422,7 +422,6 @@ export function BalanceCard({
               <BarChart 
                 data={chartData} 
                 margin={{ top: 5, right: 16, left: 16, bottom: 24 }}
-                barCategoryGap="15%"
                 onMouseLeave={() => setActiveBarIndex(undefined)}
               >
                 <YAxis 
@@ -454,9 +453,10 @@ export function BalanceCard({
                 <Bar
                   dataKey="balance"
                   radius={[4, 4, 0, 0]}
-                  isAnimationActive={!isSwitching}
-                  animationDuration={600}
-                  animationEasing="ease-out"
+                  isAnimationActive={true}
+                  animationDuration={800}
+                  animationEasing="ease-in-out"
+                  animationBegin={0}
                   minPointSize={3}
                 >
                   {chartData.map((entry, index) => (

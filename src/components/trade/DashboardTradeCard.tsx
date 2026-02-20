@@ -51,11 +51,11 @@ export const DashboardTradeCard = memo(function DashboardTradeCard({
       className={cn(
         "rounded-2xl border p-4 cursor-pointer relative overflow-hidden group",
         "border-border/50 shadow-sm",
-        "hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
+        "md:hover:scale-[1.02] md:hover:-translate-y-0.5 md:hover:shadow-lg md:hover:shadow-black/5 md:dark:hover:shadow-black/20",
         "transition-all duration-200",
         isGlassEnabled
           ? "bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-          : "bg-card hover:bg-muted/50"
+          : "bg-card md:hover:bg-muted/50"
       )}
     >
       {/* Dot pattern - only show when glass is enabled */}
