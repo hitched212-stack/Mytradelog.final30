@@ -56,9 +56,9 @@ export function DashboardAccountSelector() {
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200',
-            'bg-foreground/[0.08] hover:bg-foreground/[0.12]',
-            'border border-foreground/10',
+            'inline-flex items-center gap-2 px-3 py-2 h-9 rounded-xl transition-all duration-200',
+            'bg-muted/50 hover:bg-muted',
+            'border border-border/50',
             'text-sm font-medium text-foreground',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20'
           )}

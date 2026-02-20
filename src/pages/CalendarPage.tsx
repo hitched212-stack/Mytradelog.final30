@@ -5,11 +5,12 @@ import { useSettings } from '@/hooks/useSettings';
 import { useAccount } from '@/hooks/useAccount';
 import { usePreferences, GoalPeriod } from '@/hooks/usePreferences';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ArrowLeftRight, TrendingUp, TrendingDown, Target, Activity, X, Plus, Link2, Calendar as CalendarIcon, MoreVertical, Eye, Pencil, Trash2, Grid3X3, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeftRight, TrendingUp, TrendingDown, Target, Activity, X, Plus, Link2, Calendar as CalendarIcon, MoreVertical, Eye, Pencil, Trash2, BarChart3 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths, getDay, startOfWeek, endOfWeek, isSameMonth, eachWeekOfInterval, addYears, subYears, startOfYear, eachMonthOfInterval, endOfYear } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, LabelList, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
+import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
 // Weekdays only (Mon-Fri) - excludes Saturday (6) and Sunday (0)
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const SHORT_DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -29,6 +30,7 @@ import { ImageZoomDialog } from '@/components/ui/ImageZoomDialog';
 import { SymbolIcon } from '@/components/ui/SymbolIcon';
 import { BalanceCard } from '@/components/journal/BalanceCard';
 import { TypewriterDate } from '@/components/ui/TypewriterDate';
+import { DashboardAccountSelector } from '@/components/account/DashboardAccountSelector';
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -40,6 +42,7 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [dayDialogOpen, setDayDialogOpen] = useState(false);
+  const [dateRangePopoverOpen, setDateRangePopoverOpen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [tradeViewOpen, setTradeViewOpen] = useState(false);
   const [zoomImages, setZoomImages] = useState<string[]>([]);
@@ -331,6 +334,13 @@ export default function CalendarPage() {
     return () => clearInterval(timer);
   }, []);
 
+  // Close date range popover when day dialog opens
+  useEffect(() => {
+    if (dayDialogOpen) {
+      setDateRangePopoverOpen(false);
+    }
+  }, [dayDialogOpen]);
+
   // Get monthly trades for stats - exclude paper trades
   const monthlyTrades = useMemo(() => {
     const year = currentMonth.getFullYear();
@@ -368,6 +378,110 @@ export default function CalendarPage() {
     const validRRs = monthlyTrades.map(t => parseFloat(t.riskRewardRatio) || 0).filter(rr => rr > 0);
     if (validRRs.length === 0) return 0;
     return validRRs.reduce((sum, rr) => sum + rr, 0) / validRRs.length;
+  }, [monthlyTrades]);
+
+  // Calculate performance consistency score - based on performance grades
+  const performanceScore = useMemo(() => {
+    const tradesWithGrade = monthlyTrades.filter(t => t.performanceGrade);
+    
+    if (tradesWithGrade.length === 0) {
+      return 0;
+    }
+
+    const avgGrade = tradesWithGrade.reduce((sum, t) => sum + (t.performanceGrade || 0), 0) / tradesWithGrade.length;
+    const consistencyScore = (avgGrade / 3) * 100;
+    
+    return Math.round(consistencyScore);
+  }, [monthlyTrades]);
+
+  // Tradepath Score data for radar chart - based on monthly trades
+  const tradepathScoreData = useMemo(() => {
+    if (monthlyTrades.length === 0) {
+      return {
+        radarData: [{
+          metric: 'Win %',
+          value: 0,
+          fullMark: 100
+        }, {
+          metric: 'Profit Factor',
+          value: 0,
+          fullMark: 100
+        }, {
+          metric: 'Win/Loss Ratio',
+          value: 0,
+          fullMark: 100
+        }, {
+          metric: 'Consistency',
+          value: 0,
+          fullMark: 100
+        }, {
+          metric: 'Rule Adherence',
+          value: 0,
+          fullMark: 100
+        }],
+        overallScore: 0
+      };
+    }
+
+    const winningTrades = monthlyTrades.filter(t => t.pnlAmount > 0);
+    const losingTrades = monthlyTrades.filter(t => t.pnlAmount < 0);
+    const winPercent = winningTrades.length / monthlyTrades.length * 100;
+    
+    const totalWins = winningTrades.reduce((sum, t) => sum + t.pnlAmount, 0);
+    const totalLosses = Math.abs(losingTrades.reduce((sum, t) => sum + t.pnlAmount, 0));
+    const profitFactor = totalLosses > 0 ? totalWins / totalLosses : totalWins > 0 ? 3 : 0;
+    const profitFactorScore = Math.min(profitFactor / 3 * 100, 100);
+    
+    const avgWin = winningTrades.length > 0 ? totalWins / winningTrades.length : 0;
+    const avgLoss = losingTrades.length > 0 ? totalLosses / losingTrades.length : 1;
+    const winLossRatio = avgWin / avgLoss;
+    const winLossScore = Math.min(winLossRatio / 2 * 100, 100);
+    
+    const tradeDays = new Set(monthlyTrades.map(t => t.date));
+    const profitableDays = new Set(monthlyTrades.filter(t => t.pnlAmount > 0).map(t => t.date));
+    const consistencyScore = tradeDays.size > 0 ? profitableDays.size / tradeDays.size * 100 : 0;
+
+    const avgGrade = monthlyTrades.reduce((sum, t) => sum + (t.performanceGrade || 0), 0) / monthlyTrades.length;
+    const gradeScore = avgGrade / 3 * 100;
+
+    let ruleComplianceScore = 50;
+    const tradesWithRuleData = monthlyTrades.filter(t => t.followedRulesList && t.followedRulesList.length > 0 || t.brokenRules && t.brokenRules.length > 0);
+    if (tradesWithRuleData.length > 0) {
+      const totalFollowed = tradesWithRuleData.reduce((sum, t) => sum + (t.followedRulesList?.length || 0), 0);
+      const totalBroken = tradesWithRuleData.reduce((sum, t) => sum + (t.brokenRules?.length || 0), 0);
+      ruleComplianceScore = totalFollowed + totalBroken > 0 ? totalFollowed / (totalFollowed + totalBroken) * 100 : 50;
+    }
+
+    const ruleAdherenceScore = gradeScore * 0.6 + ruleComplianceScore * 0.4;
+    
+    const radarData = [{
+      metric: 'Win %',
+      value: winPercent,
+      fullMark: 100
+    }, {
+      metric: 'Profit Factor',
+      value: profitFactorScore,
+      fullMark: 100
+    }, {
+      metric: 'Win/Loss Ratio',
+      value: winLossScore,
+      fullMark: 100
+    }, {
+      metric: 'Consistency',
+      value: consistencyScore,
+      fullMark: 100
+    }, {
+      metric: 'Rule Adherence',
+      value: ruleAdherenceScore,
+      fullMark: 100
+    }];
+    
+    const overallScore = winPercent * 0.25 + profitFactorScore * 0.25 + winLossScore * 0.2 + consistencyScore * 0.15 + ruleAdherenceScore * 0.15;
+    
+    return {
+      radarData,
+      overallScore
+    };
   }, [monthlyTrades]);
 
   // Calculate best and worst trades
@@ -453,7 +567,12 @@ export default function CalendarPage() {
   const handleDayClick = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     setSelectedDate(dateStr);
-    setDayDialogOpen(true);
+    // Close the date range popover first
+    setDateRangePopoverOpen(false);
+    // Then open the day dialog after a brief delay to ensure popover is closed
+    setTimeout(() => {
+      setDayDialogOpen(true);
+    }, 50);
   };
   const selectedDayTrades = useMemo(() => {
     if (!selectedDate) return [];
@@ -623,55 +742,82 @@ export default function CalendarPage() {
                 </p>
               </div>
 
-              {/* Date Range Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
+              {/* Date Range Picker and Account Switcher */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <DashboardAccountSelector />
+                
+                {dayDialogOpen ? (
                   <Button
+                    key="disabled-btn"
                     variant="outline"
                     className={cn(
-                      "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm",
-                      dateRange.from ? "text-foreground" : "text-muted-foreground"
+                      "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 px-3 flex-shrink-0 text-sm",
+                      "opacity-50 cursor-not-allowed"
                     )}
+                    disabled
                   >
                     <CalendarIcon className="h-4 w-4" />
-                    <span className="hidden md:inline">
-                      {dateRange.from ? (
-                        dateRange.to ? (
-                          `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
-                        ) : (
-                          format(dateRange.from, 'MMM dd')
-                        )
-                      ) : 'Date'}
-                    </span>
+                    <span className="hidden md:inline">Date Range</span>
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={(range) => {
-                      setDateRange(range || { from: undefined, to: undefined } as any);
-                    }}
-                    numberOfMonths={2}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                  {dateRange.from && (
-                    <div className="p-3 border-t border-border">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="w-full text-muted-foreground"
-                        onClick={() => {
-                          setDateRange({ from: undefined, to: undefined });
-                        }}
+                ) : (
+                  <Popover key="date-popover" open={dateRangePopoverOpen && !dayDialogOpen && !tradeViewOpen} onOpenChange={(open) => {
+                    if (!dayDialogOpen && !tradeViewOpen) {
+                      setDateRangePopoverOpen(open);
+                    } else {
+                      setDateRangePopoverOpen(false);
+                    }
+                  }}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm",
+                          dateRange.from ? "text-foreground" : "text-muted-foreground"
+                        )}
                       >
-                        Clear date filter
+                        <CalendarIcon className="h-4 w-4" />
+                        <span className="hidden md:inline">
+                          {dateRange.from ? (
+                            dateRange.to ? (
+                              `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                            ) : (
+                              format(dateRange.from, 'MMM dd')
+                            )
+                          ) : 'Date Range'}
+                        </span>
                       </Button>
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
+                    </PopoverTrigger>
+                    {!dayDialogOpen && !tradeViewOpen && (
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          mode="range"
+                          selected={dateRange}
+                          onSelect={(range) => {
+                            setDateRange(range || { from: undefined, to: undefined } as any);
+                          }}
+                          numberOfMonths={2}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                        {dateRange.from && (
+                          <div className="p-3 border-t border-border">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full text-muted-foreground"
+                              onClick={() => {
+                                setDateRange({ from: undefined, to: undefined });
+                              }}
+                            >
+                              Clear date filter
+                            </Button>
+                          </div>
+                        )}
+                      </PopoverContent>
+                    )}
+                  </Popover>
+                )}
+              </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
@@ -842,18 +988,35 @@ export default function CalendarPage() {
               </div>
 
               {/* Recent Trades */}
-              <div>
-                <div className="flex items-center justify-between mb-3 mt-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-foreground">Recent Trades</h3>
+              <div className={cn(
+                "rounded-2xl border p-4 relative overflow-hidden",
+                preferences.liquidGlassEnabled
+                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
+                  : "border-border/50 bg-card"
+              )}>
+                {/* Dot pattern - only show when glass is enabled */}
+                {preferences.liquidGlassEnabled && (
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <pattern id="recent-trades-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#recent-trades-dots)" />
+                  </svg>
+                )}
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-foreground">Recent Trades</h3>
+                    </div>
+                    <button
+                      onClick={() => navigate('/history')}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 bg-foreground text-background shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      View All
+                    </button>
                   </div>
-                  <button
-                    onClick={() => navigate('/history')}
-                    className="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 bg-foreground text-background shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    View All
-                  </button>
-                </div>
 
                 {recentTrades.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-border bg-card">
@@ -941,6 +1104,7 @@ export default function CalendarPage() {
                     ))}
                   </div>
                 )}
+                </div>
               </div>
             </div>
           </section>
@@ -1012,11 +1176,11 @@ export default function CalendarPage() {
 
             {/* Calendar Navigation */}
             <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button variant="outline" size="icon" onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth} className="h-8 w-8">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-base font-medium text-foreground min-w-[80px] sm:min-w-[120px] text-center">
+                <span className="text-base font-medium text-foreground min-w-[60px] sm:min-w-[80px] text-center">
                   {viewMode === 'year' ? format(currentMonth, 'yyyy') : (
                     <>
                       <span className="sm:hidden">{format(currentMonth, 'MMM')}</span>
@@ -1443,7 +1607,7 @@ export default function CalendarPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Monthly Summary */}
               <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
+                "rounded-2xl border p-5 relative overflow-hidden",
                 preferences.liquidGlassEnabled
                   ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
                   : "border-border/50 bg-card"
@@ -1460,98 +1624,147 @@ export default function CalendarPage() {
                   </svg>
                 )}
                 <div className="relative">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-4">Monthly Summary</h3>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 dark:bg-white/5">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-primary/10 dark:bg-white/10 flex items-center justify-center">
-                          <ArrowLeftRight className="h-4 w-4 text-foreground/70" />
-                        </div>
-                        <span className="text-sm text-muted-foreground">Total Trades</span>
-                      </div>
-                      <span className="text-lg font-bold text-foreground font-display">{monthlyTrades.length}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 dark:bg-white/5">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-primary/10 dark:bg-white/10 flex items-center justify-center">
-                          <CalendarDays className="h-4 w-4 text-foreground/70" />
-                        </div>
-                        <span className="text-sm text-muted-foreground">Trading Days</span>
-                      </div>
-                      <span className="text-lg font-bold text-foreground font-display">{tradingDays}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 dark:bg-white/5">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-primary/10 dark:bg-white/10 flex items-center justify-center">
-                          <TrendingUp className="h-4 w-4 text-foreground/70" />
-                        </div>
-                        <span className="text-sm text-muted-foreground">Win Rate</span>
-                      </div>
-                      <span className="text-lg font-bold text-foreground font-display">{winRate}%</span>
-                    </div>
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Win Rate
+                    </h3>
+                    <span className="text-3xl font-display font-bold tabular-nums" style={{ color: profitColor }}>
+                      {winRate}%
+                    </span>
                   </div>
+                  
+                  {monthlyTrades.length === 0 ? (
+                    <div className="h-56 flex items-center justify-center">
+                      <p className="text-sm text-muted-foreground">No trades this month</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <ChartContainer 
+                        config={{
+                          wins: { label: "Wins", color: profitColor },
+                          losses: { label: "Losses", color: "hsl(var(--pnl-negative))" }
+                        } satisfies ChartConfig} 
+                        className="mx-auto aspect-square h-52 [&_.recharts-text]:fill-background"
+                      >
+                        <PieChart>
+                          <ChartTooltip 
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0];
+                                return (
+                                  <div className="rounded-lg px-3 py-2 shadow-xl bg-card border border-border">
+                                    <p className="text-sm font-medium text-foreground">
+                                      {data.name}: {data.value}
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }} 
+                          />
+                          <Pie 
+                            data={[
+                              { name: 'Wins', value: wins, fill: profitColor },
+                              { name: 'Losses', value: losses, fill: 'hsl(var(--pnl-negative))' }
+                            ]} 
+                            dataKey="value" 
+                            innerRadius={30}
+                            outerRadius={80}
+                            cornerRadius={6}
+                            paddingAngle={3}
+                            strokeWidth={0}
+                          >
+                            <LabelList 
+                              dataKey="value" 
+                              stroke="none" 
+                              fontSize={12} 
+                              fontWeight={600} 
+                              fill="white"
+                              formatter={(value: number) => value.toString()} 
+                            />
+                          </Pie>
+                        </PieChart>
+                      </ChartContainer>
+                      
+                      {/* Legend */}
+                      <div className="flex items-center justify-center gap-6 mt-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: profitColor }} />
+                          <span className="text-xs text-muted-foreground">Wins ({wins})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-pnl-negative" />
+                          <span className="text-xs text-muted-foreground">Losses ({losses})</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Best & Worst Trade */}
-              {bestTrade && <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
+              {/* Performance Score Radar */}
+              <div className={cn(
+                "rounded-2xl border p-5 relative overflow-hidden",
                 preferences.liquidGlassEnabled
                   ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
                   : "border-border/50 bg-card"
               )}>
-                  {/* Dot pattern - only show when glass is enabled */}
-                  {preferences.liquidGlassEnabled && (
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                      <defs>
-                        <pattern id="bestworst-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                          <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill="url(#bestworst-dots)" />
-                    </svg>
-                  )}
-                  <div className="relative">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-4">Best & Worst</h3>
-                    
-                    <div className="space-y-3">
-                      {bestTrade.pnlAmount > 0 && (
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-pnl-positive/10 dark:bg-pnl-positive/15">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-pnl-positive/20 flex items-center justify-center">
-                              <TrendingUp className="h-4 w-4 text-pnl-positive" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{bestTrade.symbol}</p>
-                              <p className="text-xs text-muted-foreground">{format(new Date(bestTrade.date), 'MMM d')}</p>
-                            </div>
-                          </div>
-                          <span className="text-base font-bold text-pnl-positive font-display">
-                            +{formatPnlWithK(bestTrade.pnlAmount, false)}
-                          </span>
-                        </div>
-                      )}
-
-                      {worstTrade && worstTrade.pnlAmount < 0 && <div className="flex items-center justify-between p-3 rounded-xl bg-pnl-negative/10 dark:bg-pnl-negative/15">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-pnl-negative/20 flex items-center justify-center">
-                              <TrendingDown className="h-4 w-4 text-pnl-negative" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{worstTrade.symbol}</p>
-                              <p className="text-xs text-muted-foreground">{format(new Date(worstTrade.date), 'MMM d')}</p>
-                            </div>
-                          </div>
-                          <span className="text-base font-bold text-pnl-negative font-display">
-                            -{formatPnlWithK(worstTrade.pnlAmount, false)}
-                          </span>
-                        </div>}
-                    </div>
+                {/* Dot pattern - only show when glass is enabled */}
+                {preferences.liquidGlassEnabled && (
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <pattern id="perf-radar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#perf-radar-dots)" />
+                  </svg>
+                )}
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Performance Score</h3>
+                    <span className="text-3xl font-display font-bold tabular-nums" style={{ color: profitColor }}>
+                      {Math.round(tradepathScoreData.overallScore)}%
+                    </span>
                   </div>
-                </div>}
+                  <div className="flex flex-col items-center">
+                    {monthlyTrades.length === 0 ? (
+                      <div className="h-56 flex items-center justify-center">
+                        <p className="text-sm text-muted-foreground">No trades this month</p>
+                      </div>
+                    ) : (
+                      <div className="w-full h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart data={tradepathScoreData.radarData} margin={{
+                            top: 20,
+                            right: 20,
+                            bottom: 20,
+                            left: 20
+                          }}>
+                            <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                            <PolarAngleAxis dataKey="metric" tick={{
+                              fontSize: 10,
+                              fill: 'hsl(var(--muted-foreground))'
+                            }} />
+                            <Radar name="Score" dataKey="value" stroke={profitColor} fill={profitColor} fillOpacity={0.3} strokeWidth={2} />
+                            <Tooltip contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              color: 'hsl(var(--card-foreground))'
+                            }} labelStyle={{
+                              color: 'hsl(var(--card-foreground))'
+                            }} itemStyle={{
+                              color: 'hsl(var(--card-foreground))'
+                            }} formatter={(value: number) => [`${value.toFixed(1)}%`, 'Score']} />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               {/* Performance by Day */}
               <div className={cn(
@@ -1608,88 +1821,110 @@ export default function CalendarPage() {
       </div>
 
       {/* Day View Dialog */}
-      <Dialog open={dayDialogOpen} onOpenChange={setDayDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+      <Dialog open={dayDialogOpen} onOpenChange={setDayDialogOpen} modal={true}>
+        <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto" style={{ zIndex: 9999 }}>
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
+            <DialogTitle className="text-xl font-bold">
               {selectedDate && format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')}
             </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 mt-2">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mt-1">
               {selectedDayTrades.length} {selectedDayTrades.length === 1 ? 'trade' : 'trades'} on this day
             </p>
-
-            {selectedDayTrades.length > 0 ? <div className="space-y-3">
-                {selectedDayTrades.map(trade => {
-              return <div key={trade.id} className="rounded-xl border border-border bg-card p-4 space-y-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => {
-                setSelectedTrade(trade);
-                setDayDialogOpen(false);
-                setTradeViewOpen(true);
-              }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+          </DialogHeader>
+          
+          <div className="space-y-3 mt-4">
+            {selectedDayTrades.length > 0 ? (
+              <>
+                {selectedDayTrades.map(trade => (
+                  <div 
+                    key={trade.id} 
+                    className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      setSelectedTrade(trade);
+                      setDayDialogOpen(false);
+                      setTradeViewOpen(true);
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3 flex-1">
                         <SymbolIcon symbol={trade.symbol} size="md" />
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
                             <span className="font-bold text-lg">{trade.symbol}</span>
-                            <span className={cn('inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide uppercase whitespace-nowrap', trade.direction === 'long' ? 'bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40' : 'bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40')}>
+                            <span className={cn(
+                              'inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold tracking-wide uppercase',
+                              trade.direction === 'long' 
+                                ? 'bg-pnl-positive/10 text-pnl-positive' 
+                                : 'bg-pnl-negative/10 text-pnl-negative'
+                            )}>
                               {trade.direction === 'long' ? 'Long' : 'Short'}
                             </span>
-                            {trade.forecastId && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground flex items-center gap-1">
+                            {trade.forecastId && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted text-muted-foreground flex items-center gap-1">
                                 <Link2 className="h-3 w-3" />
                                 Linked
-                              </span>}
+                              </span>
+                            )}
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {trade.category || 'Stocks'} • {trade.lotSize} units
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      
+                      <div className="flex items-center gap-3">
                         {trade.isPaperTrade || trade.noTradeTaken ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium border border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground whitespace-nowrap">
+                          <span className="px-3 py-1 rounded-lg text-xs font-medium border border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground whitespace-nowrap">
                             {trade.isPaperTrade ? 'Paper' : 'No Trade'}
                           </span>
                         ) : (
                           <div className="text-right">
-                            <p className={cn('text-lg font-bold font-display', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                            <p className={cn(
+                              'text-lg font-bold font-display',
+                              trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
+                            )}>
                               {trade.pnlAmount >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(trade.pnlAmount).toLocaleString()}
                             </p>
-                            <p className={cn('text-sm font-display', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                            <p className={cn(
+                              'text-xs font-display',
+                              trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
+                            )}>
                               {trade.pnlAmount >= 0 ? '+' : ''}{calculatePnlPercentage(trade.pnlAmount).toFixed(2)}%
                             </p>
                           </div>
                         )}
+                        
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-transparent active:bg-transparent">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={e => {
-                          e.stopPropagation();
-                          setSelectedTrade(trade);
-                          setDayDialogOpen(false);
-                          setTradeViewOpen(true);
-                        }}>
+                              e.stopPropagation();
+                              setSelectedTrade(trade);
+                              setDayDialogOpen(false);
+                              setTradeViewOpen(true);
+                            }}>
                               <Eye className="mr-2 h-4 w-4" />
                               View
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={e => {
-                          e.stopPropagation();
-                          setDayDialogOpen(false);
-                          navigate(`/edit/${trade.id}`);
-                        }}>
+                              e.stopPropagation();
+                              setDayDialogOpen(false);
+                              navigate(`/edit/${trade.id}`);
+                            }}>
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={e => {
-                          e.stopPropagation();
-                          setDeleteConfirmId(trade.id);
-                        }}>
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive" 
+                              onClick={e => {
+                                e.stopPropagation();
+                                setDeleteConfirmId(trade.id);
+                              }}
+                            >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete
                             </DropdownMenuItem>
@@ -1697,18 +1932,19 @@ export default function CalendarPage() {
                         </DropdownMenu>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>{selectedDate && format(new Date(selectedDate), 'dd/MM/yyyy')}</span>
-                    </div>
-                  </div>;
-            })}
-              </div> : null}
+                  </div>
+                ))}
+              </>
+            ) : null}
 
-            <Button variant="outline" className="w-full" onClick={() => {
-            setDayDialogOpen(false);
-            navigate(`/add?date=${selectedDate}`);
-          }}>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => {
+                setDayDialogOpen(false);
+                navigate(`/add?date=${selectedDate}`);
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Trade for This Date
             </Button>

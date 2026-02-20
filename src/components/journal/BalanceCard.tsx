@@ -1,11 +1,11 @@
 import { useMemo, useCallback, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { BarChart, Bar, ResponsiveContainer, YAxis, Tooltip, XAxis, Cell, ReferenceLine } from 'recharts';
+import { BarChart, Bar, LineChart, Line, ResponsiveContainer, YAxis, Tooltip, XAxis, Cell, ReferenceLine } from 'recharts';
 import { Eye, EyeOff } from 'lucide-react';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useAccount } from '@/hooks/useAccount';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
-import { format, startOfDay, subDays } from 'date-fns';
+import { format, startOfDay, subDays, eachDayOfInterval, endOfDay } from 'date-fns';
 
 interface BalanceCardProps {
   currentBalance: number;
@@ -37,7 +37,9 @@ export function BalanceCard({
   const { isSwitching } = useAccount();
   const isGlassEnabled = preferences.liquidGlassEnabled;
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [activeBarIndex, setActiveBarIndex] = useState<number | undefined>(undefined);
+  const [activeLineIndex, setActiveLineIndex] = useState<number | undefined>(undefined);
 
   type TimePeriod = '1D' | '1W' | '1M' | '1Y';
 
@@ -86,7 +88,7 @@ export function BalanceCard({
       }
       
       case '1W': {
-        // Last 7 days - show individual day PnL only for days with trades
+        // Last 7 days - show all days with 0 for days without trades
         startDate = subDays(now, 6);
         startDate = startOfDay(startDate);
         label = 'this week';
@@ -101,35 +103,35 @@ export function BalanceCard({
           break;
         }
         
-        // Group trades by date and calculate each day's individual PnL
+        // Group trades by date
         const dayPnlMap = new Map<string, { pnl: number; date: Date }>();
         periodTrades.forEach(t => {
           const existing = dayPnlMap.get(t.date);
           if (existing) {
             existing.pnl += t.pnlAmount;
           } else {
-            // Parse the date string correctly to avoid timezone issues
             const [year, month, day] = t.date.split('-').map(Number);
             const tradeDate = new Date(year, month - 1, day);
             dayPnlMap.set(t.date, { pnl: t.pnlAmount, date: tradeDate });
           }
         });
         
-        // Sort by date and create data points only for days with trades
-        Array.from(dayPnlMap.entries())
-          .sort(([a], [b]) => a.localeCompare(b))
-          .forEach(([, { pnl, date }]) => {
-            dataPoints.push({
-              balance: pnl,
-              label: format(date, 'EEE'),
-              date: date
-            });
+        // Create data points for all days in the period, filling gaps with 0
+        const allDays = eachDayOfInterval({ start: startDate, end: now });
+        allDays.forEach((day) => {
+          const dateStr = format(day, 'yyyy-MM-dd');
+          const pnl = dayPnlMap.get(dateStr)?.pnl ?? 0;
+          dataPoints.push({
+            balance: pnl,
+            label: format(day, 'EEE'),
+            date: day
           });
+        });
         break;
       }
       
       case '1M': {
-        // Last 30 days - show individual day PnL only for days with trades
+        // Last 30 days - show all days with 0 for days without trades
         startDate = subDays(now, 29);
         startDate = startOfDay(startDate);
         label = 'this month';
@@ -144,30 +146,30 @@ export function BalanceCard({
           break;
         }
         
-        // Group trades by date and calculate each day's individual PnL
+        // Group trades by date
         const dayPnlMap = new Map<string, { pnl: number; date: Date }>();
         periodTrades.forEach(t => {
           const existing = dayPnlMap.get(t.date);
           if (existing) {
             existing.pnl += t.pnlAmount;
           } else {
-            // Parse the date string correctly to avoid timezone issues
             const [year, month, day] = t.date.split('-').map(Number);
             const tradeDate = new Date(year, month - 1, day);
             dayPnlMap.set(t.date, { pnl: t.pnlAmount, date: tradeDate });
           }
         });
         
-        // Sort by date and create data points only for days with trades
-        Array.from(dayPnlMap.entries())
-          .sort(([a], [b]) => a.localeCompare(b))
-          .forEach(([, { pnl, date }]) => {
-            dataPoints.push({
-              balance: pnl,
-              label: format(date, 'd'),
-              date: date
-            });
+        // Create data points for all days in the period, filling gaps with 0
+        const allDays = eachDayOfInterval({ start: startDate, end: now });
+        allDays.forEach((day) => {
+          const dateStr = format(day, 'yyyy-MM-dd');
+          const pnl = dayPnlMap.get(dateStr)?.pnl ?? 0;
+          dataPoints.push({
+            balance: pnl,
+            label: format(day, 'd'),
+            date: day
           });
+        });
         break;
       }
       
@@ -254,6 +256,28 @@ export function BalanceCard({
     })}`;
   }, []);
 
+  // Memoize the dot render function to prevent unnecessary re-renders during animation
+  const renderDot = useCallback((props: any) => {
+    const { cx, cy, index } = props;
+    if (cx === undefined || cy === undefined) return null;
+    const radius = activeLineIndex === index ? 6 : 4;
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill={isPositive ? positiveColor : negativeColor}
+        style={{ 
+          cursor: 'pointer',
+          transition: 'r 0.2s ease',
+          pointerEvents: 'visible'
+        }}
+        onMouseEnter={() => setActiveLineIndex(index)}
+        onMouseLeave={() => setActiveLineIndex(undefined)}
+      />
+    );
+  }, [activeLineIndex, isPositive, positiveColor, negativeColor]);
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length && payload[0].value !== null) {
       const pnl = payload[0].value;
@@ -335,90 +359,181 @@ export function BalanceCard({
             </p>
           </div>
 
-          {/* Period Selector - Top Right, raised higher on mobile */}
-          <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg bg-muted/50 flex-shrink-0 -mt-1 md:mt-0">
-            {periods.map(period => (
+          {/* Period Selector and Chart Type Toggle - Top Right */}
+          <div className="flex items-center gap-2 flex-shrink-0 -mt-1 md:mt-0">
+            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg bg-muted/50">
+              {periods.map(period => (
+                <button
+                  key={period}
+                  onClick={() => setSelectedPeriod(period)}
+                  className={cn(
+                    'px-2 md:px-2.5 py-1.5 md:py-1 rounded-md text-xs font-medium transition-all duration-200',
+                    selectedPeriod === period
+                      ? 'bg-foreground text-background shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg bg-muted/50">
               <button
-                key={period}
-                onClick={() => setSelectedPeriod(period)}
+                onClick={() => setChartType('bar')}
                 className={cn(
-                  'px-2 md:px-2.5 py-1.5 md:py-1 rounded-md text-xs font-medium transition-all duration-200',
-                  selectedPeriod === period
-                    ? 'bg-foreground text-background shadow-sm'
+                  'p-1.5 md:p-1 rounded-md transition-all duration-200 w-[28px] h-[28px] md:w-[26px] md:h-[26px] flex items-center justify-center',
+                  chartType === 'bar'
+                    ? 'bg-foreground text-background'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
+                aria-label="Bar chart"
+                title="Bar Chart"
               >
-                {period}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
+                  <path d="M17 20q-.425 0-.712-.288T16 19v-5q0-.425.288-.712T17 13h2q.425 0 .713.288T20 14v5q0 .425-.288.713T19 20zm-6 0q-.425 0-.712-.288T10 19V5q0-.425.288-.712T11 4h2q.425 0 .713.288T14 5v14q0 .425-.288.713T13 20zm-6 0q-.425 0-.712-.288T4 19v-9q0-.425.288-.712T5 9h2q.425 0 .713.288T8 10v9q0 .425-.288.713T7 20z"/>
+                </svg>
               </button>
-            ))}
+              <button
+                onClick={() => setChartType('line')}
+                className={cn(
+                  'p-1.5 md:p-1 rounded-md transition-all duration-200 w-[28px] h-[28px] md:w-[26px] md:h-[26px] flex items-center justify-center',
+                  chartType === 'line'
+                    ? 'bg-foreground text-background'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                aria-label="Line chart"
+                title="Line Chart"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
+                  <path d="M2.75 17.75q-.325-.325-.325-.75t.325-.75l5.325-5.325q.575-.575 1.425-.575t1.425.575L13.5 13.5l6.4-7.225q.275-.325.713-.325t.737.3q.275.275.287.662t-.262.688L14.9 14.9q-.575.65-1.425.688T12 15l-2.5-2.5-5.25 5.25q-.325.325-.75.325t-.75-.325"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bar Chart with X-Axis labels */}
+      {/* Chart Container - Bar or Line based on selection */}
       <div className="h-32 -mx-4 md:-mx-6 -mb-4 md:-mb-6">
         {hasData && chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
-              data={chartData} 
-              margin={{ top: 5, right: 16, left: 16, bottom: 24 }}
-              barCategoryGap="15%"
-              onMouseLeave={() => setActiveBarIndex(undefined)}
-            >
-              <YAxis 
-                domain={[(dataMin: number) => {
-                  const min = Math.min(dataMin, 0);
-                  return min - Math.abs(min) * 0.1;
-                }, (dataMax: number) => {
-                  const max = Math.max(dataMax, 0);
-                  return max + Math.abs(max) * 0.1;
-                }]} 
-                hide 
-              />
-              <XAxis 
-                dataKey="label"
-                axisLine={false}
-                tickLine={false}
-                tick={{ 
-                  fill: 'hsl(var(--muted-foreground))', 
-                  fontSize: 10,
-                  fontFamily: 'var(--font-display)'
-                }}
-                tickMargin={8}
-                interval="preserveStartEnd"
-              />
-              <Tooltip 
-                content={<CustomTooltip />}
-                cursor={false}
-              />
-              <Bar
-                dataKey="balance"
-                radius={[4, 4, 0, 0]}
-                isAnimationActive={!isSwitching}
-                animationDuration={600}
-                animationEasing="ease-out"
-                minPointSize={3}
+            {chartType === 'bar' ? (
+              <BarChart 
+                data={chartData} 
+                margin={{ top: 5, right: 16, left: 16, bottom: 24 }}
+                barCategoryGap="15%"
+                onMouseLeave={() => setActiveBarIndex(undefined)}
               >
-                {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.balance >= 0 ? positiveColor : negativeColor}
-                    className="transition-opacity duration-200 cursor-pointer"
-                    opacity={activeBarIndex === undefined || activeBarIndex === index ? 1 : 0.3}
-                    onMouseEnter={() => setActiveBarIndex(index)}
-                  />
-                ))}
-              </Bar>
-              {activeBarIndex !== undefined && chartData[activeBarIndex] && (
-                <ReferenceLine 
-                  y={chartData[activeBarIndex].balance} 
-                  stroke={chartData[activeBarIndex].balance >= 0 ? positiveColor : negativeColor} 
-                  strokeWidth={1} 
-                  strokeDasharray="3 3" 
-                  strokeOpacity={0.6} 
+                <YAxis 
+                  domain={[(dataMin: number) => {
+                    const min = Math.min(dataMin, 0);
+                    return min - Math.abs(min) * 0.1;
+                  }, (dataMax: number) => {
+                    const max = Math.max(dataMax, 0);
+                    return max + Math.abs(max) * 0.1;
+                  }]} 
+                  hide 
                 />
-              )}
-            </BarChart>
+                <XAxis 
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ 
+                    fill: 'hsl(var(--muted-foreground))', 
+                    fontSize: 10,
+                    fontFamily: 'var(--font-display)'
+                  }}
+                  tickMargin={8}
+                  interval="preserveStartEnd"
+                />
+                <Tooltip 
+                  content={<CustomTooltip />}
+                  cursor={false}
+                />
+                <Bar
+                  dataKey="balance"
+                  radius={[4, 4, 0, 0]}
+                  isAnimationActive={!isSwitching}
+                  animationDuration={600}
+                  animationEasing="ease-out"
+                  minPointSize={3}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.balance >= 0 ? positiveColor : negativeColor}
+                      className="transition-opacity duration-200 cursor-pointer"
+                      opacity={activeBarIndex === undefined || activeBarIndex === index ? 1 : 0.3}
+                      onMouseEnter={() => setActiveBarIndex(index)}
+                    />
+                  ))}
+                </Bar>
+                {activeBarIndex !== undefined && chartData[activeBarIndex] && (
+                  <ReferenceLine 
+                    y={chartData[activeBarIndex].balance} 
+                    stroke={chartData[activeBarIndex].balance >= 0 ? positiveColor : negativeColor} 
+                    strokeWidth={1} 
+                    strokeDasharray="3 3" 
+                    strokeOpacity={0.6} 
+                  />
+                )}
+              </BarChart>
+            ) : (
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 16, left: 16, bottom: 24 }}
+                onMouseLeave={() => setActiveLineIndex(undefined)}
+              >
+                <YAxis
+                  domain={[(dataMin: number) => {
+                    const min = Math.min(dataMin, 0);
+                    return min - Math.abs(min) * 0.1;
+                  }, (dataMax: number) => {
+                    const max = Math.max(dataMax, 0);
+                    return max + Math.abs(max) * 0.1;
+                  }]}
+                  hide
+                />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fill: 'hsl(var(--muted-foreground))',
+                    fontSize: 10,
+                    fontFamily: 'var(--font-display)'
+                  }}
+                  tickMargin={8}
+                  interval="preserveStartEnd"
+                />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="balance"
+                  stroke={isPositive ? positiveColor : negativeColor}
+                  strokeWidth={2}
+                  connectNulls={true}
+                  dot={renderDot}
+                  isAnimationActive={!isSwitching}
+                  animationDuration={350}
+                  animationEasing="ease-in-out"
+                />
+                {activeLineIndex !== undefined && activeLineIndex < chartData.length && (
+                  <ReferenceLine 
+                    x={activeLineIndex} 
+                    stroke={chartData[activeLineIndex].balance >= 0 ? positiveColor : negativeColor} 
+                    strokeWidth={1.5} 
+                    strokeDasharray="4 3" 
+                    strokeOpacity={0.8} 
+                    isFront={true}
+                  />
+                )}
+              </LineChart>
+            )}
           </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
