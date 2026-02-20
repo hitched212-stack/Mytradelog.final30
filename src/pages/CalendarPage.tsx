@@ -5,12 +5,16 @@ import { useSettings } from '@/hooks/useSettings';
 import { useAccount } from '@/hooks/useAccount';
 import { usePreferences, GoalPeriod } from '@/hooks/usePreferences';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ArrowLeftRight, TrendingUp, TrendingDown, Target, Activity, X, Plus, Link2, Calendar, MoreVertical, Eye, Pencil, Trash2, Grid3X3, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeftRight, TrendingUp, TrendingDown, Target, Activity, X, Plus, Link2, Calendar as CalendarIcon, MoreVertical, Eye, Pencil, Trash2, Grid3X3, CalendarDays } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths, getDay, startOfWeek, endOfWeek, isSameMonth, eachWeekOfInterval, addYears, subYears, startOfYear, eachMonthOfInterval, endOfYear } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 // Weekdays only (Mon-Fri) - excludes Saturday (6) and Sunday (0)
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const SHORT_DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 const WEEKDAY_INDICES = [1, 2, 3, 4, 5]; // Monday=1 through Friday=5
+const FULL_SHORT_DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { getCurrencySymbol, Trade, Currency } from '@/types/trade';
@@ -23,6 +27,8 @@ import { toast } from 'sonner';
 import { TradeViewDialogContent } from '@/components/trade/TradeViewDialog';
 import { ImageZoomDialog } from '@/components/ui/ImageZoomDialog';
 import { SymbolIcon } from '@/components/ui/SymbolIcon';
+import { BalanceCard } from '@/components/journal/BalanceCard';
+import { TypewriterDate } from '@/components/ui/TypewriterDate';
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -41,8 +47,10 @@ export default function CalendarPage() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const isMobile = useIsMobile();
   const goalPeriod = preferences.goalPeriod;
+  const [currentTime, setCurrentTime] = useState(new Date());
   
   // No browser storage persistence for calendar filters
   const {
@@ -54,7 +62,8 @@ export default function CalendarPage() {
     deleteTrade
   } = useTrades();
   const {
-    settings
+    settings,
+    setBalanceHidden
   } = useSettings();
   const { activeAccount } = useAccount();
   // Use active account's currency, fallback to profile settings (match dashboard)
@@ -76,6 +85,154 @@ export default function CalendarPage() {
     return `${sign}${currencySymbol}${absValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  const formatPnlCompact = (value: number) => {
+    const sign = value >= 0 ? '+' : '-';
+    return `${sign}${currencySymbol}${Math.abs(value).toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })}`;
+  };
+
+  const formatPnlAxis = (value: number) => {
+    const absValue = Math.abs(value);
+    if (absValue >= 1000) {
+      return `${value >= 0 ? '+' : '-'}${currencySymbol}${(absValue / 1000).toFixed(1)}k`;
+    }
+    return `${value >= 0 ? '+' : ''}${currencySymbol}${value.toFixed(0)}`;
+  };
+
+  const accountTrades = useMemo(() => {
+    if (!activeAccount) return trades;
+    return trades.filter(trade => trade.accountId === activeAccount.id);
+  }, [trades, activeAccount?.id]);
+
+  // Filter trades by date range
+  const filteredTrades = useMemo(() => {
+    if (!dateRange.from && !dateRange.to) return accountTrades;
+    
+    return accountTrades.filter(trade => {
+      const tradeDate = new Date(trade.date);
+      if (dateRange.from && dateRange.to) {
+        return tradeDate >= dateRange.from && tradeDate <= dateRange.to;
+      } else if (dateRange.from) {
+        return tradeDate >= dateRange.from;
+      }
+      return true;
+    });
+  }, [accountTrades, dateRange]);
+
+  const profitColor = preferences.customColors.winColor;
+  const lossColor = preferences.customColors.lossColor;
+
+  const parseHoldingTime = (time: string): number => {
+    if (!time || time.trim() === '') return 0;
+    let totalMinutes = 0;
+    const hourMatch = time.match(/(\d+)\s*h/i);
+    const minMatch = time.match(/(\d+)\s*m/i);
+    const secMatch = time.match(/(\d+)\s*s/i);
+    if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
+    if (minMatch) totalMinutes += parseInt(minMatch[1]);
+    if (secMatch) totalMinutes += parseInt(secMatch[1]) / 60;
+    return totalMinutes;
+  };
+
+  const formatHoldingTime = (minutes: number): string => {
+    if (minutes === 0) return '0m';
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    if (hours === 0) return `${mins}m`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}m`;
+  };
+
+  const holdingTimeByDay = useMemo(() => {
+    const dayData: {
+      [key: number]: {
+        winMinutes: number;
+        winCount: number;
+        lossMinutes: number;
+        lossCount: number;
+      };
+    } = {};
+
+    for (let i = 0; i < 7; i++) {
+      dayData[i] = {
+        winMinutes: 0,
+        winCount: 0,
+        lossMinutes: 0,
+        lossCount: 0
+      };
+    }
+
+    const filtered = filteredTrades.filter(t => !t.isPaperTrade && !t.noTradeTaken);
+    filtered.forEach(trade => {
+      const holdingMinutes = parseHoldingTime(trade.holdingTime);
+      if (holdingMinutes === 0) return;
+      const dayOfWeek = new Date(trade.date).getDay();
+      if (trade.pnlAmount > 0) {
+        dayData[dayOfWeek].winMinutes += holdingMinutes;
+        dayData[dayOfWeek].winCount += 1;
+      } else if (trade.pnlAmount < 0) {
+        dayData[dayOfWeek].lossMinutes += holdingMinutes;
+        dayData[dayOfWeek].lossCount += 1;
+      }
+    });
+
+    return FULL_SHORT_DAY_NAMES.map((day, index) => ({
+      day,
+      wins: dayData[index].winCount > 0 ? dayData[index].winMinutes / dayData[index].winCount : 0,
+      losses: dayData[index].lossCount > 0 ? dayData[index].lossMinutes / dayData[index].lossCount : 0
+    }));
+  }, [filteredTrades]);
+
+  const avgHoldingTimeWins = useMemo(() => {
+    const wins = filteredTrades.filter(t => t.pnlAmount > 0 && !t.isPaperTrade && !t.noTradeTaken);
+    const totalMinutes = wins.reduce((sum, t) => sum + parseHoldingTime(t.holdingTime), 0);
+    const avgMinutes = wins.length > 0 ? totalMinutes / wins.length : 0;
+    return formatHoldingTime(avgMinutes);
+  }, [filteredTrades]);
+
+  const avgHoldingTimeLosses = useMemo(() => {
+    const losses = filteredTrades.filter(t => t.pnlAmount < 0 && !t.isPaperTrade && !t.noTradeTaken);
+    const totalMinutes = losses.reduce((sum, t) => sum + parseHoldingTime(t.holdingTime), 0);
+    const avgMinutes = losses.length > 0 ? totalMinutes / losses.length : 0;
+    return formatHoldingTime(avgMinutes);
+  }, [filteredTrades]);
+
+  const entryTimeChartData = useMemo(() => {
+    const hourlyData = new Map<number, number>();
+    const filtered = filteredTrades.filter(t => !t.isPaperTrade && !t.noTradeTaken);
+
+    filtered.forEach(trade => {
+      if (!trade.entryTime) return;
+      const [hours] = trade.entryTime.split(':').map(Number);
+      if (isNaN(hours)) return;
+      const existing = hourlyData.get(hours) || 0;
+      hourlyData.set(hours, existing + trade.pnlAmount);
+    });
+
+    const formatHourRange = (h: number) => {
+      const formatSingle = (hour: number) => {
+        if (hour === 0) return '12AM';
+        if (hour === 12) return '12PM';
+        if (hour < 12) return `${hour}AM`;
+        return `${hour - 12}PM`;
+      };
+      return `${formatSingle(h)}-${formatSingle((h + 1) % 24)}`;
+    };
+
+    const data = Array.from(hourlyData.entries())
+      .map(([hour, pnl]) => ({
+        hour,
+        timeRange: formatHourRange(hour),
+        pnl
+      }))
+      .sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))
+      .slice(0, 4);
+
+    return data;
+  }, [filteredTrades]);
+
   // Calculate PnL percentage based on account starting balance
   const calculatePnlPercentage = (pnlAmount: number) => {
     const accountBalance = activeAccount?.starting_balance || 0;
@@ -83,6 +240,96 @@ export default function CalendarPage() {
       ? (pnlAmount / accountBalance * 100)
       : 0;
   };
+
+  const dashboardStats = useMemo(() => {
+    const realTrades = accountTrades.filter(t => !t.isPaperTrade && !t.noTradeTaken);
+
+    if (realTrades.length === 0) {
+      return {
+        totalPnl: 0,
+        winRate: 0,
+        profitFactor: 0,
+        avgWin: 0,
+        avgLoss: 0,
+        largestWin: 0,
+        largestLoss: 0,
+        totalTrades: 0,
+        wins: 0,
+        losses: 0,
+        currentStreak: 0,
+        maxStreak: 0
+      };
+    }
+
+    const wins = realTrades.filter(t => t.pnlAmount > 0);
+    const losses = realTrades.filter(t => t.pnlAmount < 0);
+    const totalPnl = realTrades.reduce((sum, t) => sum + t.pnlAmount, 0);
+    const winRate = realTrades.length > 0 ? (wins.length / realTrades.length) * 100 : 0;
+
+    const totalWins = wins.reduce((sum, t) => sum + t.pnlAmount, 0);
+    const totalLosses = Math.abs(losses.reduce((sum, t) => sum + t.pnlAmount, 0));
+    const profitFactor = totalLosses > 0 ? totalWins / totalLosses : totalWins > 0 ? Infinity : 0;
+
+    const avgWin = wins.length > 0 ? totalWins / wins.length : 0;
+    const avgLoss = losses.length > 0 ? totalLosses / losses.length : 0;
+    const largestWin = wins.length > 0 ? Math.max(...wins.map(t => t.pnlAmount)) : 0;
+    const largestLoss = losses.length > 0 ? Math.abs(Math.min(...losses.map(t => t.pnlAmount))) : 0;
+
+    const sortedTrades = [...realTrades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    let currentStreak = 0;
+    let maxStreak = 0;
+    let tempStreak = 0;
+    let isWinStreak = sortedTrades.length > 0 ? sortedTrades[0].pnlAmount >= 0 : true;
+
+    for (const trade of sortedTrades) {
+      const isWin = trade.pnlAmount >= 0;
+      if (isWin === isWinStreak) {
+        tempStreak++;
+        if (currentStreak === 0) currentStreak = tempStreak;
+      } else {
+        if (tempStreak > maxStreak) maxStreak = tempStreak;
+        tempStreak = 1;
+        isWinStreak = isWin;
+        if (currentStreak === 0) currentStreak = 1;
+      }
+    }
+    if (tempStreak > maxStreak) maxStreak = tempStreak;
+
+    return {
+      totalPnl,
+      winRate,
+      profitFactor,
+      avgWin,
+      avgLoss,
+      largestWin,
+      largestLoss,
+      totalTrades: realTrades.length,
+      wins: wins.length,
+      losses: losses.length,
+      currentStreak: sortedTrades.length > 0 && sortedTrades[0].pnlAmount >= 0 ? currentStreak : 0,
+      maxStreak
+    };
+  }, [accountTrades]);
+
+  const accountBalance = useMemo(() => {
+    const startingBalance = activeAccount?.starting_balance || 0;
+    return startingBalance + dashboardStats.totalPnl;
+  }, [activeAccount?.starting_balance, dashboardStats.totalPnl]);
+
+  const todayPnl = useMemo(() => getDailyPnl(format(new Date(), 'yyyy-MM-dd')), [getDailyPnl]);
+
+  const recentTrades = useMemo(() => {
+    return [...accountTrades]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 6);
+  }, [accountTrades]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Get monthly trades for stats - exclude paper trades
   const monthlyTrades = useMemo(() => {
@@ -363,7 +610,341 @@ export default function CalendarPage() {
   }, [dayOfWeekStats]);
     return <div className="min-h-screen pb-24">
       <div className="px-4 pt-2 md:px-6 md:pt-6 lg:px-8">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
+          {/* Greeting + Balance */}
+          <section className="w-full">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold text-foreground">
+                  Hey{settings.username ? `, ${settings.username}` : ''}
+                </h1>
+                <p className="text-muted-foreground text-sm mt-1">
+                  <TypewriterDate date={currentTime} />
+                </p>
+              </div>
+
+              {/* Date Range Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm",
+                      dateRange.from ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                    <span className="hidden md:inline">
+                      {dateRange.from ? (
+                        dateRange.to ? (
+                          `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                        ) : (
+                          format(dateRange.from, 'MMM dd')
+                        )
+                      ) : 'Date'}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={(range) => {
+                      setDateRange(range || { from: undefined, to: undefined } as any);
+                    }}
+                    numberOfMonths={2}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                  {dateRange.from && (
+                    <div className="p-3 border-t border-border">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full text-muted-foreground"
+                        onClick={() => {
+                          setDateRange({ from: undefined, to: undefined });
+                        }}
+                      >
+                        Clear date filter
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+              <div>
+                <BalanceCard
+                  currentBalance={accountBalance}
+                  currencySymbol={currencySymbol}
+                  trades={accountTrades.map(t => ({
+                    date: t.date,
+                    pnlAmount: t.pnlAmount
+                  }))}
+                  initialBalance={activeAccount?.starting_balance || 0}
+                  isBalanceHidden={settings.balanceHidden}
+                  onToggleBalanceHidden={() => setBalanceHidden(!settings.balanceHidden)}
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  {/* Avg. Holding Time */}
+                  <div className={cn(
+                    "rounded-2xl border p-4 relative overflow-hidden",
+                    preferences.liquidGlassEnabled
+                      ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
+                      : "border-border/50 bg-card"
+                  )}>
+                    {preferences.liquidGlassEnabled && (
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <pattern id="holding-time-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                            <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#holding-time-dots)" />
+                      </svg>
+                    )}
+                    <div className="relative">
+                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        Avg. Holding Time
+                      </h3>
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
+                          <span className="text-[11px] text-muted-foreground">Winners:</span>
+                          <span className="text-sm font-semibold" style={{ color: profitColor }}>{avgHoldingTimeWins}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: lossColor }} />
+                          <span className="text-[11px] text-muted-foreground">Losers:</span>
+                          <span className="text-sm font-semibold" style={{ color: lossColor }}>{avgHoldingTimeLosses}</span>
+                        </div>
+                      </div>
+                      <div className="h-24">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={holdingTimeByDay} barCategoryGap="20%" barGap={2}>
+                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} dy={5} />
+                            <YAxis hide />
+                            <Tooltip cursor={false} contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              color: 'hsl(var(--card-foreground))'
+                            }} formatter={(value: number, name: string) => [`${formatHoldingTime(value)}`, name === 'wins' ? 'Winners' : 'Losers']} />
+                            <Bar dataKey="wins" fill={profitColor} radius={[4, 4, 0, 0]} maxBarSize={18} />
+                            <Bar dataKey="losses" fill={lossColor} radius={[4, 4, 0, 0]} maxBarSize={18} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Entry Time Range */}
+                  <div className={cn(
+                    "rounded-2xl border p-4 relative overflow-hidden",
+                    preferences.liquidGlassEnabled
+                      ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
+                      : "border-border/50 bg-card"
+                  )}>
+                    {preferences.liquidGlassEnabled && (
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <pattern id="entry-time-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                            <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#entry-time-dots)" />
+                      </svg>
+                    )}
+                    <div className="relative">
+                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        Entry Time Range
+                      </h3>
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
+                          <span className="text-[11px] text-muted-foreground">Winners</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: lossColor }} />
+                          <span className="text-[11px] text-muted-foreground">Losers</span>
+                        </div>
+                      </div>
+                      <div style={{ height: Math.max(120, entryTimeChartData.length * 28) }}>
+                        {entryTimeChartData.length === 0 ? (
+                          <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                            No entry time data available
+                          </div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={entryTimeChartData}
+                              layout="vertical"
+                              barCategoryGap="20%"
+                              margin={{ left: 0, right: 10, top: 5, bottom: 5 }}
+                            >
+                              <XAxis
+                                type="number"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{
+                                  fill: 'hsl(var(--muted-foreground))',
+                                  fontSize: 10,
+                                  fontFamily: 'Outfit, system-ui, sans-serif',
+                                  fontWeight: 700
+                                }}
+                                tickFormatter={value => formatPnlAxis(value)}
+                              />
+                              <YAxis
+                                type="category"
+                                dataKey="timeRange"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{
+                                  fill: 'hsl(var(--muted-foreground))',
+                                  fontSize: 10,
+                                  style: { whiteSpace: 'nowrap' }
+                                }}
+                                width={72}
+                              />
+                              <Tooltip
+                                cursor={false}
+                                contentStyle={{
+                                  backgroundColor: 'hsl(var(--card))',
+                                  border: '1px solid hsl(var(--border))',
+                                  borderRadius: '8px',
+                                  fontSize: '12px',
+                                  color: 'hsl(var(--card-foreground))'
+                                }}
+                                labelStyle={{ color: 'hsl(var(--card-foreground))' }}
+                                itemStyle={{ color: 'hsl(var(--card-foreground))' }}
+                                formatter={(value: number) => [formatPnlAxis(value), 'P&L']}
+                                labelFormatter={label => label}
+                              />
+                              <Bar dataKey="pnl" radius={[0, 4, 4, 0]} fill="hsl(var(--primary))">
+                                {entryTimeChartData.map((entry, index) => (
+                                  <Cell
+                                    key={`entry-cell-${index}`}
+                                    fill={entry.pnl >= 0 ? profitColor : lossColor}
+                                  />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Trades */}
+              <div>
+                <div className="flex items-center justify-between mb-3 mt-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">Recent Trades</h3>
+                  </div>
+                  <button
+                    onClick={() => navigate('/history')}
+                    className="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 bg-foreground text-background shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    View All
+                  </button>
+                </div>
+
+                {recentTrades.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-border bg-card">
+                    <p className="text-muted-foreground text-sm">No trades found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {recentTrades.map(trade => (
+                      <div
+                        key={trade.id}
+                        onClick={() => {
+                          setSelectedTrade(trade);
+                          setTradeViewOpen(true);
+                        }}
+                        className={cn(
+                          "rounded-xl border px-3 py-2 cursor-pointer relative overflow-hidden group",
+                          "transition-all duration-200",
+                          "hover:scale-[1.01] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20",
+                          preferences.liquidGlassEnabled
+                            ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
+                            : "border-border/50 bg-card"
+                        )}
+                      >
+                        {preferences.liquidGlassEnabled && (
+                          <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                              <pattern id={`calendar-recent-${trade.id}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                                <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                              </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill={`url(#calendar-recent-${trade.id})`} />
+                          </svg>
+                        )}
+
+                        <div className="flex items-center justify-between relative">
+                          <div className="flex items-center gap-2">
+                            <SymbolIcon symbol={trade.symbol} size="sm" />
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-foreground">{trade.symbol}</span>
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide capitalize whitespace-nowrap",
+                                    trade.direction === 'long'
+                                      ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40"
+                                      : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
+                                  )}
+                                >
+                                  {trade.direction}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">
+                                {format(new Date(trade.date), 'dd/MM/yyyy')}
+                              </p>
+                            </div>
+                          </div>
+
+                          {!trade.isPaperTrade && !trade.noTradeTaken ? (
+                            <div className="text-right flex flex-col">
+                              <span
+                                className={cn(
+                                  'font-semibold text-sm font-display',
+                                  trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
+                                )}
+                              >
+                                {formatPnlCompact(trade.pnlAmount)}
+                              </span>
+                              <span
+                                className={cn(
+                                  'text-[10px] font-display mt-0.5',
+                                  trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
+                                )}
+                              >
+                                {calculatePnlPercentage(trade.pnlAmount) >= 0 ? '+' : ''}
+                                {calculatePnlPercentage(trade.pnlAmount).toFixed(2)}%
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
+                              {trade.isPaperTrade ? 'Paper' : 'No Trade'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           {/* Main Calendar Section - Full width on desktop */}
           <div className="w-full space-y-3">
             {/* Goal Progress Card - Professional Design */}

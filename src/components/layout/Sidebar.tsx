@@ -146,7 +146,6 @@ const navSections = [
     label: "Trading",
     items: [
       { to: "/dashboard", icon: GridDotsIcon, label: "Dashboard" },
-      { to: "/calendar", icon: CalendarIcon, label: "Calendar" },
       { to: "/history", icon: ClockHistoryIcon, label: "History" },
       { to: "/analytics", icon: BarChartIcon, label: "Analytics" },
     ],

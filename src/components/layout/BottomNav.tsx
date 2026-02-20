@@ -326,25 +326,6 @@ export function BottomNav() {
             </div>
           </NavLink>
 
-          {/* Calendar */}
-          <NavLink 
-            to="/calendar" 
-            data-nav-item
-            className="relative flex items-center justify-center z-10"
-          >
-            <div className="relative flex items-center justify-center w-12 h-12">
-              <CalendarIcon 
-                className={cn(
-                  'transition-all duration-300 ease-out',
-                  location.pathname === '/calendar' 
-                    ? 'h-[22px] w-[22px] text-foreground' 
-                    : 'h-5 w-5 text-muted-foreground'
-                )} 
-                strokeWidth={1.5}
-              />
-            </div>
-          </NavLink>
-
           {/* More Menu */}
           <Popover open={moreOpen} onOpenChange={setMoreOpen}>
             <PopoverTrigger asChild>

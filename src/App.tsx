@@ -194,7 +194,8 @@ const AppRoutes = () => {
       } />
       {/* Protected routes */}
       <Route element={<ProtectedLayout />}>
-        <Route path="/dashboard" element={<Journal />} />
+        <Route path="/dashboard" element={<CalendarPage />} />
+        <Route path="/journal" element={<Journal />} />
         <Route path="/coach" element={<PerformanceCoach />} />
         <Route path="/backtesting" element={<Backtesting />} />
         <Route path="/playbook" element={<Playbook />} />
