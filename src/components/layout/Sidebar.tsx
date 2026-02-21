@@ -277,10 +277,10 @@ export function Sidebar({
   return (
     <motion.aside
       className={cn(
-        "hidden md:flex flex-col fixed top-4 left-4 z-40 rounded-2xl shadow-2xl overflow-hidden",
+        "hidden md:flex flex-col fixed top-4 left-4 z-40 rounded-2xl shadow-2xl overflow-hidden border",
         isGlassEnabled
-          ? "bg-sidebar/95 dark:bg-sidebar/80 backdrop-blur-xl border border-sidebar-border dark:border-sidebar-border/30"
-          : "bg-sidebar border border-sidebar-border dark:border-sidebar-border/30"
+          ? "bg-sidebar/95 dark:bg-sidebar/80 backdrop-blur-xl border-sidebar-border/50 dark:border-sidebar-border/30"
+          : "bg-sidebar border-sidebar-border/50 dark:border-sidebar-border/30"
       )}
       style={{ height: "calc(100vh - 32px)" }}
       initial={false}

@@ -921,7 +921,7 @@ export default function CalendarPage() {
                       </div>
                       <div style={{ height: Math.max(120, entryTimeChartData.length * 28) }}>
                         {entryTimeChartData.length === 0 ? (
-                          <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                          <div className="h-full flex items-center justify-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                             No entry time data available
                           </div>
                         ) : (
@@ -1020,7 +1020,7 @@ export default function CalendarPage() {
 
                 {recentTrades.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-border bg-card">
-                    <p className="text-muted-foreground text-sm">No trades found</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades found</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -1389,6 +1389,7 @@ export default function CalendarPage() {
                             const dateStr = format(day, 'yyyy-MM-dd');
                             const dayPnl = getDailyPnl(dateStr);
                             const dayTrades = trades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
+                            const noTradeTakenCount = trades.filter(t => t.date === dateStr && t.noTradeTaken).length;
                             const tradeCount = dayTrades.length;
                             const wins = dayTrades.filter(t => t.pnlAmount > 0).length;
                             const winRate = tradeCount > 0 ? Math.round((wins / tradeCount) * 100) : 0;
@@ -1432,6 +1433,11 @@ export default function CalendarPage() {
                                     <div className="text-[8px] text-muted-foreground">
                                       {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
                                     </div>
+                                  </div>
+                                )}
+                                {tradeCount === 0 && noTradeTakenCount > 0 && (
+                                  <div className="text-[8px] text-muted-foreground">
+                                    No Trades
                                   </div>
                                 )}
                               </button>
@@ -1635,7 +1641,7 @@ export default function CalendarPage() {
                   
                   {monthlyTrades.length === 0 ? (
                     <div className="h-56 flex items-center justify-center">
-                      <p className="text-sm text-muted-foreground">No trades this month</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades this month</p>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
@@ -1730,7 +1736,7 @@ export default function CalendarPage() {
                   <div className="flex flex-col items-center">
                     {monthlyTrades.length === 0 ? (
                       <div className="h-56 flex items-center justify-center">
-                        <p className="text-sm text-muted-foreground">No trades this month</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades this month</p>
                       </div>
                     ) : (
                       <div className="w-full h-56">

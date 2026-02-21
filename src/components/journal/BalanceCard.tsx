@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { BarChart, Bar, LineChart, Line, ResponsiveContainer, YAxis, Tooltip, XAxis, Cell, ReferenceLine } from 'recharts';
+import { BarChart, Bar, LineChart, Line, ResponsiveContainer, YAxis, Tooltip, XAxis, Cell, ReferenceLine, CartesianGrid, Legend } from 'recharts';
 import { Eye, EyeOff } from 'lucide-react';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useAccount } from '@/hooks/useAccount';
@@ -23,6 +23,7 @@ interface ChartDataPoint {
   balance: number;
   label: string;
   date: Date;
+  previousBalance?: number;
 }
 
 export function BalanceCard({ 
@@ -46,7 +47,7 @@ export function BalanceCard({
   const periods: TimePeriod[] = ['1D', '1W', '1M', '1Y'];
 
   // Compute chart data strictly based on selected period
-  const { chartData, percentageChange, periodLabel, hasData } = useMemo(() => {
+  const { chartData, percentageChange, periodLabel, hasData, hasPreviousBalance } = useMemo(() => {
     const now = new Date();
     let startDate: Date;
     let label: string;
@@ -141,6 +142,26 @@ export function BalanceCard({
         
         const periodTrades = trades.filter(t => t.date >= startStr && t.date <= endStr);
         
+        // Get previous month data (30 days before current period)
+        const prevMonthStartDate = subDays(startDate, 30);
+        const prevMonthStartStr = format(prevMonthStartDate, 'yyyy-MM-dd');
+        const prevMonthEndStr = format(subDays(startDate, 1), 'yyyy-MM-dd');
+        const prevMonthTrades = trades.filter(t => t.date >= prevMonthStartStr && t.date <= prevMonthEndStr);
+        
+        // Create previous month map
+        const prevMonthPnlMap = new Map<number, { pnl: number; date: Date }>();
+        prevMonthTrades.forEach(t => {
+          const [year, month, day] = t.date.split('-').map(Number);
+          const tradeDate = new Date(year, month - 1, day);
+          const dayOfMonth = tradeDate.getDate();
+          const existing = prevMonthPnlMap.get(dayOfMonth);
+          if (existing) {
+            existing.pnl += t.pnlAmount;
+          } else {
+            prevMonthPnlMap.set(dayOfMonth, { pnl: t.pnlAmount, date: tradeDate });
+          }
+        });
+        
         // If no trades this month, return empty
         if (periodTrades.length === 0) {
           break;
@@ -161,8 +182,11 @@ export function BalanceCard({
         
         // Only show days that have trades
         dayPnlMap.forEach((data, dateStr) => {
+          const dayOfMonth = data.date.getDate();
+          const prevMonthData = prevMonthPnlMap.get(dayOfMonth);
           dataPoints.push({
             balance: data.pnl,
+            previousBalance: prevMonthData?.pnl ?? 0,
             label: format(data.date, 'd'),
             date: data.date
           });
@@ -224,6 +248,7 @@ export function BalanceCard({
 
     // Check if we have any valid data points with actual balance values
     const hasValidData = dataPoints.some(d => d.balance !== null);
+    const hasPreviousBalance = dataPoints.some(d => d.previousBalance !== undefined && d.previousBalance !== null && d.previousBalance !== 0);
 
     // Calculate percentage change: sum of all PnL values in the period divided by starting balance
     const totalPnl = dataPoints.reduce((sum, d) => sum + (d.balance ?? 0), 0);
@@ -239,13 +264,18 @@ export function BalanceCard({
       chartData: dataPoints,
       percentageChange: changePercent,
       periodLabel: label,
-      hasData: hasValidData
+      hasData: hasValidData,
+      hasPreviousBalance
     };
   }, [selectedPeriod, trades, initialBalance, currentBalance]);
 
   const isPositive = percentageChange >= 0;
   const positiveColor = 'hsl(var(--pnl-positive))';
   const negativeColor = 'hsl(var(--pnl-negative))';
+
+  // Get current month and previous month names
+  const currentMonthName = format(new Date(), 'MMM');
+  const previousMonthName = format(subDays(new Date(), 30), 'MMM');
 
   // Format function for animated balance (without currency symbol)
   const formatBalance = useCallback((value: number) => {
@@ -324,7 +354,7 @@ export function BalanceCard({
           {/* Balance Header */}
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-sm text-muted-foreground">Total Balance</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Balance</p>
               <button
                 onClick={onToggleBalanceHidden}
                 className="text-muted-foreground hover:text-foreground transition-colors"
@@ -439,9 +469,10 @@ export function BalanceCard({
                   axisLine={false}
                   tickLine={false}
                   tick={{ 
-                    fill: 'hsl(var(--muted-foreground))', 
+                    fill: 'hsl(var(--muted-foreground) / 0.6)', 
                     fontSize: 10,
-                    fontFamily: 'var(--font-display)'
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 600
                   }}
                   tickMargin={8}
                   interval="preserveStartEnd"
@@ -482,27 +513,42 @@ export function BalanceCard({
             ) : (
               <LineChart
                 data={chartData}
-                margin={{ top: 5, right: 16, left: 16, bottom: 24 }}
+                margin={{ top: 5, right: 16, left: 16, bottom: 10 }}
                 onMouseLeave={() => setActiveLineIndex(undefined)}
               >
+                <CartesianGrid 
+                  stroke="hsl(var(--border))" 
+                  opacity={1}
+                  horizontal={true}
+                  vertical={false}
+                  strokeDasharray="3 3"
+                  strokeWidth={0.5}
+                />
                 <YAxis
-                  domain={[(dataMin: number) => {
-                    const min = Math.min(dataMin, 0);
-                    return min - Math.abs(min) * 0.1;
-                  }, (dataMax: number) => {
-                    const max = Math.max(dataMax, 0);
-                    return max + Math.abs(max) * 0.1;
-                  }]}
-                  hide
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fill: 'hsl(var(--muted-foreground) / 0.6)',
+                    fontSize: 10,
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 600
+                  }}
+                  tickFormatter={(value) => {
+                    const roundedValue = Math.round(value);
+                    if (roundedValue >= 1000) return `${(roundedValue / 1000).toFixed(0)}k`;
+                    return roundedValue.toString();
+                  }}
+                  width={40}
                 />
                 <XAxis
                   dataKey="label"
                   axisLine={false}
                   tickLine={false}
                   tick={{
-                    fill: 'hsl(var(--muted-foreground))',
+                    fill: 'hsl(var(--muted-foreground) / 0.6)',
                     fontSize: 10,
-                    fontFamily: 'var(--font-display)'
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 600
                   }}
                   tickMargin={8}
                   interval="preserveStartEnd"
@@ -511,6 +557,9 @@ export function BalanceCard({
                   content={<CustomTooltip />}
                   cursor={false}
                 />
+                {selectedPeriod === '1M' && (
+                  <></>
+                )}
                 <Line
                   type="monotone"
                   dataKey="balance"
@@ -521,7 +570,23 @@ export function BalanceCard({
                   isAnimationActive={!isSwitching}
                   animationDuration={350}
                   animationEasing="ease-in-out"
+                  name="balance"
                 />
+                {selectedPeriod === '1M' && hasPreviousBalance && (
+                  <Line
+                    type="monotone"
+                    dataKey="previousBalance"
+                    stroke="hsl(var(--muted-foreground))"
+                    strokeWidth={2}
+                    connectNulls={true}
+                    strokeOpacity={0.5}
+                    dot={false}
+                    isAnimationActive={!isSwitching}
+                    animationDuration={350}
+                    animationEasing="ease-in-out"
+                    name="previousBalance"
+                  />
+                )}
                 {activeLineIndex !== undefined && activeLineIndex < chartData.length && (
                   <ReferenceLine 
                     x={activeLineIndex} 
@@ -536,7 +601,7 @@ export function BalanceCard({
             )}
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
             No trades {periodLabel}
           </div>
         )}
