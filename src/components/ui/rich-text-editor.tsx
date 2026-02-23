@@ -18,19 +18,19 @@ export function RichTextEditor({
   className = '',
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [initialized, setInitialized] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isBulletList, setIsBulletList] = useState(false);
   const [isNumberedList, setIsNumberedList] = useState(false);
 
-  // Initialize editor content
+  // Keep editor content in sync with value
   useEffect(() => {
-    if (editorRef.current && !initialized) {
-      editorRef.current.innerHTML = value || '';
-      setInitialized(true);
+    if (!editorRef.current) return;
+    const nextValue = value || '';
+    if (editorRef.current.innerHTML !== nextValue) {
+      editorRef.current.innerHTML = nextValue;
     }
-  }, [initialized, value]);
+  }, [value]);
 
   // Update format indicators
   const updateFormatIndicators = () => {
@@ -187,6 +187,12 @@ export function RichTextEditor({
     updateFormatIndicators();
   };
 
+  const handleBlur = () => {
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
+
   return (
     <div className="space-y-2">
       {/* Toolbar */}
@@ -304,6 +310,7 @@ export function RichTextEditor({
         onKeyUp={handleKeyUp}
         onMouseUp={handleMouseUp}
         onPaste={handlePaste}
+        onBlur={handleBlur}
         className={cn(
           "w-full p-3 bg-background border border-border rounded-b-lg",
           "text-foreground text-sm outline-none",
