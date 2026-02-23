@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Plus, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -265,11 +266,10 @@ export function ForecastDialog({ open, onOpenChange, forecast, onSave, isSaving 
                   maxImages={3}
                 />
 
-                <Textarea
+                <RichTextEditor
                   placeholder="Your pre-market analysis notes..."
                   value={chart.notes}
-                  onChange={(e) => updateChart(chart.id, 'notes', e.target.value, false)}
-                  className="min-h-[80px] bg-background border-border"
+                  onChange={(text) => updateChart(chart.id, 'notes', text, false)}
                 />
               </div>
             ))}
@@ -326,21 +326,19 @@ export function ForecastDialog({ open, onOpenChange, forecast, onSave, isSaving 
                     maxImages={3}
                   />
 
-                  <Textarea
+                  <RichTextEditor
                     placeholder="Your post-market review notes..."
                     value={chart.notes}
-                    onChange={(e) => updateChart(chart.id, 'notes', e.target.value, true)}
-                    className="min-h-[80px] bg-background border-border"
+                    onChange={(text) => updateChart(chart.id, 'notes', text, true)}
                   />
                 </div>
               ))
             )}
 
-            <Textarea
+            <RichTextEditor
               placeholder="Overall post-market notes and lessons learned..."
               value={postMarketNotes}
-              onChange={(e) => setPostMarketNotes(e.target.value)}
-              className="min-h-[80px] bg-background border-border"
+              onChange={(text) => setPostMarketNotes(text)}
             />
           </div>
 

@@ -9,6 +9,7 @@ import { useTradingPreferences } from '@/hooks/useTradingPreferences';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Label } from '@/components/ui/label';
 import { useToast, dismissAllToasts } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -1118,8 +1119,8 @@ export function TradeForm({
 
               {/* Notes */}
               <div className="space-y-1.5">
-                <Label htmlFor="notes" className="text-sm text-foreground">Notes</Label>
-                <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} placeholder="Add any additional notes about this trade..." rows={4} className="bg-background border-border text-foreground placeholder:text-muted-foreground resize-none text-sm focus:border-ring" />
+                <Label className="text-sm text-foreground">Notes</Label>
+                <RichTextEditor value={formData.notes} onChange={(text) => handleChange({ target: { name: 'notes', value: text } } as any)} placeholder="Add any additional notes about this trade..." />
               </div>
             </div>}
 
@@ -1157,11 +1158,10 @@ export function TradeForm({
                       )}
                     </div>
                     <ImageUpload images={chart.images} onChange={images => updateBeforeChart(chart.id, 'images', images)} maxImages={5} timeframeLabel={getTimeframeLabel(chart.timeframe)} />
-                    <Textarea 
+                    <RichTextEditor 
                       placeholder="Your analysis notes for chart before trade..." 
                       value={chart.notes} 
-                      onChange={e => updateBeforeChart(chart.id, 'notes', e.target.value)} 
-                      className="min-h-[60px] bg-background border-border text-foreground placeholder:text-muted-foreground resize-none text-sm focus:border-ring" 
+                      onChange={(text) => updateBeforeChart(chart.id, 'notes', text)}
                     />
                   </div>
                 ))}
@@ -1206,11 +1206,10 @@ export function TradeForm({
                       )}
                     </div>
                     <ImageUpload images={chart.images} onChange={images => updateAfterChart(chart.id, 'images', images)} maxImages={5} timeframeLabel={getTimeframeLabel(chart.timeframe)} />
-                    <Textarea 
+                    <RichTextEditor 
                       placeholder="Your analysis notes for chart after trade..." 
                       value={chart.notes} 
-                      onChange={e => updateAfterChart(chart.id, 'notes', e.target.value)} 
-                      className="min-h-[60px] bg-background border-border text-foreground placeholder:text-muted-foreground resize-none text-sm focus:border-ring" 
+                      onChange={(text) => updateAfterChart(chart.id, 'notes', text)}
                     />
                   </div>
                 ))}
@@ -1245,11 +1244,10 @@ export function TradeForm({
                     )}
                   </div>
                   <ImageUpload images={chart.images} onChange={images => updatePreMarketChart(chart.id, 'images', images)} maxImages={5} timeframeLabel={getTimeframeLabel(chart.timeframe)} />
-                  <Textarea 
+                  <RichTextEditor 
                     placeholder="Your pre-market analysis and forecast notes..." 
                     value={chart.notes} 
-                    onChange={e => updatePreMarketChart(chart.id, 'notes', e.target.value)} 
-                    className="min-h-[60px] bg-background border-border text-foreground placeholder:text-muted-foreground resize-none text-sm focus:border-ring" 
+                    onChange={(text) => updatePreMarketChart(chart.id, 'notes', text)}
                   />
                 </div>
               ))}
@@ -1286,11 +1284,10 @@ export function TradeForm({
                     )}
                   </div>
                   <ImageUpload images={chart.images} onChange={images => updatePostMarketChart(chart.id, 'images', images)} maxImages={5} timeframeLabel={getTimeframeLabel(chart.timeframe)} />
-                  <Textarea 
+                  <RichTextEditor 
                     placeholder="Your post-market review and what actually happened..." 
                     value={chart.notes} 
-                    onChange={e => updatePostMarketChart(chart.id, 'notes', e.target.value)} 
-                    className="min-h-[60px] bg-background border-border text-foreground placeholder:text-muted-foreground resize-none text-sm focus:border-ring" 
+                    onChange={(text) => updatePostMarketChart(chart.id, 'notes', text)}
                   />
                 </div>
               ))}
@@ -1346,7 +1343,7 @@ export function TradeForm({
               {/* Overall Emotions */}
               <div className="p-4 rounded-xl border border-border/60 bg-card">
                 <span className="text-xs font-medium text-muted-foreground mb-3 block">Overall Emotions</span>
-                <Textarea name="overallEmotions" value={formData.overallEmotions} onChange={handleChange} placeholder="Describe your emotions and thoughts about this trade..." rows={4} className="bg-background/50 border-border/60 text-foreground placeholder:text-muted-foreground resize-none text-sm" />
+                <RichTextEditor value={formData.overallEmotions} onChange={(text) => handleChange({ target: { name: 'overallEmotions', value: text } } as any)} placeholder="Describe your emotions and thoughts about this trade..." />
               </div>
             </div>}
 

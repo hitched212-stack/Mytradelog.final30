@@ -10,6 +10,9 @@ import {
   Wallet,
   Check,
   Bot,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
@@ -188,7 +191,7 @@ export function Sidebar({
   const { accounts, activeAccount, setActiveAccount } = useAccount();
   const { trades } = useTrades();
   const { settings } = useSettings();
-  const { preferences } = usePreferences();
+  const { preferences, setTheme } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const [isCollapsedState, setIsCollapsedState] = useState(false);
   const [isTradingOpen, setIsTradingOpen] = useState(true);
@@ -298,96 +301,23 @@ export function Sidebar({
           <rect width="100%" height="100%" fill="url(#sidebar-dots)" />
         </svg>
       )}
-      {/* Header with Account Switcher */}
+      {/* Header Logo */}
       <div className="p-3">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                "flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer w-full",
-                isCollapsed && "justify-center",
-              )}
-            >
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground flex-shrink-0">
-                <SlashLogoIcon className="h-4 w-4 text-background" />
-              </div>
-              {!isCollapsed && (
-                <div className="flex items-center justify-between flex-1 overflow-hidden transition-opacity duration-200">
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-semibold text-foreground truncate">
-                      {activeAccount?.name || "MyTradeLog"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {activeAccount
-                        ? formatBalance(accountBalances[activeAccount.id] || 0, activeAccount.currency || "USD")
-                        : "Pro"}
-                    </span>
-                  </div>
-                  <ChevronsUpDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                </div>
-              )}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            side="bottom"
-            className="w-72 p-2 bg-card border border-border dark:border-border/50 shadow-lg z-50"
-            sideOffset={8}
-          >
-            {/* Trading Accounts Section */}
-            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-              Trading Accounts
-            </DropdownMenuLabel>
-
-            {/* Active Account */}
-            {activeAccount && (
-              <div className="px-2 py-2 rounded-md bg-muted/50 mx-1 mb-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-foreground/10 flex items-center justify-center flex-shrink-0">
-                      <Wallet className="h-4 w-4 text-foreground" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{activeAccount.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatBalance(accountBalances[activeAccount.id] || 0, activeAccount.currency || "USD")}
-                      </p>
-                    </div>
-                  </div>
-                  <Check className="h-4 w-4 text-pnl-positive flex-shrink-0" />
-                </div>
-              </div>
+        <div className={cn(
+          "flex items-center gap-2 transition-all duration-200",
+          isCollapsed ? "justify-center" : ""
+        )}>
+          <button
+            className={cn(
+              "flex items-center justify-center w-8 h-8 rounded-lg bg-foreground hover:opacity-80 transition-opacity flex-shrink-0",
             )}
-
-            {/* Other Accounts */}
-            {otherAccounts.map((account) => (
-              <DropdownMenuItem
-                key={account.id}
-                onClick={() => setActiveAccount(account)}
-                className="py-2 px-2 cursor-pointer mx-1"
-              >
-                <div className="flex items-center gap-2 min-w-0 w-full">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                    <Wallet className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{account.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatBalance(accountBalances[account.id] || 0, account.currency || "USD")}
-                    </p>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-            ))}
-
-            <DropdownMenuSeparator className="my-1" />
-
-            <DropdownMenuItem onClick={() => navigate("/settings/accounts")} className="py-2 px-2 cursor-pointer">
-              <Wallet className="mr-3 h-4 w-4 text-muted-foreground" />
-              <span>Manage accounts</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          >
+            <SlashLogoIcon className="h-4 w-4 text-background" />
+          </button>
+          {!isCollapsed && (
+            <span className="text-xs font-bold uppercase tracking-widest text-foreground whitespace-nowrap">MyTradeLog</span>
+          )}
+        </div>
       </div>
 
       {/* Add Trade Button */}
@@ -711,6 +641,35 @@ export function Sidebar({
               <SettingsIcon className="mr-3 h-4 w-4 text-muted-foreground" />
               <span>Settings</span>
             </DropdownMenuItem>
+            
+            {/* Theme Switch */}
+            <div className="px-2 py-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Theme</span>
+                <div className="flex items-center gap-1">
+                  {[
+                    { value: 'light', icon: Sun },
+                    { value: 'dark', icon: Moon },
+                    { value: 'system', icon: Monitor }
+                  ].map(({ value, icon: Icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => setTheme(value as any)}
+                      className={cn(
+                        "p-1.5 rounded transition-colors",
+                        preferences.theme === value
+                          ? "bg-foreground/10 text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      title={value.charAt(0).toUpperCase() + value.slice(1)}
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={1.5} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem onClick={handleSignOut} className="py-2.5 px-2 cursor-pointer">
               <LogOut className="mr-3 h-4 w-4 text-muted-foreground" />

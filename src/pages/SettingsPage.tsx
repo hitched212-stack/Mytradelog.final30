@@ -3,7 +3,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { ChevronRight, User, LogOut, Eye, EyeOff } from 'lucide-react';
+import { ChevronRight, User, LogOut, Eye, EyeOff, Lock, Mail, Palette, Bell, Briefcase, Users, Link as LinkIcon, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -272,241 +272,344 @@ export default function SettingsPage() {
     await signOut();
   };
 
+  const [activeTab, setActiveTab] = useState<'organization' | 'user' | 'integration' | 'compliance'>('organization');
+
+  const orgId = 'NDIS 435678965';
+
+  const tabs = [
+    { id: 'organization' as const, label: 'Organization', icon: Briefcase },
+    { id: 'user' as const, label: 'User & Permissions', icon: Users },
+    { id: 'integration' as const, label: 'Integration', icon: LinkIcon },
+    { id: 'compliance' as const, label: 'Compliance', icon: CheckSquare },
+  ];
+
   return (
     <div className="min-h-screen pb-24">
       {/* Profile Header */}
-      <header className="px-4 pt-8 pb-6 md:px-6 lg:px-8">
-        <div className="flex flex-col items-center text-center">
-          <div className="relative mb-4">
-            <div className="relative h-24 w-24 rounded-full bg-muted flex items-center justify-center border-2 border-border overflow-hidden">
-              <User className="h-12 w-12 text-foreground/50" strokeWidth={1.5} />
+      <header className="px-4 pt-8 pb-6 md:px-6 lg:px-8 border-b border-border/50">
+        {/* Top Bar with Settings Title and Profile */}
+        <div className="flex items-start justify-between mb-6">
+          <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Settings</h1>
+          
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm font-medium text-foreground">{settings.username || 'User'}</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
+            </div>
+            <div className="relative h-10 w-10 rounded-full bg-muted flex items-center justify-center border border-border">
+              <User className="h-5 w-5 text-foreground/50" strokeWidth={1.5} />
             </div>
           </div>
-          
-          {isEditingUsername ? (
-            <div className="flex items-center gap-2 mb-2">
-              <Input
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                className="h-9 w-40 text-center bg-muted border-border"
-                autoFocus
-              />
-              <Button size="sm" onClick={handleSaveUsername} className="h-9">
-                Save
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setIsEditingUsername(false)} className="h-9">
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <button
-              onClick={() => {
-                setUsernameInput(settings.username || '');
-                setIsEditingUsername(true);
-              }}
-              className="text-2xl font-bold text-foreground hover:text-foreground/80 transition-colors mb-1"
-            >
-              {settings.username || 'Tap to set name'}
-            </button>
-          )}
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 flex-wrap">
+          {tabs.map((tab) => {
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all whitespace-nowrap rounded-lg",
+                  activeTab === tab.id
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <TabIcon className="h-4 w-4" strokeWidth={1.5} />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </header>
 
       {/* Settings Content */}
-      <div className="px-4 md:px-6 lg:px-8 space-y-6">
-        {/* Time Zone Section */}
-        <SettingsSection title="Time Zone" isGlassEnabled={isGlassEnabled} patternId="settings-timezone-dots">
-          <div className="p-4 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <GlobeIcon className="w-4 h-4 text-primary" />
-                <Label className="text-sm font-semibold text-foreground">Time Zone</Label>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-muted-foreground">Current time</div>
-                <div className="text-lg font-bold text-foreground">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
-              </div>
+      <div className="px-4 md:px-6 lg:px-8 py-6">
+        {/* Organization Tab */}
+        {activeTab === 'organization' && (
+          <div className="space-y-6 max-w-2xl">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Organization Details</h3>
+              <SettingsSection title="Profile" isGlassEnabled={isGlassEnabled} patternId="settings-org-profile">
+                <div className="p-4 space-y-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Organization Name</Label>
+                    <p className="text-sm text-foreground mt-1">{settings.username || 'Your Organization'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Email</Label>
+                      <p className="text-sm text-foreground mt-1">{user?.email}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Member Since</Label>
+                      <p className="text-sm text-foreground mt-1">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              </SettingsSection>
             </div>
 
-            <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
-              <SelectTrigger className="w-full rounded-lg bg-muted/40 border-border/60">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-60">
-                {TIMEZONE_GROUPS.map((group) => (
-                  <div key={group.region}>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      {group.region}
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Time Zone & Localization</h3>
+              <SettingsSection title="Settings" isGlassEnabled={isGlassEnabled} patternId="settings-timezone-dots">
+                <div className="p-4 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <GlobeIcon className="w-4 h-4 text-primary" />
+                      <Label className="text-sm font-semibold text-foreground">Time Zone</Label>
                     </div>
-                    {group.timezones.map((tz) => (
-                      <SelectItem key={tz.value} value={tz.value}>
-                        <span className="font-medium">{tz.label}</span>
-                        <span className="text-muted-foreground"> • {tz.name}</span>
-                      </SelectItem>
-                    ))}
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">Current time</div>
+                      <div className="text-lg font-bold text-foreground">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
+                    </div>
                   </div>
-                ))}
-              </SelectContent>
-            </Select>
 
-            <p className="text-xs text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
+                  <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
+                    <SelectTrigger className="w-full rounded-lg bg-muted/40 border-border/60">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {TIMEZONE_GROUPS.map((group) => (
+                        <div key={group.region}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            {group.region}
+                          </div>
+                          {group.timezones.map((tz) => (
+                            <SelectItem key={tz.value} value={tz.value}>
+                              <span className="font-medium">{tz.label}</span>
+                              <span className="text-muted-foreground"> • {tz.name}</span>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <p className="text-xs text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
+
+                  <Button
+                    onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
+                    className="w-full mt-1 text-sm h-10 rounded-lg"
+                    disabled={preferences.timeZone === timeZoneInput}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </SettingsSection>
+            </div>
+          </div>
+        )}
+
+        {/* User & Permissions Tab */}
+        {activeTab === 'user' && (
+          <div className="space-y-6 max-w-2xl">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Account Settings</h3>
+              <SettingsSection title="Account" isGlassEnabled={isGlassEnabled} patternId="settings-account-dots">
+                <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
+                  <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left group border-b border-border/50">
+                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+                      <KeyRoundIcon className="h-5 w-5 text-foreground/70" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground">Change Password</p>
+                      <p className="text-sm text-muted-foreground">Update your account password</p>
+                    </div>
+                    <ChevronRight className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${showPasswordReset ? 'rotate-90' : ''}`} strokeWidth={1.5} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="border-b border-border/50">
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <Label htmlFor="newPassword" className="text-sm text-muted-foreground">New Password</Label>
+                        <div className="relative mt-1.5">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            className="bg-muted/50 border-border pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showNewPassword ? (
+                              <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+                            ) : (
+                              <Eye className="h-4 w-4" strokeWidth={1.5} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="confirmPassword" className="text-sm text-muted-foreground">Confirm Password</Label>
+                        <div className="relative mt-1.5">
+                          <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm new password"
+                            className="bg-muted/50 border-border pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+                            ) : (
+                              <Eye className="h-4 w-4" strokeWidth={1.5} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleResetPassword}
+                        disabled={isResettingPassword || !newPassword || !confirmPassword}
+                        className="w-full"
+                      >
+                        {isResettingPassword ? 'Updating...' : 'Update Password'}
+                      </Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible open={showEmailChange} onOpenChange={setShowEmailChange}>
+                  <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left group border-b border-border/50">
+                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+                      <MailIcon className="h-5 w-5 text-foreground/70" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground">Change Email</p>
+                      <p className="text-sm text-muted-foreground">Update your email address</p>
+                    </div>
+                    <ChevronRight className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${showEmailChange ? 'rotate-90' : ''}`} strokeWidth={1.5} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="border-b border-border/50">
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <Label className="text-sm text-muted-foreground">Current Email</Label>
+                        <p className="text-sm text-foreground mt-1">{user?.email}</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="newEmail" className="text-sm text-muted-foreground">New Email</Label>
+                        <div className="relative mt-1.5">
+                          <Input
+                            id="newEmail"
+                            type="email"
+                            value={newEmail}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            placeholder="Enter new email address"
+                            className="bg-muted/50 border-border"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        A confirmation email will be sent to both your current and new email addresses.
+                      </p>
+                      <Button
+                        onClick={handleChangeEmail}
+                        disabled={isChangingEmail || !newEmail}
+                        className="w-full"
+                      >
+                        {isChangingEmail ? 'Sending...' : 'Change Email'}
+                      </Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </SettingsSection>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Preferences</h3>
+              <SettingsSection title="Appearance & More" isGlassEnabled={isGlassEnabled} patternId="settings-pref-dots">
+                <SettingsItem
+                  icon={PaletteIcon}
+                  title="Appearance"
+                  subtitle="Theme, accent color & effects"
+                  onClick={() => navigate('/settings/preferences')}
+                />
+                <SettingsItem
+                  icon={CreditCardIcon}
+                  title="Billing & Subscription"
+                  subtitle="Manage your plan and payment method"
+                  onClick={() => navigate('/settings/billing')}
+                />
+              </SettingsSection>
+            </div>
 
             <Button
-              onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
-              className="w-full mt-1 text-sm h-10 rounded-lg"
-              disabled={preferences.timeZone === timeZoneInput}
+              onClick={handleSignOut}
+              variant="outline"
+              className="w-full h-12 text-muted-foreground hover:text-foreground"
             >
-              Save
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
             </Button>
           </div>
-        </SettingsSection>
-        {/* Account Section */}
-        <SettingsSection title="Account" isGlassEnabled={isGlassEnabled} patternId="settings-account-dots">
-          <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
-            <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left group border-b border-border/50">
-              <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                <KeyRoundIcon className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-base text-foreground">Change Password</p>
-                <p className="text-sm text-muted-foreground">Update your account password</p>
-              </div>
-              <ChevronRight className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${showPasswordReset ? 'rotate-90' : ''}`} strokeWidth={1.5} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="border-b border-border/50">
-              <div className="p-4 space-y-4">
-                <div>
-                  <Label htmlFor="newPassword" className="text-sm text-muted-foreground">New Password</Label>
-                  <div className="relative mt-1.5">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
-                      className="bg-muted/50 border-border pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showNewPassword ? (
-                        <EyeOff className="h-4 w-4" strokeWidth={1.5} />
-                      ) : (
-                        <Eye className="h-4 w-4" strokeWidth={1.5} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="confirmPassword" className="text-sm text-muted-foreground">Confirm Password</Label>
-                  <div className="relative mt-1.5">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm new password"
-                      className="bg-muted/50 border-border pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" strokeWidth={1.5} />
-                      ) : (
-                        <Eye className="h-4 w-4" strokeWidth={1.5} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <Button
-                  onClick={handleResetPassword}
-                  disabled={isResettingPassword || !newPassword || !confirmPassword}
-                  className="w-full"
-                >
-                  {isResettingPassword ? 'Updating...' : 'Update Password'}
-                </Button>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-          <Collapsible open={showEmailChange} onOpenChange={setShowEmailChange}>
-            <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left group border-b border-border/50">
-              <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                <MailIcon className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-base text-foreground">Change Email</p>
-                <p className="text-sm text-muted-foreground">Update your email address</p>
-              </div>
-              <ChevronRight className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${showEmailChange ? 'rotate-90' : ''}`} strokeWidth={1.5} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="border-b border-border/50">
-              <div className="p-4 space-y-4">
-                <div>
-                  <Label className="text-sm text-muted-foreground">Current Email</Label>
-                  <p className="text-sm text-foreground mt-1">{user?.email}</p>
-                </div>
-                <div>
-                  <Label htmlFor="newEmail" className="text-sm text-muted-foreground">New Email</Label>
-                  <div className="relative mt-1.5">
-                    <Input
-                      id="newEmail"
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder="Enter new email address"
-                      className="bg-muted/50 border-border"
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  A confirmation email will be sent to both your current and new email addresses.
-                </p>
-                <Button
-                  onClick={handleChangeEmail}
-                  disabled={isChangingEmail || !newEmail}
-                  className="w-full"
-                >
-                  {isChangingEmail ? 'Sending...' : 'Change Email'}
-                </Button>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-          <SettingsItem
-            icon={CreditCardIcon}
-            title="Billing & Subscription"
-            subtitle="Manage your plan and payment method"
-            onClick={() => navigate('/settings/billing')}
-          />
-          <SettingsItem
-            icon={PaletteIcon}
-            title="Appearance"
-            subtitle="Theme, accent color & effects"
-            onClick={() => navigate('/settings/preferences')}
-          />
-          <SettingsItem
-            icon={ShieldAlertIcon}
-            title="Account Security"
-            subtitle="Erase data or delete account"
-            onClick={() => navigate('/settings/security')}
-            variant="danger"
-          />
-        </SettingsSection>
+        )}
 
-        {/* Sign Out */}
-        <Button
-          onClick={handleSignOut}
-          variant="outline"
-          className="w-full h-12 mt-4 text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
+        {/* Integration Tab */}
+        {activeTab === 'integration' && (
+          <div className="space-y-6 max-w-2xl">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Connected Services</h3>
+              <SettingsSection title="Integrations" isGlassEnabled={isGlassEnabled} patternId="settings-integration-dots">
+                <div className="p-6 text-center">
+                  <p className="text-muted-foreground">No integrations configured yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">Connect external services to enhance your trading workflow</p>
+                </div>
+              </SettingsSection>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">API Keys</h3>
+              <SettingsSection title="API Access" isGlassEnabled={isGlassEnabled} patternId="settings-api-dots">
+                <div className="p-6 text-center">
+                  <p className="text-muted-foreground">API key management coming soon</p>
+                  <p className="text-sm text-muted-foreground mt-2">Manage your API keys for programmatic access</p>
+                </div>
+              </SettingsSection>
+            </div>
+          </div>
+        )}
+
+        {/* Compliance Tab */}
+        {activeTab === 'compliance' && (
+          <div className="space-y-6 max-w-2xl">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Data & Privacy</h3>
+              <SettingsSection title="Data Management" isGlassEnabled={isGlassEnabled} patternId="settings-compliance-dots">
+                <div className="p-4 space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Export Your Data</h4>
+                    <p className="text-sm text-muted-foreground mb-3">Download a copy of your trades and settings</p>
+                    <Button variant="outline" className="w-full">Export Data</Button>
+                  </div>
+                </div>
+              </SettingsSection>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Account Security</h3>
+              <SettingsSection title="Danger Zone" isGlassEnabled={isGlassEnabled} patternId="settings-security-dots">
+                <SettingsItem
+                  icon={ShieldAlertIcon}
+                  title="Account Security"
+                  subtitle="Erase data or delete account"
+                  onClick={() => navigate('/settings/security')}
+                  variant="danger"
+                />
+              </SettingsSection>
+            </div>
+          </div>
+        )}
       </div>
 
     </div>

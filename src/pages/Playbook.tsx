@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImageZoomDialog } from '@/components/ui/ImageZoomDialog';
 import { ExpandableGalleryCard } from '@/components/ui/ExpandableGalleryCard';
@@ -487,11 +488,10 @@ export default function Playbook() {
               maxImages={5} 
               timeframeLabel={getTimeframeLabel(chart.timeframe)} 
             />
-            <Textarea 
+            <RichTextEditor 
               placeholder="Your analysis notes for this timeframe..." 
               value={chart.notes} 
-              onChange={(e) => updateChart(chart.id, 'notes', e.target.value)} 
-              className="min-h-[60px] bg-muted/50 border-border resize-none text-sm" 
+              onChange={(text) => updateChart(chart.id, 'notes', text)}
             />
           </div>
         ))}
