@@ -255,8 +255,8 @@ export default function History() {
 
   return (
     <div className="min-h-screen p-4 md:p-6 pb-32 md:pb-6 space-y-6">
-      {/* Header with Integrated Search, Filters, and Stats */}
-      <div className="rounded-2xl border border-border/50 bg-card/60 p-4 space-y-3">
+      {/* Mobile Header - Two Rows */}
+      <div className="md:hidden rounded-2xl border border-border/50 bg-card/60 p-4 space-y-3">
         {/* Top row: Title and Search */}
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
@@ -324,20 +324,132 @@ export default function History() {
 
         {/* Bottom row: Filters - scrollable on mobile */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4">
-          {/* Stats Section */}
-          <div className="hidden lg:flex items-center gap-4 pr-4 border-r border-border/50 flex-shrink-0">
+          {/* Sort Filter */}
+          <Select 
+            value={`${sortField}-${sortDirection}`}
+            onValueChange={(value) => {
+              const [field, direction] = value.split('-') as ['date' | 'pnl', 'asc' | 'desc'];
+              setSortField(field);
+              setSortDirection(direction);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-auto h-8 px-3 py-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted text-xs flex-shrink-0">
+              <SlidersHorizontal className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date-desc">Newest</SelectItem>
+              <SelectItem value="date-asc">Oldest</SelectItem>
+              <SelectItem value="pnl-desc">Best</SelectItem>
+              <SelectItem value="pnl-asc">Worst</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Direction Filter Buttons */}
+          <div className="flex gap-1 bg-muted/30 rounded-xl p-1 flex-shrink-0">
+            {[
+              { value: 'all' as const, label: 'All' },
+              { value: 'long' as const, label: 'Buy' },
+              { value: 'short' as const, label: 'Sell' },
+            ].map(option => (
+              <button
+                key={option.value}
+                onClick={() => setDirectionFilter(option.value)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ease-out whitespace-nowrap',
+                  directionFilter === option.value
+                    ? 'bg-foreground text-background shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop/Tablet Header - Single Row */}
+      <div className="hidden md:flex items-center gap-3 rounded-2xl border border-border/50 bg-card/60 p-4">
+        {/* Title and Stats */}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          <div>
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{filteredTrades.length} total trades</p>
+          </div>
+          <div className="w-px h-8 bg-border/50" />
+          <div className="flex items-center gap-3">
             <div className="text-center">
               <div className="text-xs font-medium text-muted-foreground">Buys</div>
               <div className="text-sm font-semibold text-foreground">{buyCounts}</div>
             </div>
-            <div className="w-px h-6 bg-border/50" />
             <div className="text-center">
               <div className="text-xs font-medium text-muted-foreground">Sells</div>
               <div className="text-sm font-semibold text-foreground">{sellCounts}</div>
             </div>
           </div>
-          
-        {/* Sort Filter */}
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search by symbol..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-8 h-9 rounded-lg bg-muted/50 border-border/50 text-sm"
+          />
+        </div>
+
+        {/* Date Picker */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "h-9 gap-2 rounded-lg bg-muted/50 border-border/50 hover:bg-muted flex-shrink-0 px-3",
+                dateRange.from ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="h-4 w-4" />
+              <span className="text-sm">Date</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={(range) => {
+                setDateRange(range || { from: undefined, to: undefined } as any);
+                setCurrentPage(1);
+              }}
+              numberOfMonths={2}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+            {dateRange.from && (
+              <div className="p-3 border-t border-border">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full text-muted-foreground"
+                  onClick={() => {
+                    setDateRange({ from: undefined, to: undefined });
+                    setCurrentPage(1);
+                  }}
+                >
+                  Clear date filter
+                </Button>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {/* Sort Dropdown */}
         <Select 
           value={`${sortField}-${sortDirection}`}
           onValueChange={(value) => {
@@ -347,8 +459,7 @@ export default function History() {
             setCurrentPage(1);
           }}
         >
-          <SelectTrigger className="w-auto h-8 px-3 py-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted text-xs flex-shrink-0">
-            <SlidersHorizontal className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+          <SelectTrigger className="w-auto h-9 gap-2 rounded-lg bg-muted/50 border-border/50 hover:bg-muted flex-shrink-0 px-3">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
@@ -360,7 +471,7 @@ export default function History() {
         </Select>
 
         {/* Direction Filter Buttons */}
-        <div className="flex gap-1 bg-muted/30 rounded-xl p-1 flex-shrink-0">
+        <div className="flex gap-1 bg-muted/30 rounded-lg p-1 flex-shrink-0">
           {[
             { value: 'all' as const, label: 'All' },
             { value: 'long' as const, label: 'Buy' },
@@ -370,7 +481,7 @@ export default function History() {
               key={option.value}
               onClick={() => setDirectionFilter(option.value)}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ease-out whitespace-nowrap',
+                'px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap',
                 directionFilter === option.value
                   ? 'bg-foreground text-background shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -379,7 +490,6 @@ export default function History() {
               {option.label}
             </button>
           ))}
-        </div>
         </div>
       </div>
 
@@ -514,20 +624,14 @@ export default function History() {
                         </td>
                         {/* Grade */}
                         <td className="py-3 px-3 text-center">
-                          {trade.executionGrade ? (
-                            <Badge 
-                              variant="outline"
-                              className={cn(
-                                "text-[9px] px-2 py-0.5 font-bold border-0 whitespace-nowrap",
-                                trade.executionGrade === 'A' ? "bg-pnl-positive/10 text-pnl-positive" :
-                                trade.executionGrade === 'B' ? "bg-blue-500/10 text-blue-500" :
-                                trade.executionGrade === 'C' ? "bg-yellow-500/10 text-yellow-500" :
-                                trade.executionGrade === 'D' ? "bg-orange-500/10 text-orange-500" :
-                                "bg-pnl-negative/10 text-pnl-negative"
-                              )}
-                            >
-                              {trade.executionGrade}
-                            </Badge>
+                          {trade.performanceGrade ? (
+                            <span className={cn(
+                              "font-semibold px-2 py-0.5 rounded-md text-[9px]",
+                              trade.performanceGrade >= 3 ? "bg-pnl-positive/15 text-pnl-positive" :
+                              trade.performanceGrade >= 2 ? "bg-amber-500/15 text-amber-500" : "bg-pnl-negative/15 text-pnl-negative"
+                            )}>
+                              {trade.performanceGrade}/3
+                            </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}

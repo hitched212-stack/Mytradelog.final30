@@ -633,7 +633,7 @@ export function Sidebar({
               </div>
             </div>
             <DropdownMenuSeparator className="my-1.5" />
-            <DropdownMenuItem onClick={() => navigate("/settings/billing")} className="py-2 px-2.5 rounded-xl cursor-pointer hover:bg-muted/50">
+            <DropdownMenuItem onClick={() => navigate("/settings?tab=billing")} className="py-2 px-2.5 rounded-xl cursor-pointer hover:bg-muted/50">
               <CreditCard className="mr-3 h-4 w-4 text-muted-foreground" />
               <span className="text-sm">Billing</span>
             </DropdownMenuItem>

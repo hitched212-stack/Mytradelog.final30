@@ -942,11 +942,15 @@ export default function Analytics() {
             
             {/* Right: Chart Type Toggle */}
             <div className="flex items-center bg-muted rounded-lg p-1">
-              <button onClick={() => setEquityChartView('line')} className={cn("p-2 rounded-md transition-all duration-200", equityChartView === 'line' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                <LineChart className="h-4 w-4" />
-              </button>
               <button onClick={() => setEquityChartView('bar')} className={cn("p-2 rounded-md transition-all duration-200", equityChartView === 'bar' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                <BarChart3 className="h-4 w-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                  <path d="M17 20q-.425 0-.712-.288T16 19v-5q0-.425.288-.712T17 13h2q.425 0 .713.288T20 14v5q0 .425-.288.713T19 20zm-6 0q-.425 0-.712-.288T10 19V5q0-.425.288-.712T11 4h2q.425 0 .713.288T14 5v14q0 .425-.288.713T13 20zm-6 0q-.425 0-.712-.288T4 19v-9q0-.425.288-.712T5 9h2q.425 0 .713.288T8 10v9q0 .425-.288.713T7 20z"/>
+                </svg>
+              </button>
+              <button onClick={() => setEquityChartView('line')} className={cn("p-2 rounded-md transition-all duration-200", equityChartView === 'line' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                  <path d="M2.75 17.75q-.325-.325-.325-.75t.325-.75l5.325-5.325q.575-.575 1.425-.575t1.425.575L13.5 13.5l6.4-7.225q.275-.325.713-.325t.737.3q.275.275.287.662t-.262.688L14.9 14.9q-.575.65-1.425.688T12 15l-2.5-2.5-5.25 5.25q-.325.325-.75.325t-.75-.325"/>
+                </svg>
               </button>
             </div>
           </div>

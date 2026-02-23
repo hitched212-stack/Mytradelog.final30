@@ -1,17 +1,29 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { usePreferences } from '@/hooks/usePreferences';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PreferencesSettings from '@/pages/settings/PreferencesSettings';
 import BillingSettings from '@/pages/settings/BillingSettings';
 import { useState, useEffect } from 'react';
-import { ChevronRight, User, LogOut, Eye, EyeOff, Lock, Mail, Palette, Bell, Settings2, UserCog, ShieldCheck } from 'lucide-react';
+import { ChevronRight, User, LogOut, Eye, EyeOff, Lock, Mail, Palette, Bell, Settings2, UserCog, ShieldCheck, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
@@ -176,6 +188,7 @@ export default function SettingsPage() {
   const [timeZoneInput, setTimeZoneInput] = useState(preferences.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showEmailChange, setShowEmailChange] = useState(false);
   const [newEmail, setNewEmail] = useState('');
@@ -185,6 +198,20 @@ export default function SettingsPage() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Initialize activeTab from URL parameter
+  const urlParams = new URLSearchParams(location.search);
+  const tabParam = urlParams.get('tab') as 'organization' | 'user' | 'billing' | 'compliance' | null;
+  const [activeTab, setActiveTab] = useState<'organization' | 'user' | 'billing' | 'compliance'>(tabParam || 'organization');
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const tabParam = urlParams.get('tab') as 'organization' | 'user' | 'billing' | 'compliance' | null;
+    if (tabParam && ['organization', 'user', 'billing', 'compliance'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
 
   // Update time every second for live preview
   useEffect(() => {
@@ -264,7 +291,89 @@ export default function SettingsPage() {
     await signOut();
   };
 
-  const [activeTab, setActiveTab] = useState<'organization' | 'user' | 'billing' | 'compliance'>('organization');
+  const { toast: toastHook } = useToast();
+
+  const handleEraseAllData = async () => {
+    if (!user) return;
+
+    try {
+      // Delete all user data in order (respecting foreign key constraints)
+      const { error: tradesError } = await supabase
+        .from('trades')
+        .delete()
+        .eq('user_id', user.id);
+      if (tradesError) throw tradesError;
+
+      const { error: backtestsError } = await supabase
+        .from('backtests')
+        .delete()
+        .eq('user_id', user.id);
+      if (backtestsError) throw backtestsError;
+
+      const { error: playbookError } = await supabase
+        .from('playbook_setups')
+        .delete()
+        .eq('user_id', user.id);
+      if (playbookError) throw playbookError;
+
+      const { error: messagesError } = await supabase
+        .from('ai_messages')
+        .delete()
+        .eq('user_id', user.id);
+      if (messagesError) throw messagesError;
+
+      const { error: conversationsError } = await supabase
+        .from('ai_conversations')
+        .delete()
+        .eq('user_id', user.id);
+      if (conversationsError) throw conversationsError;
+
+      const { error: foldersError } = await supabase
+        .from('folders')
+        .delete()
+        .eq('user_id', user.id);
+      if (foldersError) throw foldersError;
+
+      toastHook({
+        title: 'Data Erased',
+        description: 'All trading data has been deleted',
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.error('Error erasing data:', error);
+      toastHook({
+        title: 'Error',
+        description: 'Failed to erase data',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase.functions.invoke('delete-user');
+
+      if (error) throw error;
+
+      toastHook({
+        title: 'Account Deleted',
+        description: 'Your account has been deleted successfully',
+      });
+      
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toastHook({
+        title: 'Error',
+        description: 'Failed to delete account',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const orgId = 'NDIS 435678965';
 
@@ -295,7 +404,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1 rounded-xl bg-muted/40 border border-border/60 p-1 overflow-x-auto">
+        <div className="inline-flex items-center gap-1 rounded-xl bg-muted/40 border border-border/60 p-1 overflow-x-auto">
           {tabs.map((tab) => {
             const TabIcon = tab.icon;
             return (
@@ -549,41 +658,126 @@ export default function SettingsPage() {
 
         {/* Compliance Tab */}
         {activeTab === 'compliance' && (
-          <div className="space-y-6 max-w-5xl w-full">
+          <div className="space-y-8 max-w-3xl w-full">
+            {/* Header */}
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Data & Privacy</h3>
-              <SettingsSection title="Data Management" isGlassEnabled={isGlassEnabled} patternId="settings-compliance-dots">
-                <div className="p-4 space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Export Your Data</h4>
-                    <p className="text-sm text-muted-foreground mb-3">Download a copy of your trades and settings</p>
-                    <Button variant="outline" className="w-full">Export Data</Button>
-                  </div>
-                </div>
-              </SettingsSection>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Danger Zone</h3>
+              <p className="text-sm text-muted-foreground">
+                These actions are permanent and cannot be reversed.
+              </p>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Account Security</h3>
-              <SettingsSection title="Danger Zone" isGlassEnabled={isGlassEnabled} patternId="settings-security-dots">
-                <SettingsItem
-                  icon={ShieldAlertIcon}
-                  title="Account Security"
-                  subtitle="Erase data or delete account"
-                  onClick={() => navigate('/settings/security')}
-                  variant="danger"
-                />
-                <div className="p-4">
-                  <Button
-                    onClick={handleSignOut}
-                    variant="outline"
-                    className="w-full h-12 text-muted-foreground hover:text-foreground"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
+            {/* Danger Actions */}
+            <div className="space-y-4">
+              {/* Erase All Data */}
+              <div className="group relative rounded-xl border border-border/60 bg-card hover:border-destructive/30 transition-all duration-200 overflow-hidden">
+                <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                <div className="relative p-6">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="h-11 w-11 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0 group-hover:bg-destructive/15 transition-colors">
+                        <Trash2 className="h-5 w-5 text-destructive" strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-foreground mb-1.5">Erase All Trading Data</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          Permanently remove all trades, charts, and journal entries. Your account and settings remain untouched.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                        Erase Data
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Erase all trading data?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all your trades, charts, and trading history. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleEraseAllData}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Erase All Data
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
-              </SettingsSection>
+              </div>
+
+              {/* Delete Account */}
+              <div className="group relative rounded-xl border-2 border-destructive/40 bg-card hover:border-destructive/60 transition-all duration-200 overflow-hidden">
+                <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                <div className="relative p-6">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="h-11 w-11 rounded-xl bg-destructive/15 flex items-center justify-center flex-shrink-0 group-hover:bg-destructive/20 transition-colors">
+                        <AlertTriangle className="h-5 w-5 text-destructive" strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-destructive mb-1.5">Delete Account Permanently</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          Complete account deletion including all data, settings, and profile information. This cannot be undone.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                      >
+                        <AlertTriangle className="h-3.5 w-3.5 mr-2" />
+                        Delete Account
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete your account and all associated data. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete Account
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </div>
+
+            {/* Sign Out - Separate Section */}
+            <div className="pt-4 border-t border-border/50">
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                className="w-full h-11 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
           </div>
         )}
