@@ -169,9 +169,6 @@ export function BottomNav() {
       )}
     >
       <div className="relative mx-auto max-w-sm">
-        {/* Subtle outer glow */}
-        <div className="absolute -inset-[1px] rounded-[26px] bg-gradient-to-b from-foreground/[0.08] to-transparent pointer-events-none" />
-        
         <div 
           ref={containerRef}
           className={cn(

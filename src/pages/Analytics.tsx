@@ -1036,10 +1036,7 @@ export default function Analytics() {
                 r: 8,
                 fill: stats.totalPnl >= 0 ? profitColor : lossColor,
                 stroke: 'hsl(var(--background))',
-                strokeWidth: 3,
-                style: {
-                  filter: `drop-shadow(0 0 8px ${stats.totalPnl >= 0 ? profitColor : lossColor}) drop-shadow(0 0 16px ${stats.totalPnl >= 0 ? profitColor : lossColor})`
-                }
+                strokeWidth: 3
               }} animationDuration={1500} animationEasing="ease-out" />
                 </AreaChart> : <BarChart data={equityCurveData} margin={{
               top: 10,
