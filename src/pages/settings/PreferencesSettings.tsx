@@ -96,35 +96,31 @@ function PresetChip({ preset, isActive, onSelect }: PresetChipProps) {
   );
 }
 
-export default function PreferencesSettings() {
+interface PreferencesSettingsProps {
+  embedded?: boolean;
+}
+
+export default function PreferencesSettings({ embedded = false }: PreferencesSettingsProps) {
   const navigate = useNavigate();
-  const { 
-    preferences, 
-    setCustomColor, 
-    setTheme,
-    setLiquidGlassEnabled,
-    createPreset, 
-    deletePreset, 
-    applyPreset 
-  } = usePreferences();
+  const { preferences, setTheme, setCustomColor, setLiquidGlassEnabled, createPreset, deletePreset, applyPreset } = usePreferences();
   const { toast } = useToast();
-  
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
 
-  const activePreset = preferences.presets.find(p => p.id === preferences.activePresetId);
+  const activePreset = preferences.presets.find((preset) => preset.id === preferences.activePresetId);
 
   const handleCreatePreset = () => {
     if (!newPresetName.trim()) {
       toast({
-        title: 'Error',
-        description: 'Please enter a preset name',
+        title: 'Preset name required',
+        description: 'Please enter a name for the preset.',
         variant: 'destructive',
       });
       return;
     }
-    
+
     createPreset(newPresetName.trim());
     setNewPresetName('');
     setShowCreateDialog(false);
@@ -151,28 +147,29 @@ export default function PreferencesSettings() {
   };
 
   return (
-    <div className="min-h-screen pb-24">
-      {/* Header */}
-      <header className="px-4 pt-6 pb-8 md:px-6 lg:px-8">
-        <button
-          onClick={() => navigate('/settings')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
-          <span className="text-sm">Back</span>
-        </button>
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/50">
-            <Palette className="h-6 w-6 text-muted-foreground" strokeWidth={1.5} />
+    <div className={embedded ? '' : 'min-h-screen pb-24'}>
+      {!embedded && (
+        <header className="px-4 pt-6 pb-8 md:px-6 lg:px-8">
+          <button
+            onClick={() => navigate('/settings')}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
+            <span className="text-sm">Back</span>
+          </button>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/50">
+              <Palette className="h-6 w-6 text-muted-foreground" strokeWidth={1.5} />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Appearance</h1>
+              <p className="text-sm text-muted-foreground">Customize your trading interface</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Appearance</h1>
-            <p className="text-sm text-muted-foreground">Customize your trading interface</p>
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <div className="px-4 md:px-6 lg:px-8 max-w-4xl">
+      <div className={embedded ? 'max-w-4xl space-y-8' : 'px-4 md:px-6 lg:px-8 max-w-4xl'}>
         <div className="space-y-8">
           {/* Theme Section */}
           <section className="space-y-4">
@@ -206,8 +203,8 @@ export default function PreferencesSettings() {
                     </p>
                   </div>
                 </div>
-                <Switch 
-                  checked={preferences.liquidGlassEnabled} 
+                <Switch
+                  checked={preferences.liquidGlassEnabled}
                   onCheckedChange={setLiquidGlassEnabled}
                 />
               </div>
@@ -280,7 +277,6 @@ export default function PreferencesSettings() {
               />
             </div>
           </section>
-
         </div>
       </div>
 

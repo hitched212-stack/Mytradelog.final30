@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, XCircle, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,10 +19,86 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 
-export default function BillingSettings() {
+interface BillingSettingsProps {
+  embedded?: boolean;
+}
+
+interface BillingInvoice {
+  id: string;
+  number: string | null;
+  status: string | null;
+  amount_paid: number | null;
+  amount_due: number | null;
+  currency: string | null;
+  created: number | null;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+}
+
+export default function BillingSettings({ embedded = false }: BillingSettingsProps) {
   const navigate = useNavigate();
   const { subscription, loading, isActive, renewalDate, planName, monthlyPrice } = useSubscription();
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [invoicesError, setInvoicesError] = useState<string | null>(null);
+
+  const contentClassName = embedded ? "space-y-6" : "px-4 md:px-6 lg:px-8 space-y-6";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchInvoices = async () => {
+      if (!subscription) {
+        if (isMounted) {
+          setInvoices([]);
+          setInvoicesLoading(false);
+        }
+        return;
+      }
+
+      setInvoicesLoading(true);
+      setInvoicesError(null);
+      try {
+        const { data, error } = await supabase.functions.invoke('list-invoices');
+        if (error) throw error;
+        if (isMounted) {
+          setInvoices((data?.invoices as BillingInvoice[]) || []);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setInvoicesError(err?.message || 'Failed to load billing history');
+          setInvoices([]);
+        }
+      } finally {
+        if (isMounted) setInvoicesLoading(false);
+      }
+    };
+
+    fetchInvoices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [subscription]);
+
+  const formatInvoiceAmount = (amount: number | null, currency: string | null) => {
+    if (amount === null || currency === null) return '—';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+      maximumFractionDigits: 2,
+    }).format(amount / 100);
+  };
+
+  const formatInvoiceDate = (timestamp: number | null) => {
+    if (!timestamp) return '—';
+    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   const handleCancelSubscription = () => {
     toast.success('Subscription cancelled. You will have access until the end of your billing period.');
@@ -48,24 +124,26 @@ export default function BillingSettings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pb-24">
-        <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
-          <button
-            onClick={() => navigate('/settings')}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back</span>
-          </button>
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-10 w-10 rounded-xl" />
-            <div>
-              <Skeleton className="h-6 w-48 mb-2" />
-              <Skeleton className="h-4 w-32" />
+      <div className={embedded ? "" : "min-h-screen pb-24"}>
+        {!embedded && (
+          <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
+            <button
+              onClick={() => navigate('/settings')}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </button>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-xl" />
+              <div>
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
             </div>
-          </div>
-        </header>
-        <div className="px-4 md:px-6 lg:px-8 space-y-6">
+          </header>
+        )}
+        <div className={contentClassName}>
           <Skeleton className="h-24 w-full rounded-2xl" />
           <Skeleton className="h-24 w-full rounded-2xl" />
         </div>
@@ -76,27 +154,29 @@ export default function BillingSettings() {
   // No subscription found
   if (!subscription) {
     return (
-      <div className="min-h-screen pb-24">
-        <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
-          <button
-            onClick={() => navigate('/settings')}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back</span>
-          </button>
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-              <CreditCard className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+      <div className={embedded ? "" : "min-h-screen pb-24"}>
+        {!embedded && (
+          <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
+            <button
+              onClick={() => navigate('/settings')}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </button>
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Billing & Subscription</h1>
+                <p className="text-xs text-muted-foreground mt-1">Manage your subscription and payment</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Billing & Subscription</h1>
-              <p className="text-xs text-muted-foreground mt-1">Manage your subscription and payment</p>
-            </div>
-          </div>
-        </header>
+          </header>
+        )}
 
-        <div className="px-4 md:px-6 lg:px-8">
+        <div className={embedded ? "" : "px-4 md:px-6 lg:px-8"}>
           <div className="rounded-2xl border border-border/50 bg-card p-6 text-center">
             <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="h-6 w-6 text-muted-foreground" strokeWidth={1.5} />
@@ -120,31 +200,33 @@ export default function BillingSettings() {
                      subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1);
 
   return (
-    <div className="min-h-screen pb-24">
-      <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
-        <button
-          onClick={() => navigate('/settings')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back</span>
-        </button>
-        <div className="flex items-center gap-4">
-          <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-            <CreditCard className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+    <div className={embedded ? "" : "min-h-screen pb-24"}>
+      {!embedded && (
+        <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
+          <button
+            onClick={() => navigate('/settings')}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back</span>
+          </button>
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+              <CreditCard className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Billing & Subscription</h1>
+              <p className="text-xs text-muted-foreground mt-1">Manage your subscription and payment</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Billing & Subscription</h1>
-            <p className="text-xs text-muted-foreground mt-1">Manage your subscription and payment</p>
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <div className="px-4 md:px-6 lg:px-8 space-y-6">
-        {/* Current Plan */}
-        <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
-          <div className="p-4 border-b border-border/50">
-            <div className="flex items-center justify-between">
+      <div className={contentClassName}>
+        {/* Overview */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 rounded-2xl border border-border/50 bg-card overflow-hidden">
+            <div className="p-5 border-b border-border/50">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Sparkles className="h-5 w-5 text-primary" strokeWidth={1.5} />
@@ -152,60 +234,42 @@ export default function BillingSettings() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-foreground">{planName}</h3>
-                    <Badge className={`text-xs ${statusColor}`}>
-                      {statusText}
-                    </Badge>
+                    <Badge className={`text-xs ${statusColor}`}>{statusText}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {monthlyPrice}/month • {subscription.cancel_at_period_end ? 'Expires' : 'Renews'} {renewalDate}
+                    {subscription.cancel_at_period_end ? 'Expires' : 'Renews'} {renewalDate}
                   </p>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Subscription Details */}
-        <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Subscription Details
-          </h2>
-          <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
-            <div className="divide-y divide-border/50">
-              <div className="p-4 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Plan</span>
-                <span className="text-sm font-medium text-foreground">{planName}</span>
+            <div className="p-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl bg-muted/40 p-3">
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Plan</p>
+                <p className="text-sm font-medium text-foreground mt-1">{planName}</p>
               </div>
-              <div className="p-4 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Status</span>
-                <Badge className={`text-xs ${statusColor}`}>{statusText}</Badge>
-              </div>
-              <div className="p-4 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  {subscription.cancel_at_period_end ? 'Access Until' : 'Next Billing Date'}
-                </span>
-                <span className="text-sm font-medium text-foreground">{renewalDate}</span>
-              </div>
-              <div className="p-4 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Billing Amount</span>
-                <span className="text-sm font-medium text-foreground">
+              <div className="rounded-xl bg-muted/40 p-3">
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Billing Amount</p>
+                <p className="text-sm font-medium text-foreground mt-1">
                   {monthlyPrice || (subscription.plan_type === 'annual' ? '$79/year' : '$9.99/month')}
-                </span>
+                </p>
+              </div>
+              <div className="rounded-xl bg-muted/40 p-3">
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {subscription.cancel_at_period_end ? 'Access Until' : 'Next Billing Date'}
+                </p>
+                <p className="text-sm font-medium text-foreground mt-1">{renewalDate}</p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Manage Billing Portal */}
-        <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Payment Method
-          </h2>
           <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
-            <div className="p-4">
-              <p className="text-sm text-muted-foreground mb-4">
-                Manage your payment methods, invoices, and billing settings in Stripe.
+            <div className="p-5 border-b border-border/50">
+              <h3 className="text-sm font-semibold text-foreground">Payment Method</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Update your payment method and manage invoices in Stripe.
               </p>
+            </div>
+            <div className="p-5">
               <Button
                 onClick={handleOpenPortal}
                 disabled={isOpeningPortal}
@@ -216,6 +280,7 @@ export default function BillingSettings() {
             </div>
           </div>
         </div>
+
 
         {/* Cancel Subscription - only show if not already cancelling */}
         {isActive && !subscription.cancel_at_period_end && (

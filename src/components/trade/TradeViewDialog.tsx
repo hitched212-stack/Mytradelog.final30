@@ -72,6 +72,29 @@ const EMOTION_LABELS = [{
   icon: Smile,
   color: 'text-emerald-500'
 }];
+
+const normalizeRichText = (value?: string | null) => {
+  if (!value) return '';
+
+  const looksLikeHtml = /<\s*\w[^>]*>/i.test(value);
+  if (!looksLikeHtml) return value;
+
+  const withBreaks = value
+    .replace(/<\s*br\s*\/?>/gi, '\n')
+    .replace(/<\s*\/(div|p|li|h[1-6]|ul|ol)\s*>/gi, '\n');
+
+  if (typeof window !== 'undefined' && 'DOMParser' in window) {
+    const doc = new DOMParser().parseFromString(withBreaks, 'text/html');
+    return (doc.body.textContent || '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  return withBreaks
+    .replace(/<[^>]+>/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
 interface TradeViewDialogContentProps {
   trade: Trade;
   forecasts: Record<string, Forecast>;
@@ -105,6 +128,7 @@ export function TradeViewDialogContent({
   };
   
   const pnlPercentage = calculatePnlPercentage();
+  const overallEmotionsText = normalizeRichText(trade.overallEmotions);
   
   const [activeTab, setActiveTab] = useState<ViewTab>('general');
   const tabs: {
@@ -823,14 +847,14 @@ export function TradeViewDialogContent({
                   </div>
                 </div>}
 
-              {trade.overallEmotions ? <div className="space-y-1.5">
+              {overallEmotionsText ? <div className="space-y-1.5">
                   <span className="text-sm font-semibold text-foreground">Overall Emotions</span>
                   <div className="rounded-lg border border-border bg-muted/50 p-3">
-                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{trade.overallEmotions}</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{overallEmotionsText}</p>
                   </div>
                 </div> : null}
 
-              {!trade.overallEmotions && <div className="text-center py-12 text-muted-foreground">
+              {!overallEmotionsText && <div className="text-center py-12 text-muted-foreground">
                   <p className="text-sm">No emotional notes recorded</p>
                 </div>}
             </div>}

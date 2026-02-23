@@ -618,34 +618,34 @@ export function Sidebar({
           <DropdownMenuContent
             align="start"
             side="top"
-            className="w-64 p-2 bg-card border border-border dark:border-border/50 shadow-lg z-50"
+            className="w-64 p-2 bg-background/95 backdrop-blur-xl border border-border/60 shadow-2xl rounded-2xl z-50"
             sideOffset={8}
           >
             {/* User Header */}
-            <div className="flex items-center gap-3 px-2 py-3">
+            <div className="flex items-center gap-3 p-2.5 rounded-xl border border-border/50 bg-muted/30">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={avatarUrl || undefined} />
-                <AvatarFallback className="text-sm bg-muted">{userInitials}</AvatarFallback>
+                <AvatarFallback className="text-sm bg-muted/70">{userInitials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-medium text-foreground">{userName}</span>
+                <span className="text-sm font-semibold text-foreground truncate">{userName}</span>
                 <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
               </div>
             </div>
-            <DropdownMenuSeparator className="my-1" />
-            <DropdownMenuItem onClick={() => navigate("/settings/billing")} className="py-2.5 px-2 cursor-pointer">
+            <DropdownMenuSeparator className="my-1.5" />
+            <DropdownMenuItem onClick={() => navigate("/settings/billing")} className="py-2 px-2.5 rounded-xl cursor-pointer hover:bg-muted/50">
               <CreditCard className="mr-3 h-4 w-4 text-muted-foreground" />
-              <span>Billing</span>
+              <span className="text-sm">Billing</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/settings")} className="py-2.5 px-2 cursor-pointer">
+            <DropdownMenuItem onClick={() => navigate("/settings")} className="py-2 px-2.5 rounded-xl cursor-pointer hover:bg-muted/50">
               <SettingsIcon className="mr-3 h-4 w-4 text-muted-foreground" />
-              <span>Settings</span>
+              <span className="text-sm">Settings</span>
             </DropdownMenuItem>
             
             {/* Theme Switch */}
-            <div className="px-2 py-2">
+            <div className="p-2 rounded-xl border border-border/50 bg-muted/20">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Theme</span>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Theme</span>
                 <div className="flex items-center gap-1">
                   {[
                     { value: 'light', icon: Sun },
@@ -656,7 +656,7 @@ export function Sidebar({
                       key={value}
                       onClick={() => setTheme(value as any)}
                       className={cn(
-                        "p-1.5 rounded transition-colors",
+                        "p-1.5 rounded-lg transition-colors",
                         preferences.theme === value
                           ? "bg-foreground/10 text-foreground"
                           : "text-muted-foreground hover:text-foreground"
@@ -670,10 +670,10 @@ export function Sidebar({
               </div>
             </div>
             
-            <DropdownMenuSeparator className="my-1" />
-            <DropdownMenuItem onClick={handleSignOut} className="py-2.5 px-2 cursor-pointer">
+            <DropdownMenuSeparator className="my-1.5" />
+            <DropdownMenuItem onClick={handleSignOut} className="py-2 px-2.5 rounded-xl cursor-pointer hover:bg-muted/50">
               <LogOut className="mr-3 h-4 w-4 text-muted-foreground" />
-              <span>Log out</span>
+              <span className="text-sm">Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

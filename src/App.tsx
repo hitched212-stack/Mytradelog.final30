@@ -23,7 +23,6 @@ import SettingsPage from "@/pages/SettingsPage";
 import BalanceSettings from "@/pages/settings/BalanceSettings";
 import GoalsSettings from "@/pages/settings/GoalsSettings";
 import CurrencySettings from "@/pages/settings/CurrencySettings";
-import PreferencesSettings from "@/pages/settings/PreferencesSettings";
 import ProfileSettings from "@/pages/settings/ProfileSettings";
 import AccountsSettings from "@/pages/settings/AccountsSettings";
 import BillingSettings from "@/pages/settings/BillingSettings";
@@ -211,7 +210,7 @@ const AppRoutes = () => {
         <Route path="/settings/balance" element={<BalanceSettings />} />
         <Route path="/settings/goals" element={<GoalsSettings />} />
         <Route path="/settings/currency" element={<CurrencySettings />} />
-        <Route path="/settings/preferences" element={<PreferencesSettings />} />
+        <Route path="/settings/preferences" element={<Navigate to="/settings" replace />} />
         <Route path="/settings/profile" element={<ProfileSettings />} />
         <Route path="/settings/accounts" element={<AccountsSettings />} />
         <Route path="/settings/billing" element={<BillingSettings />} />
