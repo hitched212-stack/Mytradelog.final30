@@ -295,7 +295,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="inline-flex flex-wrap items-center gap-1 rounded-xl bg-muted/40 border border-border/60 p-1">
+        <div className="flex items-center gap-1 rounded-xl bg-muted/40 border border-border/60 p-1 overflow-x-auto">
           {tabs.map((tab) => {
             const TabIcon = tab.icon;
             return (
@@ -303,7 +303,7 @@ export default function SettingsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ease-out whitespace-nowrap rounded-lg",
+                  "flex items-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-200 ease-out whitespace-nowrap rounded-lg flex-shrink-0",
                   activeTab === tab.id
                     ? "bg-foreground text-background shadow-sm"
                     : "text-muted-foreground hover:text-foreground"

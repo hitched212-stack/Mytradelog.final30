@@ -256,107 +256,87 @@ export default function History() {
   return (
     <div className="min-h-screen p-4 md:p-6 pb-32 md:pb-6 space-y-6">
       {/* Header with Integrated Search, Filters, and Stats */}
-      <div className="flex items-center justify-between rounded-2xl border border-border/50 bg-card/60 p-4 gap-4 flex-wrap">
+      <div className="rounded-2xl border border-border/50 bg-card/60 p-4 space-y-3">
+        {/* Top row: Title and Search */}
         <div className="flex items-center gap-3">
-          <div>
+          <div className="flex-shrink-0">
             <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
             <p className="text-xs text-muted-foreground mt-0.5">{filteredTrades.length} total trades</p>
           </div>
-        </div>
-
-        {/* Stats Section */}
-        <div className="hidden lg:flex items-center gap-4 px-4 border-l border-border/50">
-          <div className="text-center">
-            <div className="text-xs font-medium text-muted-foreground">Buys</div>
-            <div className="text-sm font-semibold text-foreground">{buyCounts}</div>
-          </div>
-          <div className="w-px h-6 bg-border/50" />
-          <div className="text-center">
-            <div className="text-xs font-medium text-muted-foreground">Sells</div>
-            <div className="text-sm font-semibold text-foreground">{sellCounts}</div>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative flex-1 min-w-xs hidden md:flex">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search by symbol..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-8 h-8 rounded-lg bg-muted/50 border-border/50 text-xs"
-          />
-        </div>
-
-        {/* Mobile Search - shown on small screens */}
-        <div className="relative flex-1 min-w-xs md:hidden">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-8 h-8 rounded-lg bg-muted/50 border-border/50 text-xs"
-          />
-        </div>
-
-        {/* Date Range Picker */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm",
-                dateRange.from ? "text-foreground" : "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="h-4 w-4" />
-              <span className="hidden md:inline">
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
-                  ) : (
-                    format(dateRange.from, 'MMM dd')
-                  )
-                ) : 'Date'}
-              </span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={(range) => {
-                setDateRange(range || { from: undefined, to: undefined } as any);
+          
+          {/* Search Bar */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              numberOfMonths={2}
-              initialFocus
-              className="p-3 pointer-events-auto"
+              className="pl-8 h-8 rounded-lg bg-muted/50 border-border/50 text-xs"
             />
-            {dateRange.from && (
-              <div className="p-3 border-t border-border">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full text-muted-foreground"
-                  onClick={() => {
-                    setDateRange({ from: undefined, to: undefined });
-                    setCurrentPage(1);
-                  }}
-                >
-                  Clear date filter
-                </Button>
-              </div>
-            )}
-          </PopoverContent>
-        </Popover>
-        
+          </div>
+
+          {/* Date Range Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "h-8 w-8 p-0 rounded-lg bg-muted/50 border-border/50 hover:bg-muted flex-shrink-0",
+                  dateRange.from ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={(range) => {
+                  setDateRange(range || { from: undefined, to: undefined } as any);
+                  setCurrentPage(1);
+                }}
+                numberOfMonths={2}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+              {dateRange.from && (
+                <div className="p-3 border-t border-border">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-muted-foreground"
+                    onClick={() => {
+                      setDateRange({ from: undefined, to: undefined });
+                      setCurrentPage(1);
+                    }}
+                  >
+                    Clear date filter
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Bottom row: Filters - scrollable on mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+          {/* Stats Section */}
+          <div className="hidden lg:flex items-center gap-4 pr-4 border-r border-border/50 flex-shrink-0">
+            <div className="text-center">
+              <div className="text-xs font-medium text-muted-foreground">Buys</div>
+              <div className="text-sm font-semibold text-foreground">{buyCounts}</div>
+            </div>
+            <div className="w-px h-6 bg-border/50" />
+            <div className="text-center">
+              <div className="text-xs font-medium text-muted-foreground">Sells</div>
+              <div className="text-sm font-semibold text-foreground">{sellCounts}</div>
+            </div>
+          </div>
+          
         {/* Sort Filter */}
         <Select 
           value={`${sortField}-${sortDirection}`}
@@ -367,8 +347,8 @@ export default function History() {
             setCurrentPage(1);
           }}
         >
-          <SelectTrigger className="w-auto h-9 px-3 py-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted text-sm flex-shrink-0">
-            <SlidersHorizontal className="h-4 w-4 mr-2 text-muted-foreground" />
+          <SelectTrigger className="w-auto h-8 px-3 py-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted text-xs flex-shrink-0">
+            <SlidersHorizontal className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
@@ -400,6 +380,7 @@ export default function History() {
             </button>
           ))}
         </div>
+        </div>
       </div>
 
       {/* Mobile Table View */}
@@ -412,14 +393,21 @@ export default function History() {
           <>
             <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-xs" style={{ minWidth: '800px' }}>
                   <thead>
                     <tr className="border-b border-border/50 bg-muted/50">
-                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Symbol</th>
-                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Side</th>
-                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Date</th>
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">P&L</th>
-                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">Actions</th>
+                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Status</th>
+                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Symbol</th>
+                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Side</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Date</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">News</th>
+                      <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Entry • Exit</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Duration</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Strategy</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Rules</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">Grade</th>
+                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] whitespace-nowrap">P&L</th>
+                      <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground uppercase tracking-wide text-[10px] sticky right-0 bg-muted/50"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -432,43 +420,133 @@ export default function History() {
                           index % 2 === 0 ? "bg-transparent" : "bg-muted/20"
                         )}
                       >
+                        {/* Status */}
                         <td className="py-3 px-3">
-                          <div className="font-semibold text-foreground whitespace-nowrap">{trade.symbol}</div>
+                          <div className={cn(
+                            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md whitespace-nowrap",
+                            trade.status === 'open' 
+                              ? "bg-pnl-positive/10 border border-pnl-positive/30"
+                              : "bg-muted/50 border border-muted/50"
+                          )}>
+                            <div className={cn(
+                              "w-1 h-1 rounded-full",
+                              trade.status === 'open' 
+                                ? "bg-pnl-positive animate-pulse"
+                                : "bg-muted-foreground/40"
+                            )} />
+                            <span className={cn(
+                              "text-[9px] font-semibold",
+                              trade.status === 'open' 
+                                ? "text-pnl-positive"
+                                : "text-muted-foreground"
+                            )}>
+                              {trade.status === 'open' ? 'OPEN' : 'CLOSED'}
+                            </span>
+                          </div>
                         </td>
+                        {/* Symbol */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <SymbolIcon symbol={trade.symbol} size="sm" />
+                            <span className="font-semibold text-foreground whitespace-nowrap">{trade.symbol}</span>
+                          </div>
+                        </td>
+                        {/* Side */}
                         <td className="py-3 px-3">
                           {trade.noTradeTaken ? (
                             <span className="text-muted-foreground text-[10px]">—</span>
                           ) : (
                             <Badge 
                               className={cn(
-                                "inline-flex px-1.5 py-0.5 rounded text-[8px] font-semibold uppercase border-0 whitespace-nowrap",
+                                "inline-flex px-2 py-0.5 rounded text-[9px] font-semibold uppercase border-0 whitespace-nowrap",
                                 trade.direction === 'long' 
                                   ? "bg-pnl-positive/10 text-pnl-positive" 
                                   : "bg-pnl-negative/10 text-pnl-negative"
                               )}
                             >
-                              {trade.direction === 'long' ? 'L' : 'S'}
+                              {trade.direction === 'long' ? 'LONG' : 'SHORT'}
                             </Badge>
                           )}
                         </td>
-                        <td className="py-3 px-3">
+                        {/* Date */}
+                        <td className="py-3 px-3 text-center">
                           <div className="text-foreground whitespace-nowrap text-[11px]">
-                            {format(new Date(trade.date), 'MMM dd, yy')}
+                            {format(new Date(trade.date), 'MMM dd')}
                           </div>
                         </td>
+                        {/* News */}
+                        <td className="py-3 px-3 text-center">
+                          {trade.hasNews || (trade.newsEvents && trade.newsEvents.length > 0) || trade.newsType || trade.newsImpact || trade.newsTime ? (
+                            <CheckCircle2 className="h-4 w-4 text-pnl-positive inline" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-muted-foreground/40 inline" />
+                          )}
+                        </td>
+                        {/* Entry • Exit */}
+                        <td className="py-3 px-3">
+                          <div className="text-foreground whitespace-nowrap text-[11px]">
+                            {trade.entryTime ? (
+                              <span>{trade.entryTime} • {calculateExitTime(trade.entryTime, trade.holdingTime || '')}</span>
+                            ) : '—'}
+                          </div>
+                        </td>
+                        {/* Duration */}
+                        <td className="py-3 px-3 text-center">
+                          <span className="text-foreground whitespace-nowrap text-[11px]">{trade.holdingTime || '—'}</span>
+                        </td>
+                        {/* Strategy */}
+                        <td className="py-3 px-3 text-center">
+                          {trade.strategy ? (
+                            <Badge variant="outline" className="text-[9px] px-2 py-0.5 whitespace-nowrap">
+                              {trade.strategy}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        {/* Rules */}
+                        <td className="py-3 px-3 text-center">
+                          {trade.followedRules ? (
+                            <Check className="h-4 w-4 text-pnl-positive inline" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-pnl-negative inline" />
+                          )}
+                        </td>
+                        {/* Grade */}
+                        <td className="py-3 px-3 text-center">
+                          {trade.executionGrade ? (
+                            <Badge 
+                              variant="outline"
+                              className={cn(
+                                "text-[9px] px-2 py-0.5 font-bold border-0 whitespace-nowrap",
+                                trade.executionGrade === 'A' ? "bg-pnl-positive/10 text-pnl-positive" :
+                                trade.executionGrade === 'B' ? "bg-blue-500/10 text-blue-500" :
+                                trade.executionGrade === 'C' ? "bg-yellow-500/10 text-yellow-500" :
+                                trade.executionGrade === 'D' ? "bg-orange-500/10 text-orange-500" :
+                                "bg-pnl-negative/10 text-pnl-negative"
+                              )}
+                            >
+                              {trade.executionGrade}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        {/* P&L */}
                         <td className="py-3 px-3 text-right">
                           {(trade.isPaperTrade || trade.noTradeTaken) ? (
                             <span className="text-muted-foreground">—</span>
                           ) : (
                             <span className={cn(
-                              "font-display font-bold tabular-nums",
+                              "font-display font-bold tabular-nums whitespace-nowrap",
                               trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
                             )}>
                               {formatPnl(trade.pnlAmount)}
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        {/* Actions */}
+                        <td className="py-3 px-3 text-center sticky right-0 bg-card">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button 

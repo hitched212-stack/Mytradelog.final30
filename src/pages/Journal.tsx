@@ -7,7 +7,7 @@ import { usePreferences } from '@/hooks/usePreferences';
 import { useDataStore } from '@/store/dataStore';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, DollarSign, Target, Wallet, Activity, Eye, Check, Copy, ChevronsUpDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, DollarSign, Target, Wallet, Activity, Eye, Check, Copy, ChevronsUpDown, Sun, Moon } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getCurrencySymbol, Trade, Currency } from '@/types/trade';
 import { cn } from '@/lib/utils';
@@ -171,7 +171,8 @@ export default function Journal() {
     isSwitching
   } = useAccount();
   const {
-    preferences
+    preferences,
+    setTheme
   } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled;
   const { previousStartingBalance, isTransitioning } = useDataStore();

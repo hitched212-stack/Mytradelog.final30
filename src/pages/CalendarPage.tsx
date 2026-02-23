@@ -1465,6 +1465,7 @@ export default function CalendarPage() {
                             const dateStr = format(day, 'yyyy-MM-dd');
                             const dayPnl = getDailyPnl(dateStr);
                             const dayTrades = trades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
+                            const noTradeTakenCount = trades.filter(t => t.date === dateStr && t.noTradeTaken).length;
                             const tradeCount = dayTrades.length;
                             const isTodayDate = isToday(day);
                             const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -1501,6 +1502,11 @@ export default function CalendarPage() {
                                     <div className="text-[8px] text-muted-foreground">
                                       {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
                                     </div>
+                                  </div>
+                                )}
+                                {tradeCount === 0 && noTradeTakenCount > 0 && (
+                                  <div className="text-[8px] text-muted-foreground">
+                                    No Trades
                                   </div>
                                 )}
                               </button>

@@ -1,8 +1,9 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutGrid, PieChart, CalendarDays, TrendingUp, Plus, Menu, Sun, User, Bot } from 'lucide-react';
+import { LayoutGrid, PieChart, CalendarDays, TrendingUp, Plus, Menu, Sun, User, Bot, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { usePreferences } from '@/hooks/usePreferences';
 
 // Use Lucide Bot icon for AI Coach
 const AIIcon = Bot;
@@ -77,6 +78,7 @@ const navItems = [{
 export function MobileSidebar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { preferences, setTheme } = usePreferences();
   return <div className="md:hidden">
       {/* Fixed Header with Menu Button */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-14 flex items-center justify-between px-4">
@@ -134,6 +136,39 @@ export function MobileSidebar() {
                 );
               })}
               </nav>
+              
+              {/* Theme Toggle Section */}
+              <div className="px-3 pb-4">
+                <div className="px-3 py-2 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Theme</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setTheme('light')}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
+                        preferences.theme === 'light'
+                          ? 'bg-foreground/10 text-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      )}
+                    >
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </button>
+                    <button
+                      onClick={() => setTheme('dark')}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
+                        preferences.theme === 'dark'
+                          ? 'bg-foreground/10 text-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      )}
+                    >
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </SheetContent>
         </Sheet>

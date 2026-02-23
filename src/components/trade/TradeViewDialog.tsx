@@ -128,7 +128,7 @@ export function TradeViewDialogContent({
   };
   
   const pnlPercentage = calculatePnlPercentage();
-  const overallEmotionsText = normalizeRichText(trade.overallEmotions);
+  const overallEmotionsText = trade.overallEmotions || '';
   
   const [activeTab, setActiveTab] = useState<ViewTab>('general');
   const tabs: {
@@ -611,7 +611,10 @@ export function TradeViewDialogContent({
                             )}
                             {section?.notes && (
                               <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
-                                <p className="text-sm text-foreground whitespace-pre-wrap break-words">{section.notes}</p>
+                                <div 
+                                  className="rich-text-content"
+                                  dangerouslySetInnerHTML={{ __html: section.notes }}
+                                />
                               </div>
                             )}
                           </div>;
@@ -672,7 +675,10 @@ export function TradeViewDialogContent({
                             )}
                             {section?.notes && (
                               <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
-                                <p className="text-sm text-foreground whitespace-pre-wrap break-words">{section.notes}</p>
+                                <div 
+                                  className="rich-text-content"
+                                  dangerouslySetInnerHTML={{ __html: section.notes }}
+                                />
                               </div>
                             )}
                           </div>;
@@ -740,7 +746,10 @@ export function TradeViewDialogContent({
                             />
                           </div>}
                           {section?.notes && <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{section.notes}</p>
+                            <div 
+                              className="rich-text-content"
+                              dangerouslySetInnerHTML={{ __html: section.notes }}
+                            />
                           </div>}
                         </div>;
                       });
@@ -814,7 +823,10 @@ export function TradeViewDialogContent({
                             />
                           </div>}
                           {section?.notes && <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{section.notes}</p>
+                            <div 
+                              className="rich-text-content"
+                              dangerouslySetInnerHTML={{ __html: section.notes }}
+                            />
                           </div>}
                         </div>;
                       });
@@ -850,7 +862,10 @@ export function TradeViewDialogContent({
               {overallEmotionsText ? <div className="space-y-1.5">
                   <span className="text-sm font-semibold text-foreground">Overall Emotions</span>
                   <div className="rounded-lg border border-border bg-muted/50 p-3">
-                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{overallEmotionsText}</p>
+                    <div 
+                      className="rich-text-content"
+                      dangerouslySetInnerHTML={{ __html: overallEmotionsText }}
+                    />
                   </div>
                 </div> : null}
 

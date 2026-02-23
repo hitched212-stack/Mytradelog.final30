@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Plus, User, Menu } from 'lucide-react';
+import { Plus, User, Menu, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { usePreferences } from '@/hooks/usePreferences';
@@ -111,7 +111,7 @@ const TimeframesIcon = ({ className }: { className?: string }) => (
 export function BottomNav() {
   const location = useLocation();
   const scrollDirection = useScrollDirection();
-  const { preferences } = usePreferences();
+  const { preferences, setTheme } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const [moreOpen, setMoreOpen] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -124,8 +124,8 @@ export function BottomNav() {
   const getActiveIndex = () => {
     if (location.pathname === '/dashboard') return 0;
     if (location.pathname === '/history') return 1;
-    if (location.pathname === '/analytics') return 3;
-    if (isMoreActive || moreOpen) return 4;
+    if (location.pathname === '/analytics') return 2;
+    if (isMoreActive || moreOpen) return 3;
     return -1;
   };
 
@@ -379,6 +379,40 @@ export function BottomNav() {
                   <TimeframesIcon className={cn('h-5 w-5', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')} />
                   <span className={cn('text-sm', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')}>Timeframes</span>
                 </NavLink>
+                
+                {/* Divider */}
+                <div className="h-px bg-border/50 my-1" />
+                
+                {/* Theme Toggle */}
+                <div className="py-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 text-center">Theme</p>
+                  <div className="flex gap-2 justify-center px-3">
+                    <button
+                      onClick={() => setTheme('light')}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
+                        preferences.theme === 'light'
+                          ? 'bg-foreground/10 text-foreground'
+                          : 'text-muted-foreground hover:bg-foreground/5'
+                      )}
+                    >
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </button>
+                    <button
+                      onClick={() => setTheme('dark')}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
+                        preferences.theme === 'dark'
+                          ? 'bg-foreground/10 text-foreground'
+                          : 'text-muted-foreground hover:bg-foreground/5'
+                      )}
+                    >
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </button>
+                  </div>
+                </div>
               </div>
             </PopoverContent>
           </Popover>
