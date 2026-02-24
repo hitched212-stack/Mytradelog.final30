@@ -1346,7 +1346,12 @@ export default function CalendarPage() {
                       {day}
                     </div>
                   ))}
-                  <div className="w-16 md:w-20" /> {/* Spacer for weekly column */}
+                  <div className="w-16 md:w-20 h-6 flex items-center justify-center rounded-lg border border-border/50 bg-card text-[10px] font-medium text-foreground shadow-xs">
+                    <span className="font-bold">{trades.filter(t => {
+                      const tradeDate = new Date(t.date);
+                      return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
+                    }).length}</span>
+                  </div>
                 </div>
                 {/* Mobile headers - Mon to Fri only */}
                 <div className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 text-center mb-1">
@@ -1355,7 +1360,12 @@ export default function CalendarPage() {
                       {day}
                     </div>
                   ))}
-                  <div className="w-14" /> {/* Spacer for weekly column */}
+                  <div className="w-14 h-6 flex items-center justify-center rounded-lg border border-border/50 bg-card text-[10px] font-medium text-foreground shadow-xs">
+                    <span className="font-bold">{trades.filter(t => {
+                      const tradeDate = new Date(t.date);
+                      return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
+                    }).length}</span>
+                  </div>
                 </div>
 
                 {/* Calendar Grid with Weekly P&L - Full week */}

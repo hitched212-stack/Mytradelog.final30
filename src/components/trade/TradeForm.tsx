@@ -860,6 +860,22 @@ export function TradeForm({
                 </div>
               </div>
 
+              {/* Entry Price, Stop Loss & Take Profit */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="entryPrice" className="text-xs font-semibold text-foreground">Entry</Label>
+                  <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
+                </div>
+                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="stopLoss" className="text-xs font-semibold text-foreground">SL</Label>
+                  <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
+                </div>
+                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="takeProfit" className="text-xs font-semibold text-foreground">TP</Label>
+                  <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
+                </div>
+              </div>
+
               {/* Followed Rules */}
               <div className="space-y-4 p-5 rounded-xl border-2 border-border/50 bg-gradient-to-b from-muted/40 to-muted/20 shadow-sm">
                 <div className="flex items-center gap-2.5">

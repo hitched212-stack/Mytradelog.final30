@@ -865,7 +865,7 @@ export default function Analytics() {
               {/* Date Range Picker */}
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="secondary" className={cn("h-9 text-sm border-0 gap-2 rounded-lg bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3", dateRange.from ? "text-foreground" : "text-muted-foreground")}>
+                  <Button variant="secondary" className={cn("h-9 text-sm gap-2 rounded-lg bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3", dateRange.from ? "text-foreground" : "text-muted-foreground")}>
                     <CalendarIcon className="h-4 w-4" />
                     {dateRange.from ? (
                       dateRange.to ? (
