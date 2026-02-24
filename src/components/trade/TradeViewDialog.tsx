@@ -885,7 +885,6 @@ export function TradeViewDialogContent({
           }}
         >
           <Button variant="outline" className="flex-1" onClick={() => onEdit(activeTab)}>
-            <Pencil className="h-4 w-4 mr-2" />
             Edit
           </Button>
           <Button variant="outline" className="flex-1" onClick={onClose}>
