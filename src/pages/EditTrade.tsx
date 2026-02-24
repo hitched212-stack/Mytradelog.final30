@@ -55,10 +55,10 @@ export default function EditTrade() {
         <div 
           className="flex-1 overflow-y-auto flex justify-center md:px-4 lg:px-8"
           style={{
-            paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)'
+            paddingBottom: 'env(safe-area-inset-bottom)'
           }}
         >
-          <div className="w-full md:max-w-2xl">
+          <div className="w-full md:max-w-2xl h-full md:h-auto">
             <TradeForm editTrade={trade} />
           </div>
         </div>

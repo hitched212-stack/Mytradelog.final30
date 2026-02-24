@@ -686,12 +686,12 @@ export function TradeForm({
     return tabMap[urlTab || ''] || 'general';
   };
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
-  return <form onSubmit={handleSubmit} className="w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
+  return <form onSubmit={handleSubmit} className="w-full h-full flex flex-col md:p-6 md:pt-8" onClick={(e) => e.stopPropagation()}>
       <div className={cn(
-        "flex flex-col flex-1 min-h-0 relative overflow-hidden md:rounded-xl border-0 md:border shadow-xl",
+        "flex flex-col flex-1 min-h-0 relative overflow-hidden rounded-none md:rounded-3xl border-x-0 md:border-2 border-y-0 md:border-y-2 shadow-2xl",
         isGlassEnabled
-          ? "border-border/50 bg-card/95 dark:bg-card/80 md:backdrop-blur-xl"
-          : "border-border/50 bg-card md:backdrop-blur-xl"
+          ? "border-border/50 bg-gradient-to-b from-card/98 to-card/95 dark:from-card/85 dark:to-card/80 md:backdrop-blur-2xl"
+          : "border-border/60 bg-card md:backdrop-blur-xl"
       )} onClick={(e) => e.stopPropagation()}>
         {/* Dot pattern - only show when glass is enabled */}
         {isGlassEnabled && (
@@ -721,7 +721,7 @@ export function TradeForm({
         
         {/* Header - sticky on mobile and desktop */}
         <div 
-          className="sticky top-0 z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 border-b border-border/50 bg-muted/50 relative"
+          className="sticky top-0 z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 border-b border-border/30 bg-gradient-to-b from-muted/60 to-muted/40 backdrop-blur-sm relative"
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -764,10 +764,10 @@ export function TradeForm({
         >
           
           {/* GENERAL TAB */}
-          {activeTab === 'general' && <div className="space-y-6">
+          {activeTab === 'general' && <div className="space-y-5">
               {/* Trade Type Selector - Smooth Switch */}
-              <div className="space-y-2">
-                <span className="text-sm font-medium text-foreground">Trade Type</span>
+              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
+                <span className="text-sm font-semibold text-foreground">Trade Type</span>
                 <TradeTypeSwitch
                   isPaperTrade={formData.isPaperTrade}
                   noTradeTaken={formData.noTradeTaken}
@@ -778,8 +778,8 @@ export function TradeForm({
               </div>
 
               {/* Trade Status Switch - Open/Closed */}
-              <div className="space-y-1.5">
-                <Label className="text-sm text-foreground">Status</Label>
+              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
+                <Label className="text-sm font-semibold text-foreground">Status</Label>
                 <TradeStatusSwitch
                   isOpen={formData.status === 'open'}
                   onChange={(isOpen) => setFormData(p => ({ ...p, status: isOpen ? 'open' : 'closed' }))}
@@ -787,28 +787,28 @@ export function TradeForm({
               </div>
 
               {/* Type (Buy/Sell Toggle) */}
-              <div className="space-y-1.5">
-                <Label className="text-sm text-foreground">Type</Label>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-3 p-4 rounded-xl border-2 border-border/50 bg-muted/30">
+                <Label className="text-sm font-semibold text-foreground">Type</Label>
+                <div className="grid grid-cols-2 gap-3">
                   <button type="button" onClick={() => setFormData(p => ({
                 ...p,
                 direction: 'long'
-              }))} className={cn("h-10 rounded-lg text-sm font-medium transition-all duration-200 border", formData.direction === 'long' ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/30" : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground")}>
+              }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border shadow-sm hover:scale-[1.02]", formData.direction === 'long' ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/40 shadow-pnl-positive/20 font-semibold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/80 hover:text-foreground hover:border-border/80 font-normal")}>
                     Buy (long)
                   </button>
                   <button type="button" onClick={() => setFormData(p => ({
                 ...p,
                 direction: 'short'
-              }))} className={cn("h-10 rounded-lg text-sm font-medium transition-all duration-200 border", formData.direction === 'short' ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/30" : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground")}>
+              }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border shadow-sm hover:scale-[1.02]", formData.direction === 'short' ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/40 shadow-pnl-negative/20 font-semibold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/80 hover:text-foreground hover:border-border/80 font-normal")}>
                     Sell (short)
                   </button>
                 </div>
               </div>
 
               {/* Date & Time */}
-              <div className="space-y-1.5">
-                <Label className="text-sm text-foreground">Date & Time</Label>
-                <div className="flex rounded-lg border border-border bg-muted/50 overflow-hidden">
+              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
+                <Label className="text-sm font-semibold text-foreground">Date & Time</Label>
+                <div className="flex rounded-xl border-2 border-border/60 bg-background/80 overflow-hidden shadow-sm">
                   <input id="date" name="date" type="date" value={formData.date} onChange={e => setFormData(p => ({
                 ...p,
                 date: e.target.value
@@ -821,81 +821,65 @@ export function TradeForm({
                 </div>
               </div>
 
-              {/* Symbol */}
-              <div className="space-y-1.5">
-                <Label htmlFor="symbol" className="text-sm text-foreground">Symbol *</Label>
-                <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({
-              ...p,
-              symbol: e.target.value.toUpperCase()
-            }))} placeholder="e.g. AAPL, EUR/USD" className="bg-muted/50 border-border text-sm text-foreground placeholder:text-muted-foreground uppercase focus:border-ring" />
-              </div>
-
-              {/* P&L */}
-              <div className="space-y-1.5">
-                <Label htmlFor="pnlAmount" className="text-sm text-foreground">Gross P&L ({currencySymbol})</Label>
-                <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500 or -250" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground tabular-nums text-sm focus:border-ring" />
+              {/* Symbol & P&L */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="symbol" className="text-xs font-semibold text-foreground">Symbol *</Label>
+                  <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({
+                ...p,
+                symbol: e.target.value.toUpperCase()
+              }))} placeholder="e.g. AAPL, EUR/USD" className="h-9 bg-background/80 border-2 border-border/60 text-sm font-medium text-foreground placeholder:text-muted-foreground uppercase focus:border-ring shadow-sm rounded-xl" />
+                </div>
+                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="pnlAmount" className="text-xs font-semibold text-foreground">Gross P&L ({currencySymbol})</Label>
+                  <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500 or -250" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
+                </div>
               </div>
 
               {/* Hold Time & R:R */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="holdingTime" className="text-sm text-foreground">Hold Time</Label>
-                  <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="e.g. 2h 30m" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-ring" />
+                <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="holdingTime" className="text-sm font-semibold text-foreground">Hold Time</Label>
+                  <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="e.g. 2h 30m" className="h-10 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground text-sm focus:border-ring shadow-sm rounded-xl" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="riskRewardRatio" className="text-sm text-foreground">Risk:Reward</Label>
-                  <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="e.g. 1:2" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-ring" />
-                </div>
-              </div>
-
-              {/* Lot Size */}
-              <div className="space-y-1.5">
-                <Label htmlFor="lotSize" className="text-sm text-foreground">Lot Size</Label>
-                <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground tabular-nums text-sm focus:border-ring" />
-              </div>
-
-              {/* Entry, TP & SL */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="entryPrice" className="text-sm text-foreground">Entry Price</Label>
-                  <Input id="entryPrice" name="entryPrice" type="number" step="0.0001" value={formData.entryPrice} onChange={handleChange} placeholder="0" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground tabular-nums text-sm focus:border-ring" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="takeProfit" className="text-sm text-foreground">Take Profit</Label>
-                  <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground tabular-nums text-sm focus:border-ring" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="stopLoss" className="text-sm text-foreground">Stop Loss</Label>
-                  <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground tabular-nums text-sm focus:border-ring" />
+                <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="riskRewardRatio" className="text-sm font-semibold text-foreground">Risk:Reward</Label>
+                  <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="e.g. 1:2" className="h-10 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground text-sm focus:border-ring shadow-sm rounded-xl" />
                 </div>
               </div>
 
-              {/* SL Pips */}
-              <div className="space-y-1.5">
-                <Label htmlFor="stopLossPips" className="text-sm text-foreground">SL (Pips/Points)</Label>
-                <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="e.g. 15" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground tabular-nums text-sm focus:border-ring" />
+              {/* Lot Size & SL Pips */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="lotSize" className="text-xs font-semibold text-foreground">Lot Size</Label>
+                  <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
+                </div>
+                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
+                  <Label htmlFor="stopLossPips" className="text-xs font-semibold text-foreground">SL (Pips/Points)</Label>
+                  <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="e.g. 15" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
+                </div>
               </div>
 
               {/* Followed Rules */}
-              <div className="space-y-3 p-4 rounded-xl border border-border bg-muted/50">
-                <div className="flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium text-foreground">Followed Rules</Label>
+              <div className="space-y-4 p-5 rounded-xl border-2 border-border/50 bg-gradient-to-b from-muted/40 to-muted/20 shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <ClipboardList className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+                  <Label className="text-sm font-bold text-foreground">Followed Rules</Label>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <button type="button" onClick={() => setFormData(p => ({
                     ...p,
                     followedRules: true
-                  }))} className={cn("h-10 rounded-lg text-sm font-medium transition-all duration-200 border flex items-center justify-center gap-2 hover:scale-[1.02]", formData.followedRules ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/30" : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground")}>
-                    <Check className="h-4 w-4" />
+                  }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border flex items-center justify-center gap-2 hover:scale-[1.02] shadow-sm", formData.followedRules ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/40 shadow-pnl-positive/20 font-bold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground hover:border-border/80 font-normal")}>
+                    <Check className="h-4 w-4" strokeWidth={2.5} />
                     Yes
                   </button>
                   <button type="button" onClick={() => setFormData(p => ({
                     ...p,
                     followedRules: false
-                  }))} className={cn("h-10 rounded-lg text-sm font-medium transition-all duration-200 border flex items-center justify-center gap-2 hover:scale-[1.02]", !formData.followedRules ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/30" : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground")}>
-                    <XIcon className="h-4 w-4" />
+                  }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border flex items-center justify-center gap-2 hover:scale-[1.02] shadow-sm", !formData.followedRules ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/40 shadow-pnl-negative/20 font-bold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground hover:border-border/80 font-normal")}>
+                    <XIcon className="h-4 w-4" strokeWidth={2.5} />
                     No
                   </button>
                 </div>
@@ -921,10 +905,10 @@ export function TradeForm({
                                 }));
                               }}
                               className={cn(
-                                "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border flex items-center gap-2 hover:scale-[1.02]",
+                                "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border-2 flex items-center gap-2 hover:scale-[1.02]",
                                 isSelected 
-                                  ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/30" 
-                                  : "bg-muted/50 text-foreground border-border hover:bg-muted"
+                                  ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/40" 
+                                  : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
                               )}
                             >
                               <div className={cn(
@@ -989,10 +973,10 @@ export function TradeForm({
                                   }));
                                 }}
                                 className={cn(
-                                  "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border flex items-center gap-2 hover:scale-[1.02]",
+                                  "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border-2 flex items-center gap-2 hover:scale-[1.02]",
                                   isSelected 
-                                    ? "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/30" 
-                                    : "bg-muted/50 text-foreground border-border hover:bg-muted"
+                                    ? "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/40" 
+                                    : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
                                 )}
                               >
                                 <div className={cn(
@@ -1062,26 +1046,27 @@ export function TradeForm({
                 </div>
               </div>
 
-              {/* Category */}
-              <div className="space-y-1.5">
-                <Label className="text-sm text-foreground">Category</Label>
-                <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({
-              ...p,
-              category: value
-            }))}>
-                  <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground text-sm">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Category & Strategy */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-foreground">Category</Label>
+                  <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({
+                ...p,
+                category: value
+              }))}>
+                    <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground text-sm">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Strategy */}
-              <div className="space-y-1.5">
-                <Label htmlFor="strategy" className="text-sm text-foreground">Strategy</Label>
-                <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout, Scalping" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-ring" />
+                <div className="space-y-1.5">
+                  <Label htmlFor="strategy" className="text-sm text-foreground">Strategy</Label>
+                  <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout, Scalping" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-ring" />
+                </div>
               </div>
 
               {/* News Section */}

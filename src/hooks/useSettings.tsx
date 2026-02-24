@@ -244,6 +244,38 @@ export function useSettings() {
     }
   }, [user, settings, setSettings]);
 
+  // Generic update settings function
+  const updateSettings = useCallback(async (updates: Partial<typeof settings>) => {
+    if (!user) return;
+
+    const newSettings = { ...settings, ...updates };
+    setSettings(newSettings);
+
+    try {
+      // Map settings keys to database columns
+      const dbUpdates: Record<string, any> = {};
+      if (updates.username !== undefined) dbUpdates.username = updates.username;
+      if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
+      if (updates.accountBalance !== undefined) dbUpdates.account_balance = updates.accountBalance;
+      if (updates.balanceHidden !== undefined) dbUpdates.balance_hidden = updates.balanceHidden;
+
+      if (Object.keys(dbUpdates).length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update(dbUpdates)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      toast.error('Failed to save settings');
+      // Revert on error
+      setSettings(settings);
+      throw error;
+    }
+  }, [user, settings, setSettings]);
+
   return {
     settings,
     isLoading: !settingsLoaded,
@@ -253,6 +285,7 @@ export function useSettings() {
     setBalanceHidden,
     updateGoal,
     setGoals,
+    updateSettings,
     refetch: fetchSettings,
   };
 }

@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import PreferencesSettings from '@/pages/settings/PreferencesSettings';
 import BillingSettings from '@/pages/settings/BillingSettings';
 import { useState, useEffect } from 'react';
-import { ChevronRight, User, LogOut, Eye, EyeOff, Lock, Mail, Palette, Bell, Settings2, UserCog, ShieldCheck, Trash2, AlertTriangle } from 'lucide-react';
+import { ChevronRight, User, LogOut, Eye, EyeOff, Lock, Mail, Palette, Bell, Settings2, UserCog, ShieldCheck, Trash2, AlertTriangle, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -182,7 +182,7 @@ function getTimeInTimezone(date: Date, timezone: string): string {
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { preferences, setTimeZone } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const [timeZoneInput, setTimeZoneInput] = useState(preferences.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -191,8 +191,11 @@ export default function SettingsPage() {
   const location = useLocation();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showEmailChange, setShowEmailChange] = useState(false);
+  const [showUsernameChange, setShowUsernameChange] = useState(false);
   const [newEmail, setNewEmail] = useState('');
+  const [newUsername, setNewUsername] = useState('');
   const [isChangingEmail, setIsChangingEmail] = useState(false);
+  const [isChangingUsername, setIsChangingUsername] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -284,6 +287,31 @@ export default function SettingsPage() {
       toast.error('Failed to change email');
     } finally {
       setIsChangingEmail(false);
+    }
+  };
+
+  const handleChangeUsername = async () => {
+    if (!newUsername.trim()) {
+      toast.error('Please enter a new username');
+      return;
+    }
+
+    if (newUsername.trim() === settings.username) {
+      toast.error('New username is the same as current username');
+      return;
+    }
+
+    setIsChangingUsername(true);
+    try {
+      await updateSettings({ username: newUsername.trim() });
+      toast.success('Username updated successfully');
+      setNewUsername('');
+      setShowUsernameChange(false);
+    } catch (error) {
+      console.error('Error changing username:', error);
+      toast.error('Failed to change username');
+    } finally {
+      setIsChangingUsername(false);
     }
   };
 
@@ -404,25 +432,27 @@ export default function SettingsPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="inline-flex items-center gap-1 rounded-xl bg-muted/40 border border-border/60 p-1 overflow-x-auto">
-          {tabs.map((tab) => {
-            const TabIcon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-200 ease-out whitespace-nowrap rounded-lg flex-shrink-0",
-                  activeTab === tab.id
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <TabIcon className="h-4 w-4" strokeWidth={1.5} />
-                {tab.label}
-              </button>
-            );
-          })}
+        <div className="w-full overflow-x-auto md:overflow-x-visible [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+          <div className="inline-flex items-center gap-1 rounded-xl bg-muted/40 border border-border/60 p-1">
+            {tabs.map((tab) => {
+              const TabIcon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-200 ease-out whitespace-nowrap rounded-lg flex-shrink-0",
+                    activeTab === tab.id
+                      ? "bg-foreground text-background shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <TabIcon className="h-4 w-4" strokeWidth={1.5} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
@@ -435,23 +465,93 @@ export default function SettingsPage() {
               <h3 className="text-lg font-semibold text-foreground mb-4">Profile Details</h3>
               <SettingsSection title="Profile" isGlassEnabled={isGlassEnabled} patternId="settings-org-profile">
                 <div className="p-4">
-                  <div className="grid gap-4 md:grid-cols-3 items-start">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">User Name</Label>
-                      <p className="text-sm text-foreground">{settings.username || 'Your Name'}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">Email</Label>
-                      <p className="text-sm text-foreground">{user?.email}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">Member Since</Label>
-                      <p className="text-sm text-foreground">
-                        {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
+                  <div className="grid gap-6 md:grid-cols-1">
+                    {/* Profile Info - Editable */}
+                    <Collapsible open={showUsernameChange} onOpenChange={setShowUsernameChange}>
+                      <div className="rounded-2xl border border-border/60 bg-card/60 overflow-hidden">
+                        <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/40 transition-colors text-left">
+                          <div className="flex-1 grid md:grid-cols-3 gap-4">
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">User Name</Label>
+                              <p className="text-sm font-medium text-foreground">{settings.username || 'Your Name'}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Email</Label>
+                              <p className="text-sm font-medium text-foreground">{user?.email}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Member Since</Label>
+                              <p className="text-sm font-medium text-foreground">
+                                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <MoreVertical className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="border-t border-border/60">
+                          <div className="p-4 space-y-4 bg-muted/20">
+                            <div>
+                              <Label htmlFor="newUsername" className="text-sm text-muted-foreground">New Username</Label>
+                              <Input
+                                id="newUsername"
+                                type="text"
+                                value={newUsername}
+                                onChange={(e) => setNewUsername(e.target.value)}
+                                placeholder={settings.username || 'Enter new username'}
+                                className="mt-1.5 bg-muted/50 border-border"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="newEmail" className="text-sm text-muted-foreground">New Email</Label>
+                              <Input
+                                id="newEmail"
+                                type="email"
+                                value={newEmail}
+                                onChange={(e) => setNewEmail(e.target.value)}
+                                placeholder={user?.email || 'Enter new email'}
+                                className="mt-1.5 bg-muted/50 border-border"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1.5">
+                                A confirmation email will be sent to verify your new email address.
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={async () => {
+                                  const promises = [];
+                                  if (newUsername.trim() && newUsername.trim() !== settings.username) {
+                                    promises.push(handleChangeUsername());
+                                  }
+                                  if (newEmail.trim() && newEmail.trim() !== user?.email) {
+                                    promises.push(handleChangeEmail());
+                                  }
+                                  if (promises.length > 0) {
+                                    await Promise.all(promises);
+                                  } else {
+                                    toast.error('No changes to save');
+                                  }
+                                }}
+                                disabled={isChangingUsername || isChangingEmail || (!newUsername.trim() && !newEmail.trim())}
+                                className="flex-1 bg-foreground text-background hover:bg-foreground/90"
+                              >
+                                {(isChangingUsername || isChangingEmail) ? 'Updating...' : 'Save Changes'}
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  setShowUsernameChange(false);
+                                  setNewUsername('');
+                                  setNewEmail('');
+                                }}
+                                variant="outline"
+                                className="flex-1"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
                   </div>
                 </div>
               </SettingsSection>
@@ -459,19 +559,21 @@ export default function SettingsPage() {
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4">Account Settings</h3>
-              <SettingsSection title="Account" isGlassEnabled={isGlassEnabled} patternId="settings-account-dots">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
-                    <div className="rounded-2xl border border-border/60 bg-card/60 overflow-hidden">
-                      <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/40 transition-colors text-left">
-                        <div className="h-10 w-10 rounded-xl bg-muted/60 flex items-center justify-center border border-border/60">
-                          <KeyRoundIcon className="h-5 w-5 text-foreground/70" />
+              <div>
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                  Account
+                </h2>
+                <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
+                  <div className="rounded-xl border border-border/60 bg-card/60 overflow-hidden max-w-md">
+                      <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors text-left">
+                        <div className="h-9 w-9 rounded-lg bg-muted/60 flex items-center justify-center border border-border/60">
+                          <KeyRoundIcon className="h-4 w-4 text-foreground/70" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-base text-foreground">Change Password</p>
-                          <p className="text-sm text-muted-foreground">Update your account password</p>
+                          <p className="font-semibold text-sm text-foreground">Change Password</p>
+                          <p className="text-xs text-muted-foreground">Update your account password</p>
                         </div>
-                        <span className="text-xs font-medium text-muted-foreground">Edit</span>
+                        <MoreVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
                       </CollapsibleTrigger>
                       <CollapsibleContent className="border-t border-border/60">
                         <div className="p-4 space-y-4 bg-muted/20">
@@ -534,54 +636,7 @@ export default function SettingsPage() {
                       </CollapsibleContent>
                     </div>
                   </Collapsible>
-
-                  <Collapsible open={showEmailChange} onOpenChange={setShowEmailChange}>
-                    <div className="rounded-2xl border border-border/60 bg-card/60 overflow-hidden">
-                      <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/40 transition-colors text-left">
-                        <div className="h-10 w-10 rounded-xl bg-muted/60 flex items-center justify-center border border-border/60">
-                          <MailIcon className="h-5 w-5 text-foreground/70" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-base text-foreground">Change Email</p>
-                          <p className="text-sm text-muted-foreground">Update your email address</p>
-                        </div>
-                        <span className="text-xs font-medium text-muted-foreground">Edit</span>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="border-t border-border/60">
-                        <div className="p-4 space-y-4 bg-muted/20">
-                          <div>
-                            <Label className="text-sm text-muted-foreground">Current Email</Label>
-                            <p className="text-sm text-foreground mt-1">{user?.email}</p>
-                          </div>
-                          <div>
-                            <Label htmlFor="newEmail" className="text-sm text-muted-foreground">New Email</Label>
-                            <div className="relative mt-1.5">
-                              <Input
-                                id="newEmail"
-                                type="email"
-                                value={newEmail}
-                                onChange={(e) => setNewEmail(e.target.value)}
-                                placeholder="Enter new email address"
-                                className="bg-muted/50 border-border"
-                              />
-                            </div>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            A confirmation email will be sent to both your current and new email addresses.
-                          </p>
-                          <Button
-                            onClick={handleChangeEmail}
-                            disabled={isChangingEmail || !newEmail}
-                            className="w-full"
-                          >
-                            {isChangingEmail ? 'Sending...' : 'Change Email'}
-                          </Button>
-                        </div>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                </div>
-              </SettingsSection>
+              </div>
             </div>
 
             <div>
@@ -639,7 +694,6 @@ export default function SettingsPage() {
         {activeTab === 'user' && (
           <div className="space-y-6 max-w-5xl w-full">
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Preferences</h3>
               <PreferencesSettings embedded />
             </div>
 

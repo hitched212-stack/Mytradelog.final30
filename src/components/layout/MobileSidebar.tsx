@@ -145,7 +145,7 @@ export function MobileSidebar() {
                     <button
                       onClick={() => setTheme('light')}
                       className={cn(
-                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium [-webkit-tap-highlight-color:transparent] focus:outline-none',
                         preferences.theme === 'light'
                           ? 'bg-foreground/10 text-foreground'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -157,7 +157,7 @@ export function MobileSidebar() {
                     <button
                       onClick={() => setTheme('dark')}
                       className={cn(
-                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium [-webkit-tap-highlight-color:transparent] focus:outline-none',
                         preferences.theme === 'dark'
                           ? 'bg-foreground/10 text-foreground'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
