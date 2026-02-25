@@ -54,6 +54,14 @@ export default function CalendarPage() {
   const isMobile = useIsMobile();
   const goalPeriod = preferences.goalPeriod;
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  const displayRange = useMemo(() => {
+    if (dateRange.from) return dateRange;
+    if (viewMode === 'year') {
+      return { from: startOfYear(currentMonth), to: endOfYear(currentMonth) };
+    }
+    return { from: startOfMonth(currentMonth), to: endOfMonth(currentMonth) };
+  }, [currentMonth, dateRange, viewMode]);
   
   // No browser storage persistence for calendar filters
   const {
@@ -777,11 +785,11 @@ export default function CalendarPage() {
                       >
                         <CalendarIcon className="h-4 w-4" />
                         <span className="hidden md:inline">
-                          {dateRange.from ? (
-                            dateRange.to ? (
-                              `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                          {displayRange.from ? (
+                            displayRange.to ? (
+                              `${format(displayRange.from, 'MMM dd')} - ${format(displayRange.to, 'MMM dd')}`
                             ) : (
-                              format(dateRange.from, 'MMM dd')
+                              format(displayRange.from, 'MMM dd')
                             )
                           ) : 'Date Range'}
                         </span>
@@ -1711,11 +1719,11 @@ export default function CalendarPage() {
                       {/* Legend */}
                       <div className="flex items-center justify-center gap-6 mt-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: profitColor }} />
+                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
                           <span className="text-xs text-muted-foreground">Wins ({wins})</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-pnl-negative" />
+                          <div className="w-2.5 h-2.5 rounded-sm bg-pnl-negative" />
                           <span className="text-xs text-muted-foreground">Losses ({losses})</span>
                         </div>
                       </div>
@@ -1765,8 +1773,9 @@ export default function CalendarPage() {
                           }}>
                             <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.5} />
                             <PolarAngleAxis dataKey="metric" tick={{
-                              fontSize: 10,
-                              fill: 'hsl(var(--muted-foreground))'
+                              fontSize: 11,
+                              fill: 'hsl(var(--muted-foreground))',
+                              fontWeight: 600
                             }} />
                             <Radar name="Score" dataKey="value" stroke={profitColor} fill={profitColor} fillOpacity={0.3} strokeWidth={2} />
                             <Tooltip contentStyle={{

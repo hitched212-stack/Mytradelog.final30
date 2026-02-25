@@ -407,7 +407,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'organization' as const, label: 'General', icon: Settings2 },
-    { id: 'user' as const, label: 'User Preferences', icon: UserCog },
+    { id: 'user' as const, label: 'Preferences', icon: UserCog },
     { id: 'billing' as const, label: 'Billing', icon: CreditCardIcon },
     { id: 'compliance' as const, label: 'Security', icon: ShieldCheck },
   ];

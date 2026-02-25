@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Plus, User, Menu, Sun, Moon } from 'lucide-react';
+import { Plus, User, Menu, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { usePreferences } from '@/hooks/usePreferences';
@@ -382,32 +382,57 @@ export function BottomNav() {
                 
                 {/* Theme Toggle */}
                 <div className="py-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 text-center">Theme</p>
-                  <div className="flex gap-2 justify-center px-3">
-                    <button
-                      onClick={() => setTheme('light')}
-                      className={cn(
-                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
-                        preferences.theme === 'light'
-                          ? 'bg-foreground/10 text-foreground'
-                          : 'text-muted-foreground hover:bg-foreground/5'
-                      )}
-                    >
-                      <Sun className="h-4 w-4" />
-                      Light
-                    </button>
-                    <button
-                      onClick={() => setTheme('dark')}
-                      className={cn(
-                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
-                        preferences.theme === 'dark'
-                          ? 'bg-foreground/10 text-foreground'
-                          : 'text-muted-foreground hover:bg-foreground/5'
-                      )}
-                    >
-                      <Moon className="h-4 w-4" />
-                      Dark
-                    </button>
+                  <div className="flex justify-center px-3">
+                    <div className="relative inline-flex items-center bg-muted/50 dark:bg-muted/30 rounded-full p-0.5 border border-border/50">
+                      {/* Slider Background */}
+                      <div
+                        className={cn(
+                          "absolute top-0.5 h-[calc(100%-4px)] w-10 rounded-full transition-all duration-300 ease-in-out bg-background shadow-sm border border-border/50",
+                          preferences.theme === 'light' && "left-0.5",
+                          preferences.theme === 'dark' && "left-[2.625rem]",
+                          preferences.theme === 'system' && "left-[5.125rem]"
+                        )}
+                      />
+                      
+                      {/* Light Mode Button */}
+                      <button
+                        onClick={() => setTheme('light')}
+                        className={cn(
+                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300',
+                          preferences.theme === 'light'
+                            ? 'text-foreground'
+                            : 'text-muted-foreground/50 hover:text-muted-foreground/70'
+                        )}
+                      >
+                        <Sun className="h-4 w-4" />
+                      </button>
+                      
+                      {/* Dark Mode Button */}
+                      <button
+                        onClick={() => setTheme('dark')}
+                        className={cn(
+                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300',
+                          preferences.theme === 'dark'
+                            ? 'text-foreground'
+                            : 'text-muted-foreground/50 hover:text-muted-foreground/70'
+                        )}
+                      >
+                        <Moon className="h-4 w-4" />
+                      </button>
+                      
+                      {/* System Mode Button */}
+                      <button
+                        onClick={() => setTheme('system')}
+                        className={cn(
+                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300',
+                          preferences.theme === 'system'
+                            ? 'text-foreground'
+                            : 'text-muted-foreground/50 hover:text-muted-foreground/70'
+                        )}
+                      >
+                        <Monitor className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

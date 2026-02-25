@@ -194,7 +194,7 @@ export default function Auth() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4 py-8 text-white">
       {/* Main Content Card */}
       <motion.div 
-        className="w-full max-w-[520px] rounded-3xl border border-transparent bg-zinc-950/90 p-12 shadow-2xl shadow-black/40"
+        className="w-full max-w-[520px] rounded-3xl border border-zinc-800 bg-zinc-900/95 p-12 shadow-2xl shadow-black/40"
         initial="hidden" 
         animate="visible" 
         variants={staggerContainer}
@@ -234,7 +234,7 @@ export default function Auth() {
                   placeholder="Enter your username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  className="h-12 rounded-lg border border-transparent bg-zinc-900/70 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-900/70 hover:border-transparent focus-visible:bg-zinc-900/70 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-12 rounded-lg border border-zinc-700 bg-zinc-800/80 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-800 hover:border-zinc-600 focus-visible:bg-zinc-800 focus-visible:border-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   required={isSignUp}
                 />
               </div>
@@ -255,7 +255,7 @@ export default function Auth() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="h-12 rounded-lg border border-transparent bg-zinc-900/70 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-900/70 hover:border-transparent focus-visible:bg-zinc-900/70 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-12 rounded-lg border border-zinc-700 bg-zinc-800/80 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-800 hover:border-zinc-600 focus-visible:bg-zinc-800 focus-visible:border-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 required
               />
             </div>
@@ -275,7 +275,7 @@ export default function Auth() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="h-12 rounded-lg border border-transparent bg-zinc-900/70 pl-12 pr-12 text-white placeholder:text-zinc-500 hover:bg-zinc-900/70 hover:border-transparent focus-visible:bg-zinc-900/70 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-12 rounded-lg border border-zinc-700 bg-zinc-800/80 pl-12 pr-12 text-white placeholder:text-zinc-500 hover:bg-zinc-800 hover:border-zinc-600 focus-visible:bg-zinc-800 focus-visible:border-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 required
               />
               <button

@@ -54,7 +54,7 @@ export function AccountSwitcher({ collapsed = false }: AccountSwitcherProps) {
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'flex items-center gap-3 w-full rounded-xl transition-all',
+            'flex items-center gap-3 w-full rounded-xl transition-all outline-none focus:outline-none focus-visible:outline-none',
             'bg-foreground/5 hover:bg-foreground/10 border border-border/50',
             collapsed ? 'p-2 justify-center' : 'px-3 py-2.5'
           )}

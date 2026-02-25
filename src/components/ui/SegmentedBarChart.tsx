@@ -65,7 +65,7 @@ export function SegmentedBarChart({
         {sortedData.map((item) => (
           <div key={item.name} className="flex items-center gap-2">
             <div 
-              className="w-2.5 h-2.5 rounded-full shrink-0" 
+              className="w-2.5 h-2.5 rounded-sm shrink-0" 
               style={{ backgroundColor: item.color }}
             />
             <span className="text-xs text-muted-foreground">{item.name}</span>

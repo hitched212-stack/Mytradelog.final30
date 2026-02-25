@@ -1,7 +1,5 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  ChevronRight,
-  ChevronDown,
   Plus,
   ChevronsUpDown,
   PanelLeft,
@@ -16,7 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from "@/hooks/useAccount";
 import { useTrades } from "@/hooks/useTrades";
@@ -194,9 +192,6 @@ export function Sidebar({
   const { preferences, setTheme } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const [isCollapsedState, setIsCollapsedState] = useState(false);
-  const [isTradingOpen, setIsTradingOpen] = useState(true);
-  const [isToolsOpen, setIsToolsOpen] = useState(true);
-  const [isParametersOpen, setIsParametersOpen] = useState(true);
   const isCollapsed = controlledCollapsed ?? isCollapsedState;
   const setIsCollapsed = setControlledCollapsed ?? setIsCollapsedState;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -338,220 +333,119 @@ export function Sidebar({
 
       {/* Navigation */}
       <nav className="flex-1 px-3 overflow-y-auto relative">
-        {/* Trading Section - Collapsible */}
-        <div>
-          {!isCollapsed && (
-            <button
-              onClick={() => setIsTradingOpen(!isTradingOpen)}
-              className="flex items-center justify-between w-full px-2 mb-2 transition-opacity duration-200 hover:opacity-80"
-            >
-              <span className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Trading</span>
-              <motion.div animate={{ rotate: isTradingOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </motion.div>
-            </button>
-          )}
-
-          <AnimatePresence initial={false}>
-            {(isTradingOpen || isCollapsed) && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-visible"
+        <div className="space-y-0.5 py-0.5">
+          {navSections[0].items.map(({ to, icon: Icon, label }) => {
+            const active = isActive(to);
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={cn(
+                  "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
+                  "hover:scale-[1.02]",
+                  active
+                    ? "text-foreground bg-muted/80"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                  isCollapsed ? "justify-center" : "",
+                )}
               >
-                <div className="space-y-0.5 py-0.5">
-                  {navSections[0].items.map(({ to, icon: Icon, label }) => {
-                    const active = isActive(to);
-                    return (
-                      <NavLink
-                        key={to}
-                        to={to}
-                        className={cn(
-                          "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
-                          "hover:scale-[1.02]",
-                          active
-                            ? "text-foreground bg-muted/80"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                          isCollapsed ? "justify-center" : "",
-                        )}
-                      >
-                        <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-                          <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
-                        </div>
-                        {!isCollapsed && (
-                          <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
-                            {label}
-                          </span>
-                        )}
-                        {/* Active indicator line */}
-                        {active && !isCollapsed && (
-                          <motion.div 
-                            initial={{ opacity: 0, scaleY: 0 }}
-                            animate={{ opacity: 1, scaleY: 1 }}
-                            exit={{ opacity: 0, scaleY: 0 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="ml-auto w-[2px] h-4 bg-foreground rounded-full" 
-                          />
-                        )}
-                      </NavLink>
-                    );
-                  })}
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
+                  <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                {!isCollapsed && (
+                  <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
+                    {label}
+                  </span>
+                )}
+                {active && !isCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, scaleY: 0 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    exit={{ opacity: 0, scaleY: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="ml-auto w-[2px] h-4 bg-foreground rounded-full"
+                  />
+                )}
+              </NavLink>
+            );
+          })}
+          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
+          {navSections[1].items.map(({ to, icon: Icon, label }) => {
+            const active = isActive(to);
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={cn(
+                  "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
+                  "hover:scale-[1.02]",
+                  active
+                    ? "text-foreground bg-muted/80"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                  isCollapsed ? "justify-center" : "",
+                )}
+              >
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
+                  <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                </div>
+                {!isCollapsed && (
+                  <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
+                    {label}
+                  </span>
+                )}
+                {active && !isCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, scaleY: 0 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    exit={{ opacity: 0, scaleY: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="ml-auto w-[2px] h-4 bg-foreground rounded-full"
+                  />
+                )}
+              </NavLink>
+            );
+          })}
+          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
+          {parametersItems.map(({ to, icon: Icon, label }) => {
+            const active = isActive(to);
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={cn(
+                  "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
+                  "hover:scale-[1.02]",
+                  active
+                    ? "text-foreground bg-muted/80"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                  isCollapsed ? "justify-center" : "",
+                )}
+              >
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
+                  <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                </div>
+                {!isCollapsed && (
+                  <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
+                    {label}
+                  </span>
+                )}
+                {active && !isCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, scaleY: 0 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    exit={{ opacity: 0, scaleY: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="ml-auto w-[2px] h-4 bg-foreground rounded-full"
+                  />
+                )}
+              </NavLink>
+            );
+          })}
+          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
         </div>
 
-        {/* Divider between Trading and Tools */}
-        {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
-
-        {/* Tools Section - Collapsible */}
+        {/* Settings */}
         <div>
-          {!isCollapsed && (
-            <button
-              onClick={() => setIsToolsOpen(!isToolsOpen)}
-              className="flex items-center justify-between w-full px-2 mb-2 transition-opacity duration-200 hover:opacity-80"
-            >
-              <span className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Tools</span>
-              <motion.div animate={{ rotate: isToolsOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </motion.div>
-            </button>
-          )}
-
-          <AnimatePresence initial={false}>
-            {(isToolsOpen || isCollapsed) && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-visible"
-              >
-                <div className="space-y-0.5 py-0.5">
-                  {navSections[1].items.map(({ to, icon: Icon, label }) => {
-                    const active = isActive(to);
-                    return (
-                      <NavLink
-                        key={to}
-                        to={to}
-                        className={cn(
-                          "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
-                          "hover:scale-[1.02]",
-                          active
-                            ? "text-foreground bg-muted/80"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                          isCollapsed ? "justify-center" : "",
-                        )}
-                      >
-                        <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-                          <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
-                        </div>
-                        {!isCollapsed && (
-                          <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
-                            {label}
-                          </span>
-                        )}
-                        {/* Active indicator line */}
-                        {active && !isCollapsed && (
-                          <motion.div 
-                            initial={{ opacity: 0, scaleY: 0 }}
-                            animate={{ opacity: 1, scaleY: 1 }}
-                            exit={{ opacity: 0, scaleY: 0 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="ml-auto w-[2px] h-4 bg-foreground rounded-full" 
-                          />
-                        )}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Divider between Tools and Parameters */}
-        {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
-
-        {/* Parameters Section - Collapsible */}
-        <div>
-          {!isCollapsed && (
-            <button
-              onClick={() => setIsParametersOpen(!isParametersOpen)}
-              className="flex items-center justify-between w-full px-2 mb-2 transition-opacity duration-200 hover:opacity-80"
-            >
-              <span className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Parameters</span>
-              <motion.div animate={{ rotate: isParametersOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </motion.div>
-            </button>
-          )}
-
-          <AnimatePresence initial={false}>
-            {(isParametersOpen || isCollapsed) && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-visible"
-              >
-                <div className="space-y-0.5 py-0.5">
-                  {parametersItems.map(({ to, icon: Icon, label }) => {
-                    const active = isActive(to);
-                    return (
-                      <NavLink
-                        key={to}
-                        to={to}
-                        className={cn(
-                          "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
-                          "hover:scale-[1.02]",
-                          active
-                            ? "text-foreground bg-muted/80"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                          isCollapsed ? "justify-center" : "",
-                        )}
-                      >
-                        <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-                          <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
-                        </div>
-                        {!isCollapsed && (
-                          <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
-                            {label}
-                          </span>
-                        )}
-                        {/* Active indicator line */}
-                        {active && !isCollapsed && (
-                          <motion.div 
-                            initial={{ opacity: 0, scaleY: 0 }}
-                            animate={{ opacity: 1, scaleY: 1 }}
-                            exit={{ opacity: 0, scaleY: 0 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="ml-auto w-[2px] h-4 bg-foreground rounded-full" 
-                          />
-                        )}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Divider between Parameters and Settings */}
-        {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
-
-        {/* Settings - Separated */}
-        <div>
-          {!isCollapsed && (
-            <div className="px-2 mb-2 transition-opacity duration-200">
-              <span className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Settings</span>
-            </div>
-          )}
           <NavLink
             to="/settings"
             className={cn(
@@ -571,7 +465,6 @@ export function Sidebar({
                 <span className="text-sm font-medium whitespace-nowrap overflow-hidden flex-1 transition-opacity duration-200">
                   Settings
                 </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </>
             )}
             {/* Active indicator line */}
@@ -622,7 +515,7 @@ export function Sidebar({
             sideOffset={8}
           >
             {/* User Header */}
-            <div className="flex items-center gap-3 p-2.5 rounded-xl border border-border/50 bg-muted/30">
+            <div className="flex items-center gap-3 p-2.5 rounded-xl">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={avatarUrl || undefined} />
                 <AvatarFallback className="text-sm bg-muted/70">{userInitials}</AvatarFallback>
@@ -646,7 +539,17 @@ export function Sidebar({
             <div className="p-2 rounded-xl border border-border/50 bg-muted/20">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Theme</span>
-                <div className="flex items-center gap-1">
+                <div className="relative inline-flex items-center bg-muted/50 dark:bg-muted/30 rounded-full p-0.5 border border-border/50">
+                  {/* Slider Background */}
+                  <div
+                    className={cn(
+                      "absolute top-0.5 h-[calc(100%-4px)] w-8 rounded-full transition-all duration-300 ease-in-out bg-background shadow-sm border border-border/50",
+                      preferences.theme === 'light' && "left-0.5",
+                      preferences.theme === 'dark' && "left-[2.125rem]",
+                      preferences.theme === 'system' && "left-[4.125rem]"
+                    )}
+                  />
+                  
                   {[
                     { value: 'light', icon: Sun },
                     { value: 'dark', icon: Moon },
@@ -656,10 +559,10 @@ export function Sidebar({
                       key={value}
                       onClick={() => setTheme(value as any)}
                       className={cn(
-                        "p-1.5 rounded-lg transition-colors",
+                        'relative z-10 flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300',
                         preferences.theme === value
-                          ? "bg-foreground/10 text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? 'text-foreground'
+                          : 'text-muted-foreground/50 hover:text-muted-foreground/70'
                       )}
                       title={value.charAt(0).toUpperCase() + value.slice(1)}
                     >

@@ -1113,8 +1113,9 @@ export default function Analytics() {
                 }}>
                     <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.5} />
                     <PolarAngleAxis dataKey="metric" tick={{
-                    fontSize: 10,
-                    fill: 'hsl(var(--muted-foreground))'
+                    fontSize: 11,
+                    fill: 'hsl(var(--muted-foreground))',
+                    fontWeight: 600
                   }} />
                     <Radar name="Score" dataKey="value" stroke={profitColor} fill={profitColor} fillOpacity={0.3} strokeWidth={2} />
                     <Tooltip contentStyle={{
@@ -1294,11 +1295,11 @@ export default function Analytics() {
                 {/* Legend */}
                 <div className="flex items-center justify-center gap-6 mt-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: profitColor }} />
+                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: profitColor }} />
                     <span className="text-xs text-muted-foreground">Wins ({stats.wins})</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lossColor }} />
+                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: lossColor }} />
                     <span className="text-xs text-muted-foreground">Losses ({stats.losses})</span>
                   </div>
                 </div>
@@ -1338,7 +1339,7 @@ export default function Analytics() {
             <div className="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-border/50">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-sm bg-pnl-positive" />
+                  <div className="w-2.5 h-2.5 rounded-sm bg-pnl-positive" />
                   <p className="text-xs font-medium text-foreground">Long Trades</p>
                 </div>
                 <div className="space-y-2 pl-4">
@@ -1357,7 +1358,7 @@ export default function Analytics() {
               
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: 'hsl(240, 91%, 65%)' }} />
+                  <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(240, 91%, 65%)' }} />
                   <p className="text-xs font-medium text-foreground">Short Trades</p>
                 </div>
                 <div className="space-y-2 pl-4">
@@ -1625,7 +1626,7 @@ export default function Analytics() {
                 {strategyProfitabilityData.map((strategy) => (
                   <div key={strategy.name} className="flex items-center gap-2">
                     <div 
-                      className="w-3 h-3 rounded-full shrink-0" 
+                      className="w-3 h-3 rounded-sm shrink-0" 
                       style={{ backgroundColor: strategy.color }}
                     />
                     <span className="text-xs text-muted-foreground">{strategy.name}</span>
