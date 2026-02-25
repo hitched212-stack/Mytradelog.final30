@@ -43,12 +43,8 @@ export function RichTextEditor({
   const [showListDropdown, setShowListDropdown] = useState(false);
 
   const defaultColors = [
-    '#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#EEEEEE', '#F3F3F3', '#FFFFFF', '#FFFFFF', '#FFFFFF',
-    '#C41E3A', '#FF0000', '#FF6B35', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#0070C0', '#9932CC', '#FF1493',
-    '#FFD9B3', '#FFE4D6', '#FFF0E0', '#FFFACD', '#E8F5E9', '#D4EAEF', '#E1F5FF', '#F3E5F5', '#FCE4EC', '#FFF0F5',
-    '#FFCC99', '#FFD9B3', '#FFDDCC', '#FFFFE0', '#F0F8E8', '#E0F7FA', '#D6F4FF', '#E9D5FF', '#F8D9E8', '#FFE4F2',
-    '#C85A54', '#D97766', '#E89B7B', '#D4A574', '#A8C686', '#7EB3D4', '#6B9FCC', '#9B7FC4', '#D4889B', '#E897B8',
-    '#8B4513', '#A0522D', '#CD853F', '#B8860B', '#556B2F', '#2F4F4F', '#193D3D', '#305070', '#4B0082', '#800020'
+    '#000000', '#333333', '#666666', '#999999',
+    '#C41E3A', '#FF0000', '#FF6B35', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9932CC'
   ];
 
   const handleAddCustomColor = () => {
@@ -493,8 +489,8 @@ export function RichTextEditor({
               {/* Default Highlights Section */}
               <div className="p-4">
                 <span className="text-xs font-semibold text-foreground/80 block mb-3">Default Highlights</span>
-                <div className="grid grid-cols-10 gap-2">
-                  {['#FFFF00', '#FFE135', '#FFC700', '#FFAA00', '#FF6600', '#FF0000', '#FF69B4', '#FF1493', '#00FF00', '#00FFFF', '#0000FF', '#9370DB', '#FFB6C1', '#FFDAB9', '#FFE4B5', '#FFFACD', '#E0FFFF', '#E6E6FA', '#F0FFF0', '#FFFAF0'].map((color) => (
+                <div className="grid grid-cols-6 md:grid-cols-12 gap-2">
+                  {['#FFFF00', '#FFC700', '#FF6600', '#FF0000', '#FF1493', '#9370DB', '#00FFFF', '#0000FF', '#00FF00', '#FFE135', '#FFAA00', '#FF69B4'].map((color) => (
                     <button
                       key={color}
                       type="button"
@@ -560,7 +556,7 @@ export function RichTextEditor({
             <span className="text-sm font-bold" style={{ color: selectedColor }}>A</span>
           </button>
           {showColorPicker && (
-            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-80 max-h-96 overflow-y-auto">
+            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-44 max-h-96 overflow-y-auto">
               {/* Custom Colors Section */}
               {customColors.length > 0 && (
                 <div className="p-4 border-b border-border/50">
@@ -599,9 +595,9 @@ export function RichTextEditor({
               )}
 
               {/* Default Colors Section */}
-              <div className="p-4">
-                <span className="text-xs font-semibold text-foreground/80 block mb-3">Default Colors</span>
-                <div className="grid grid-cols-10 gap-2">
+              <div className="p-2">
+                <span className="text-xs font-semibold text-foreground/80 block mb-2">Default Colors</span>
+                <div className="grid grid-cols-6 gap-1.5 pr-2">
                   {defaultColors.map((color) => (
                     <button
                       key={color}
@@ -668,7 +664,7 @@ export function RichTextEditor({
           </button>
 
           {showFontPicker && (
-            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-48">
+            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-32 md:w-48">
               <div className="p-2">
                 {fontStyles.map((font) => (
                   <button
