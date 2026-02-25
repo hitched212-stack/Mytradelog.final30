@@ -398,7 +398,7 @@ export function BottomNav() {
                       <button
                         onClick={() => setTheme('light')}
                         className={cn(
-                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300',
+                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 outline-none focus:outline-none focus-visible:outline-none',
                           preferences.theme === 'light'
                             ? 'text-foreground'
                             : 'text-muted-foreground/50 hover:text-muted-foreground/70'
@@ -411,7 +411,7 @@ export function BottomNav() {
                       <button
                         onClick={() => setTheme('dark')}
                         className={cn(
-                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300',
+                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 outline-none focus:outline-none focus-visible:outline-none',
                           preferences.theme === 'dark'
                             ? 'text-foreground'
                             : 'text-muted-foreground/50 hover:text-muted-foreground/70'
@@ -424,7 +424,7 @@ export function BottomNav() {
                       <button
                         onClick={() => setTheme('system')}
                         className={cn(
-                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300',
+                          'relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 outline-none focus:outline-none focus-visible:outline-none',
                           preferences.theme === 'system'
                             ? 'text-foreground'
                             : 'text-muted-foreground/50 hover:text-muted-foreground/70'

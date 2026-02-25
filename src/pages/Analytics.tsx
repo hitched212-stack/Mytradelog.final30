@@ -983,7 +983,7 @@ export default function Analytics() {
                       </feMerge>
                     </filter>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
                   <XAxis dataKey="date" tick={{
                 fontSize: 10,
                 fill: 'hsl(var(--muted-foreground))'
@@ -1044,7 +1044,7 @@ export default function Analytics() {
               left: -10,
               bottom: 0
             }} onMouseLeave={() => setActiveBarIndex(undefined)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
                   <XAxis dataKey="date" tick={{
                 fontSize: 10,
                 fill: 'hsl(var(--muted-foreground))'
@@ -1101,9 +1101,14 @@ export default function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Performance Score Radar */}
           <GlassCardWrapper patternId="perf-score-dots" className="p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2">Performance Score</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider">Performance Score</h3>
+              <span className="text-lg text-pnl-positive font-display font-bold tabular-nums">
+                {tradepathScoreData.overallScore.toFixed(0)}%
+              </span>
+            </div>
             <div className="flex flex-col items-center">
-              <div className="w-full h-48">
+              <div className="w-full h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={tradepathScoreData.radarData} margin={{
                   top: 20,
@@ -1117,7 +1122,7 @@ export default function Analytics() {
                     fill: 'hsl(var(--muted-foreground))',
                     fontWeight: 600
                   }} />
-                    <Radar name="Score" dataKey="value" stroke={profitColor} fill={profitColor} fillOpacity={0.3} strokeWidth={2} />
+                    <Radar name="Score" dataKey="value" stroke={profitColor} fill={profitColor} fillOpacity={0.3} strokeWidth={1.5} />
                     <Tooltip contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
@@ -1131,11 +1136,6 @@ export default function Analytics() {
                   }} formatter={(value: number) => [`${value.toFixed(1)}%`, 'Score']} />
                   </RadarChart>
                 </ResponsiveContainer>
-              </div>
-              <div className="text-center mt-2">
-                <span className="text-3xl text-pnl-positive font-display font-bold tabular-nums">
-                  {tradepathScoreData.overallScore.toFixed(0)}%
-                </span>
               </div>
             </div>
           </GlassCardWrapper>
@@ -1328,7 +1328,7 @@ export default function Analytics() {
                 { 
                   name: `Short (${stats.shortTrades.count})`, 
                   value: stats.shortTrades.count, 
-                  color: 'hsl(240, 91%, 65%)',
+                  color: 'hsl(var(--pnl-negative))',
                   percentage: stats.totalTrades > 0 ? (stats.shortTrades.count / stats.totalTrades) * 100 : 0
                 },
               ]}
@@ -1358,7 +1358,7 @@ export default function Analytics() {
               
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(240, 91%, 65%)' }} />
+                  <div className="w-2.5 h-2.5 rounded-sm bg-pnl-negative" />
                   <p className="text-xs font-medium text-foreground">Short Trades</p>
                 </div>
                 <div className="space-y-2 pl-4">

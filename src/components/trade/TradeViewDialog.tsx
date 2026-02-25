@@ -485,7 +485,7 @@ export function TradeViewDialogContent({
                 <div className="space-y-1.5">
                   <span className="text-sm font-semibold text-foreground">Notes</span>
                   <div className="rounded-lg border border-border bg-muted/50 p-3">
-                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{trade.notes}</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: trade.notes }} />
                   </div>
                 </div>
               )}

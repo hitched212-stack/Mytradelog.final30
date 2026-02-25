@@ -921,7 +921,7 @@ export function TradeForm({
                                 }));
                               }}
                               className={cn(
-                                "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border-2 flex items-center gap-2 hover:scale-[1.02]",
+                                "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border flex items-center gap-2 hover:scale-[1.02]",
                                 isSelected 
                                   ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/40" 
                                   : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
