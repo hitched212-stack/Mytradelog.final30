@@ -559,7 +559,7 @@ a,
 }
 
 .rich-text-content * {
-  all: revert;
+  /* Allow inline styles like color and font-family to work */
 }
 
 .rich-text-content p {
@@ -584,12 +584,19 @@ a,
 .rich-text-content strong,
 .rich-text-content b {
   font-weight: 700 !important;
-  color: inherit;
 }
 
 .rich-text-content em,
 .rich-text-content i {
   font-style: italic !important;
+}
+
+.rich-text-content u {
+  text-decoration: underline !important;
+}
+
+.rich-text-content mark {
+  background-color: inherit;
   color: inherit;
 }
 
@@ -610,5 +617,4 @@ a,
 .rich-text-content li {
   margin-bottom: 0.25rem;
   display: list-item !important;
-  color: inherit;
 }
