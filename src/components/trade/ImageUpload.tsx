@@ -235,8 +235,8 @@ export function ImageUpload({
           onFocus={() => setIsPasteFocused(true)}
           onBlur={() => setIsPasteFocused(false)}
           className={cn(
-            'flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-secondary/30 p-4 transition-all cursor-pointer',
-            isDragging ? 'border-primary/40 bg-secondary/50' : 'hover:border-primary/30 hover:bg-secondary/40',
+            'flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-4 transition-all cursor-pointer',
+            isDragging ? 'border-primary/40 bg-muted/50' : 'hover:border-primary/30 hover:bg-muted/40',
             isPasteFocused && 'ring-1 ring-ring/20'
           )}
           onClick={handleUploadZoneClick}

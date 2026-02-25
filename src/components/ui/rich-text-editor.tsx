@@ -47,12 +47,18 @@ export function RichTextEditor({
   const [tempCustomHighlight, setTempCustomHighlight] = useState('#FFFF00');
 
   const defaultColors = [
-    '#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#EEEEEE', '#F3F3F3', '#FFFFFF', '#FFFFFF', '#FFFFFF',
-    '#C41E3A', '#FF0000', '#FF6B35', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#0070C0', '#9932CC', '#FF1493',
-    '#FFD9B3', '#FFE4D6', '#FFF0E0', '#FFFACD', '#E8F5E9', '#D4EAEF', '#E1F5FF', '#F3E5F5', '#FCE4EC', '#FFF0F5',
-    '#FFCC99', '#FFD9B3', '#FFDDCC', '#FFFFE0', '#F0F8E8', '#E0F7FA', '#D6F4FF', '#E9D5FF', '#F8D9E8', '#FFE4F2',
-    '#C85A54', '#D97766', '#E89B7B', '#D4A574', '#A8C686', '#7EB3D4', '#6B9FCC', '#9B7FC4', '#D4889B', '#E897B8',
-    '#8B4513', '#A0522D', '#CD853F', '#B8860B', '#556B2F', '#2F4F4F', '#193D3D', '#305070', '#4B0082', '#800020'
+    '#000000', // black
+    '#4B5563', // gray
+    '#9CA3AF', // light gray
+    '#FFFFFF', // white
+    '#EF4444', // red
+    '#F97316', // orange
+    '#EAB308', // yellow
+    '#22C55E', // green
+    '#14B8A6', // teal
+    '#3B82F6', // blue
+    '#8B5CF6', // purple
+    '#EC4899', // pink
   ];
 
   const handleAddCustomColor = () => {
@@ -127,12 +133,45 @@ export function RichTextEditor({
   };
 
   const fontStyles = [
-    { name: 'Sans Serif', value: 'sans-serif' },
-    { name: 'Serif', value: 'Georgia, serif' },
-    { name: 'Monospace', value: '"Courier New", monospace' },
-    { name: 'Comic', value: '"Comic Sans MS", cursive' },
-    { name: 'Impact', value: 'Impact, fantasy' }
+    { name: 'Arial', value: 'Arial, sans-serif' },
+    { name: 'Times New Roman', value: '"Times New Roman", serif' },
+    { name: 'Georgia', value: 'Georgia, serif' },
+    { name: 'Verdana', value: 'Verdana, sans-serif' },
+    { name: 'Courier New', value: '"Courier New", monospace' }
   ];
+
+  // Load persisted custom colors/highlights
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedColors = localStorage.getItem('rteCustomColors');
+    const storedHighlights = localStorage.getItem('rteCustomHighlights');
+    if (storedColors) {
+      try {
+        const parsed = JSON.parse(storedColors);
+        if (Array.isArray(parsed)) setCustomColors(parsed);
+      } catch {
+        // ignore
+      }
+    }
+    if (storedHighlights) {
+      try {
+        const parsed = JSON.parse(storedHighlights);
+        if (Array.isArray(parsed)) setCustomHighlights(parsed);
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('rteCustomColors', JSON.stringify(customColors));
+  }, [customColors]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('rteCustomHighlights', JSON.stringify(customHighlights));
+  }, [customHighlights]);
 
   // Handle clicking outside dropdowns to close them
   useEffect(() => {
@@ -578,14 +617,14 @@ export function RichTextEditor({
             <span className="text-sm font-bold" style={{ color: selectedColor }}>A</span>
           </button>
           {showColorPicker && (
-            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-80 max-h-96 overflow-y-auto">
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-56 sm:w-64 max-w-[calc(100vw-1rem)] max-h-80 overflow-y-auto">
               {/* Custom Colors Section */}
               {customColors.length > 0 && (
-                <div className="p-4 border-b border-border/50">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-semibold text-foreground/80">Custom Colors</span>
+                <div className="p-3 border-b border-border/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-semibold text-foreground/80">Custom Colors</span>
                   </div>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-1.5 flex-wrap">
                     {customColors.map((color) => (
                       <button
                         key={color}
@@ -596,7 +635,7 @@ export function RichTextEditor({
                           applyFormat('foreColor', color);
                           setShowColorPicker(false);
                         }}
-                        className="w-8 h-8 rounded-full border-2 border-border hover:border-foreground transition-colors cursor-pointer"
+                        className="w-6 h-6 rounded-md border border-border/50 hover:border-foreground transition-colors cursor-pointer"
                         style={{ backgroundColor: color }}
                         title={color}
                       />
@@ -607,19 +646,19 @@ export function RichTextEditor({
                         e.preventDefault();
                         handleAddCustomColor();
                       }}
-                      className="w-8 h-8 rounded-full border-2 border-border/50 hover:border-foreground transition-colors cursor-pointer flex items-center justify-center text-foreground/50 hover:text-foreground"
+                      className="w-6 h-6 rounded-md border border-border/50 hover:border-foreground transition-colors cursor-pointer flex items-center justify-center text-foreground/50 hover:text-foreground"
                       title="Add Custom Color"
                     >
-                      <span className="text-lg">+</span>
+                      <span className="text-sm">+</span>
                     </button>
                   </div>
                 </div>
               )}
 
               {/* Default Colors Section */}
-              <div className="p-4">
-                <span className="text-xs font-semibold text-foreground/80 block mb-3">Default Colors</span>
-                <div className="grid grid-cols-10 gap-2">
+              <div className="p-3">
+                <span className="text-[11px] font-semibold text-foreground/80 block mb-2">Default Colors</span>
+                <div className="grid grid-cols-6 gap-1.5">
                   {defaultColors.map((color) => (
                     <button
                       key={color}
@@ -630,7 +669,7 @@ export function RichTextEditor({
                         applyFormat('foreColor', color);
                         setShowColorPicker(false);
                       }}
-                      className="w-6 h-6 rounded-full border border-border/30 hover:border-foreground transition-colors cursor-pointer"
+                      className="w-5 h-5 rounded-md border border-border/40 hover:border-foreground transition-colors cursor-pointer"
                       style={{ backgroundColor: color }}
                       title={color}
                     />
@@ -639,14 +678,14 @@ export function RichTextEditor({
               </div>
 
               {/* Add Custom Color + Clear Button */}
-              <div className="p-4 border-t border-border/50 space-y-2">
+              <div className="p-3 border-t border-border/50 space-y-1.5">
                 <button
                   type="button"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     handleAddCustomColor();
                   }}
-                  className="w-full px-3 py-2 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-2.5 py-1.5 text-[11px] font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors flex items-center justify-center gap-2"
                 >
                   <span>+ Add Color</span>
                 </button>
@@ -657,7 +696,7 @@ export function RichTextEditor({
                     handleClearColor();
                     setShowColorPicker(false);
                   }}
-                  className="w-full px-3 py-2 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-2.5 py-1.5 text-[11px] font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors flex items-center justify-center gap-2"
                 >
                   <span>Clear</span>
                 </button>
