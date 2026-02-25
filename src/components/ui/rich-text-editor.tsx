@@ -48,6 +48,8 @@ export function RichTextEditor({
   const [tempCustomColor, setTempCustomColor] = useState('#FF5733');
   const [showCustomHighlightDialog, setShowCustomHighlightDialog] = useState(false);
   const [tempCustomHighlight, setTempCustomHighlight] = useState('#FFFF00');
+  const [hasLoadedCustomColors, setHasLoadedCustomColors] = useState(false);
+  const [hasLoadedCustomHighlights, setHasLoadedCustomHighlights] = useState(false);
 
   const normalizeHex = (value: string) => value.trim().toUpperCase();
 
@@ -163,6 +165,7 @@ export function RichTextEditor({
         // ignore
       }
     }
+    setHasLoadedCustomColors(true);
     if (storedHighlights) {
       try {
         const parsed = JSON.parse(storedHighlights);
@@ -174,6 +177,7 @@ export function RichTextEditor({
         // ignore
       }
     }
+    setHasLoadedCustomHighlights(true);
   }, []);
 
   useEffect(() => {
@@ -242,15 +246,17 @@ export function RichTextEditor({
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!hasLoadedCustomColors) return;
     localStorage.setItem('rteCustomColors', JSON.stringify(customColors));
     window.dispatchEvent(new CustomEvent(CUSTOM_COLORS_EVENT, { detail: customColors }));
-  }, [customColors]);
+  }, [customColors, hasLoadedCustomColors]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!hasLoadedCustomHighlights) return;
     localStorage.setItem('rteCustomHighlights', JSON.stringify(customHighlights));
     window.dispatchEvent(new CustomEvent(CUSTOM_HIGHLIGHTS_EVENT, { detail: customHighlights }));
-  }, [customHighlights]);
+  }, [customHighlights, hasLoadedCustomHighlights]);
 
   // Handle clicking outside dropdowns to close them
   useEffect(() => {
