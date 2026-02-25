@@ -41,19 +41,34 @@ export function RichTextEditor({
   const [selectedHighlight, setSelectedHighlight] = useState('#FFFF00');
   const [customHighlights, setCustomHighlights] = useState<string[]>([]);
   const [showListDropdown, setShowListDropdown] = useState(false);
+  const [showCustomColorDialog, setShowCustomColorDialog] = useState(false);
+  const [tempCustomColor, setTempCustomColor] = useState('#FF5733');
+  const [showCustomHighlightDialog, setShowCustomHighlightDialog] = useState(false);
+  const [tempCustomHighlight, setTempCustomHighlight] = useState('#FFFF00');
 
   const defaultColors = [
-    '#000000', '#333333', '#666666', '#999999',
-    '#C41E3A', '#FF0000', '#FF6B35', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9932CC'
+    '#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#EEEEEE', '#F3F3F3', '#FFFFFF', '#FFFFFF', '#FFFFFF',
+    '#C41E3A', '#FF0000', '#FF6B35', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#0070C0', '#9932CC', '#FF1493',
+    '#FFD9B3', '#FFE4D6', '#FFF0E0', '#FFFACD', '#E8F5E9', '#D4EAEF', '#E1F5FF', '#F3E5F5', '#FCE4EC', '#FFF0F5',
+    '#FFCC99', '#FFD9B3', '#FFDDCC', '#FFFFE0', '#F0F8E8', '#E0F7FA', '#D6F4FF', '#E9D5FF', '#F8D9E8', '#FFE4F2',
+    '#C85A54', '#D97766', '#E89B7B', '#D4A574', '#A8C686', '#7EB3D4', '#6B9FCC', '#9B7FC4', '#D4889B', '#E897B8',
+    '#8B4513', '#A0522D', '#CD853F', '#B8860B', '#556B2F', '#2F4F4F', '#193D3D', '#305070', '#4B0082', '#800020'
   ];
 
   const handleAddCustomColor = () => {
-    const colorInput = prompt('Enter a hex color code (e.g., #FF5733):');
-    if (colorInput && /^#[0-9A-F]{6}$/i.test(colorInput)) {
-      if (!customColors.includes(colorInput)) {
-        setCustomColors([...customColors, colorInput]);
+    setShowCustomColorDialog(true);
+  };
+
+  const handleConfirmCustomColor = () => {
+    if (/^#[0-9A-F]{6}$/i.test(tempCustomColor)) {
+      if (!customColors.includes(tempCustomColor)) {
+        setCustomColors([...customColors, tempCustomColor]);
+        setShowCustomColorDialog(false);
+        setShowColorPicker(true);
+      } else {
+        alert('This color has already been added');
       }
-    } else if (colorInput) {
+    } else {
       alert('Please enter a valid hex color code');
     }
   };
@@ -64,12 +79,19 @@ export function RichTextEditor({
   };
 
   const handleAddCustomHighlight = () => {
-    const colorInput = prompt('Enter a hex color code (e.g., #FFFF00):');
-    if (colorInput && /^#[0-9A-F]{6}$/i.test(colorInput)) {
-      if (!customHighlights.includes(colorInput)) {
-        setCustomHighlights([...customHighlights, colorInput]);
+    setShowCustomHighlightDialog(true);
+  };
+
+  const handleConfirmCustomHighlight = () => {
+    if (/^#[0-9A-F]{6}$/i.test(tempCustomHighlight)) {
+      if (!customHighlights.includes(tempCustomHighlight)) {
+        setCustomHighlights([...customHighlights, tempCustomHighlight]);
+        setShowCustomHighlightDialog(false);
+        setShowHighlightPicker(true);
+      } else {
+        alert('This highlight color has already been added');
       }
-    } else if (colorInput) {
+    } else {
       alert('Please enter a valid hex color code');
     }
   };
@@ -489,8 +511,8 @@ export function RichTextEditor({
               {/* Default Highlights Section */}
               <div className="p-4">
                 <span className="text-xs font-semibold text-foreground/80 block mb-3">Default Highlights</span>
-                <div className="grid grid-cols-6 md:grid-cols-12 gap-2">
-                  {['#FFFF00', '#FFC700', '#FF6600', '#FF0000', '#FF1493', '#9370DB', '#00FFFF', '#0000FF', '#00FF00', '#FFE135', '#FFAA00', '#FF69B4'].map((color) => (
+                <div className="grid grid-cols-10 gap-2">
+                  {['#FFFF00', '#FFE135', '#FFC700', '#FFAA00', '#FF6600', '#FF0000', '#FF69B4', '#FF1493', '#00FF00', '#00FFFF', '#0000FF', '#9370DB', '#FFB6C1', '#FFDAB9', '#FFE4B5', '#FFFACD', '#E0FFFF', '#E6E6FA', '#F0FFF0', '#FFFAF0'].map((color) => (
                     <button
                       key={color}
                       type="button"
@@ -556,7 +578,7 @@ export function RichTextEditor({
             <span className="text-sm font-bold" style={{ color: selectedColor }}>A</span>
           </button>
           {showColorPicker && (
-            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-44 max-h-96 overflow-y-auto">
+            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-80 max-h-96 overflow-y-auto">
               {/* Custom Colors Section */}
               {customColors.length > 0 && (
                 <div className="p-4 border-b border-border/50">
@@ -595,9 +617,9 @@ export function RichTextEditor({
               )}
 
               {/* Default Colors Section */}
-              <div className="p-2">
-                <span className="text-xs font-semibold text-foreground/80 block mb-2">Default Colors</span>
-                <div className="grid grid-cols-6 gap-1.5 pr-2">
+              <div className="p-4">
+                <span className="text-xs font-semibold text-foreground/80 block mb-3">Default Colors</span>
+                <div className="grid grid-cols-10 gap-2">
                   {defaultColors.map((color) => (
                     <button
                       key={color}
@@ -717,6 +739,98 @@ export function RichTextEditor({
         data-placeholder={placeholder}
         style={{ WebkitUserSelect: 'text' } as React.CSSProperties}
       />
+
+      {/* Custom Color Picker Dialog */}
+      {showCustomColorDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-background border border-border rounded-lg shadow-2xl p-6 w-80 max-w-full mx-4">
+            <h2 className="text-base font-semibold text-foreground mb-4">Add Custom Color</h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={tempCustomColor}
+                  onChange={(e) => setTempCustomColor(e.target.value)}
+                  className="h-10 w-10 rounded cursor-pointer outline-none"
+                  style={{ border: 'none', padding: '0' }}
+                />
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-foreground/70 block mb-2">Hex Code</label>
+                  <input
+                    type="text"
+                    value={tempCustomColor}
+                    onChange={(e) => setTempCustomColor(e.target.value.toUpperCase())}
+                    placeholder="#FF5733"
+                    className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm font-mono focus:outline-none focus:border-foreground/50"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomColorDialog(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmCustomColor}
+                  className="px-3 py-1.5 text-xs font-medium text-foreground bg-foreground/20 hover:bg-foreground/30 rounded-lg transition-colors"
+                >
+                  Add Color
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Highlight Color Picker Dialog */}
+      {showCustomHighlightDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-background border border-border rounded-lg shadow-2xl p-6 w-80 max-w-full mx-4">
+            <h2 className="text-base font-semibold text-foreground mb-4">Add Highlight Color</h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={tempCustomHighlight}
+                  onChange={(e) => setTempCustomHighlight(e.target.value)}
+                  className="h-10 w-10 rounded cursor-pointer outline-none"
+                  style={{ border: 'none', padding: '0' }}
+                />
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-foreground/70 block mb-2">Hex Code</label>
+                  <input
+                    type="text"
+                    value={tempCustomHighlight}
+                    onChange={(e) => setTempCustomHighlight(e.target.value.toUpperCase())}
+                    placeholder="#FFFF00"
+                    className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm font-mono focus:outline-none focus:border-foreground/50"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomHighlightDialog(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmCustomHighlight}
+                  className="px-3 py-1.5 text-xs font-medium text-foreground bg-foreground/20 hover:bg-foreground/30 rounded-lg transition-colors"
+                >
+                  Add Highlight
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
