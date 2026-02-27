@@ -752,6 +752,13 @@ export default function CalendarPage() {
 
               {/* Date Range Picker and Account Switcher */}
               <div className="flex items-center gap-2 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  className="h-9 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm"
+                  onClick={() => navigate('/summary')}
+                >
+                  <span>Summary</span>
+                </Button>
                 <DashboardAccountSelector />
                 
                 {dayDialogOpen ? (

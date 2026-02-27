@@ -139,33 +139,32 @@ export function MobileSidebar() {
               
               {/* Theme Toggle Section */}
               <div className="px-3 pb-4">
-                <div className="px-3 py-2">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 p-1">
+                <div className="px-3 py-2 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Theme</p>
+                  <div className="flex gap-2">
                     <button
-                      type="button"
-                      onClick={() => setTheme('dark')}
-                      aria-label="Switch to dark mode"
-                      className={cn(
-                        'h-9 w-9 rounded-full flex items-center justify-center transition-all [-webkit-tap-highlight-color:transparent] focus:outline-none',
-                        preferences.theme === 'dark'
-                          ? 'bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-400/60 shadow-[0_0_0_1px_rgba(16,185,129,0.2)]'
-                          : 'text-muted-foreground hover:text-foreground'
-                      )}
-                    >
-                      <Moon className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
                       onClick={() => setTheme('light')}
-                      aria-label="Switch to light mode"
                       className={cn(
-                        'h-9 w-9 rounded-full flex items-center justify-center transition-all [-webkit-tap-highlight-color:transparent] focus:outline-none',
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium [-webkit-tap-highlight-color:transparent] focus:outline-none',
                         preferences.theme === 'light'
-                          ? 'bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-400/60 shadow-[0_0_0_1px_rgba(16,185,129,0.2)]'
-                          : 'text-muted-foreground hover:text-foreground'
+                          ? 'bg-foreground/10 text-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                       )}
                     >
                       <Sun className="h-4 w-4" />
+                      Light
+                    </button>
+                    <button
+                      onClick={() => setTheme('dark')}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium [-webkit-tap-highlight-color:transparent] focus:outline-none',
+                        preferences.theme === 'dark'
+                          ? 'bg-foreground/10 text-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      )}
+                    >
+                      <Moon className="h-4 w-4" />
+                      Dark
                     </button>
                   </div>
                 </div>

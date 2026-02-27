@@ -12,7 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      position={isMobile ? "top-center" : "bottom-right"}
+      position={isMobile ? "top-center" : "top-right"}
       duration={3000}
       style={isMobile ? { 
         top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
@@ -21,12 +21,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-xl group-[.toaster]:rounded-xl group-[.toaster]:px-4 group-[.toaster]:py-3 group-[.toaster]:pointer-events-auto dark:group-[.toaster]:bg-neutral-900 dark:group-[.toaster]:text-neutral-100 dark:group-[.toaster]:border-neutral-800",
+            "group toast group-[.toaster]:flex group-[.toaster]:items-center group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-xl group-[.toaster]:rounded-xl group-[.toaster]:px-4 group-[.toaster]:pr-12 group-[.toaster]:py-3 group-[.toaster]:pointer-events-auto group-[.toaster]:relative dark:group-[.toaster]:bg-neutral-900 dark:group-[.toaster]:text-neutral-100 dark:group-[.toaster]:border-neutral-800",
           description: "group-[.toast]:text-muted-foreground",
           actionButton: "group-[.toast]:bg-muted group-[.toast]:text-foreground group-[.toast]:rounded-lg",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:rounded-lg",
+          closeButton: "opacity-0 group-hover:opacity-100 text-white hover:bg-white/20 absolute right-4 top-1/2 -translate-y-1/2 transition-opacity",
           success: "group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border dark:group-[.toaster]:bg-neutral-900 dark:group-[.toaster]:text-neutral-100 dark:group-[.toaster]:border-neutral-800",
-          error: "group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border dark:group-[.toaster]:bg-neutral-900 dark:group-[.toaster]:text-neutral-100 dark:group-[.toaster]:border-neutral-800",
+          error: "group-[.toaster]:bg-black group-[.toaster]:text-white group-[.toaster]:border-transparent dark:group-[.toaster]:bg-destructive dark:group-[.toaster]:text-white dark:group-[.toaster]:border-transparent",
           warning: "group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border dark:group-[.toaster]:bg-neutral-900 dark:group-[.toaster]:text-neutral-100 dark:group-[.toaster]:border-neutral-800",
           info: "group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border dark:group-[.toaster]:bg-neutral-900 dark:group-[.toaster]:text-neutral-100 dark:group-[.toaster]:border-neutral-800",
         },

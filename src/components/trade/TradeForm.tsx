@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Label } from '@/components/ui/label';
 import { useToast, dismissAllToasts } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { format } from 'date-fns';
 import { ImageUpload } from './ImageUpload';
 import { NewsEventSelector } from './NewsEventSelector';
@@ -527,10 +528,14 @@ export function TradeForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.symbol.trim()) {
-      toast({
-        title: 'Symbol required',
-        description: 'Please select a trading symbol.',
-        variant: 'destructive'
+      sonnerToast.error('Please enter a trading symbol.', {
+        closeButton: true,
+        style: {
+          '--normal-bg':
+            'light-dark(var(--destructive), color-mix(in oklab, var(--destructive) 60%, var(--background)))',
+          '--normal-text': 'var(--color-white)',
+          '--normal-border': 'transparent'
+        } as React.CSSProperties
       });
       return;
     }

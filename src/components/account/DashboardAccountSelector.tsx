@@ -60,7 +60,7 @@ export function DashboardAccountSelector() {
             'bg-muted/50 hover:bg-muted',
             'border border-border/50',
             'text-sm font-medium text-foreground',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20'
+            'focus:outline-none'
           )}
         >
           <User className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
