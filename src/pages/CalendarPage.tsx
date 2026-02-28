@@ -754,10 +754,17 @@ export default function CalendarPage() {
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Button
                   variant="outline"
-                  className="h-9 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm"
+                  className="h-9 w-9 rounded-xl bg-muted/50 border-border/50 hover:bg-muted p-0 flex-shrink-0 text-sm flex items-center justify-center"
                   onClick={() => navigate('/summary')}
                 >
-                  <span>Summary</span>
+                  {isMobile ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24" fill="#FFFFFF" style={{opacity:1}}>
+                      <path d="m58 362.09l-6.51-14.59A224 224 0 0 1 256 32h16v234.37Z"/>
+                      <path d="M304 66.46v220.65L94.62 380.78A208.31 208.31 0 0 0 272 480c114.69 0 208-93.31 208-208c0-103.81-76.45-190.1-176-205.54"/>
+                    </svg>
+                  ) : (
+                    <span>Summary</span>
+                  )}
                 </Button>
                 <DashboardAccountSelector />
                 
