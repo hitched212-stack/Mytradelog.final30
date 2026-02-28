@@ -31,12 +31,13 @@ export function useFolders(type: 'playbook' | 'backtest') {
 
   const { data: folders = [], isLoading } = useQuery({
     queryKey: ['folders', type, user?.id, activeAccount?.id],
+    staleTime: 60000, // Cache for 60 seconds - folders don't change often
     queryFn: async () => {
       if (!user) return [];
       
       let query = supabase
         .from('folders')
-        .select('*')
+        .select('id,user_id,account_id,name,description,color,type,sort_order,created_at,updated_at')
         .eq('user_id', user.id)
         .eq('type', type)
         .order('sort_order', { ascending: true });

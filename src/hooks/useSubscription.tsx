@@ -32,7 +32,7 @@ export function useSubscription() {
     try {
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('*')
+        .select('id,user_id,plan_type,status,current_period_start,current_period_end,stripe_customer_id,stripe_subscription_id,cancel_at_period_end,amount,created_at,updated_at')
         .eq('user_id', user.id)
         .maybeSingle();
 

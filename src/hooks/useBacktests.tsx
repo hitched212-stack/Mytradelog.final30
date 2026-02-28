@@ -70,12 +70,13 @@ export function useBacktests(folderId?: string | null) {
 
   const { data: backtests = [], isLoading } = useQuery({
     queryKey: ['backtests', user?.id, activeAccount?.id, folderId],
+    staleTime: 30000, // Cache for 30 seconds to reduce DB queries
     queryFn: async () => {
       if (!user) return [];
       
       let query = supabase
         .from('backtests')
-        .select('*')
+        .select('id,user_id,account_id,folder_id,name,strategy,symbol,timeframe,date,day_of_week,session,entry_time,has_news,news_impact,news_events,sort_order,win_rate,profit_factor,total_trades,net_pnl,notes,images,wins,losses,created_at,updated_at')
         .eq('user_id', user.id)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });

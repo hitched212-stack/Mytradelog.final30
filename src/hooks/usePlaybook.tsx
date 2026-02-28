@@ -73,12 +73,13 @@ export function usePlaybook(folderId?: string | null) {
 
   const { data: setups = [], isLoading } = useQuery({
     queryKey: ['playbook', user?.id, activeAccount?.id, folderId],
+    staleTime: 30000, // Cache for 30 seconds to reduce DB queries
     queryFn: async () => {
       if (!user) return [];
       
       let query = supabase
         .from('playbook_setups')
-        .select('*')
+        .select('id,user_id,account_id,folder_id,name,symbol,category,description,win_rate,risk_reward,timeframe,entry_criteria,exit_criteria,images,is_favorite,wins,losses,session,day_of_week,date,entry_time,has_news,news_impact,news_events,notes,created_at,updated_at')
         .eq('user_id', user.id)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });

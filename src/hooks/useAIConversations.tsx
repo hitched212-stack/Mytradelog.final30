@@ -33,7 +33,7 @@ export function useAIConversations() {
     try {
       const { data, error } = await supabase
         .from('ai_conversations')
-        .select('*')
+        .select('id,title,created_at,updated_at')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
@@ -60,7 +60,7 @@ export function useAIConversations() {
     try {
       const { data, error } = await supabase
         .from('ai_messages')
-        .select('*')
+        .select('id,conversation_id,role,content,created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
@@ -243,10 +243,10 @@ export function useAIConversations() {
     try {
       const { data, error } = await supabase
         .from('ai_messages')
-        .select('*')
+        .select('id,conversation_id,role,content,created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(50); // Last 50 messages for context
+        .limit(30); // Reduced from 50 to 30 for better performance
 
       if (error) throw error;
 

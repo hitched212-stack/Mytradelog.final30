@@ -241,7 +241,7 @@ export default function Journal() {
     const fetchForecasts = async () => {
       const {
         data
-      } = await supabase.from('morning_forecasts').select('*').in('id', forecastIds);
+      } = await supabase.from('morning_forecasts').select('id,symbol,direction,forecast,status,outcome,date,forecast_type').in('id', forecastIds);
       if (data) {
         const forecastMap: Record<string, Forecast> = {};
         data.forEach((f: any) => {

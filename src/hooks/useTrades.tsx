@@ -198,7 +198,7 @@ export function useTrades() {
             if (activeAccount && !isSwitching) {
               fetchTrades();
             }
-          }, 500); // 500ms debounce to ensure database has processed the update
+          }, 2000); // 2s debounce to reduce DB load and allow proper processing
         }
       )
       .subscribe();
