@@ -108,6 +108,8 @@ export default function Auth() {
   }], [password]);
 
   const allRequirementsMet = passwordRequirements.every(req => req.met);
+  const metRequirementsCount = passwordRequirements.filter(req => req.met).length;
+  const strengthLabel = metRequirementsCount === 3 ? 'Strong' : metRequirementsCount === 2 ? 'Good' : 'Weak';
 
   const validateInput = () => {
     try {
@@ -194,18 +196,27 @@ export default function Auth() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4 py-8 text-white">
       {/* Main Content Card */}
       <motion.div 
-        className="w-full max-w-[520px] rounded-3xl border border-zinc-800 bg-zinc-900/95 p-12 shadow-2xl shadow-black/40"
+        className="w-full max-w-[520px] rounded-3xl border border-indigo-500/20 bg-black/60 backdrop-blur-xl p-8 sm:p-12 shadow-2xl shadow-indigo-500/10"
         initial="hidden" 
         animate="visible" 
         variants={staggerContainer}
       >
+        {/* Logo */}
+        <motion.div variants={fadeIn} className="flex justify-center mb-8">
+          <img 
+            src="/images/landing-page-logo.png" 
+            alt="MyTradeLog" 
+            className="h-12 w-auto object-contain"
+          />
+        </motion.div>
+
         {/* Title */}
-        <motion.div variants={fadeIn} className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-white mb-2">
+        <motion.div variants={fadeIn} className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-black text-white mb-3 tracking-tight">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
           <p className="text-zinc-400 text-base">
-            {isSignUp ? "Sign up to get started" : 'Sign in to your account'}
+            {isSignUp ? "Sign up to get started" : 'Pick up where you left off'}
           </p>
         </motion.div>
 
@@ -234,7 +245,7 @@ export default function Auth() {
                   placeholder="Enter your username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  className="h-12 rounded-lg border border-zinc-700 bg-zinc-800/80 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-800 hover:border-zinc-600 focus-visible:bg-zinc-800 focus-visible:border-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-12 rounded-lg border border-indigo-500/30 bg-black/40 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:border-indigo-500/50 hover:bg-black/50 focus-visible:bg-black/50 focus-visible:border-indigo-500 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors"
                   required={isSignUp}
                 />
               </div>
@@ -255,7 +266,7 @@ export default function Auth() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="h-12 rounded-lg border border-zinc-700 bg-zinc-800/80 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:bg-zinc-800 hover:border-zinc-600 focus-visible:bg-zinc-800 focus-visible:border-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-12 rounded-lg border border-indigo-500/30 bg-black/40 pl-12 pr-4 text-white placeholder:text-zinc-500 hover:border-indigo-500/50 hover:bg-black/50 focus-visible:bg-black/50 focus-visible:border-indigo-500 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors"
                 required
               />
             </div>
@@ -275,7 +286,7 @@ export default function Auth() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="h-12 rounded-lg border border-zinc-700 bg-zinc-800/80 pl-12 pr-12 text-white placeholder:text-zinc-500 hover:bg-zinc-800 hover:border-zinc-600 focus-visible:bg-zinc-800 focus-visible:border-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-12 rounded-lg border border-indigo-500/30 bg-black/40 pl-12 pr-12 text-white placeholder:text-zinc-500 hover:border-indigo-500/50 hover:bg-black/50 focus-visible:bg-black/50 focus-visible:border-indigo-500 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors"
                 required
               />
               <button
@@ -293,19 +304,63 @@ export default function Auth() {
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-lg border border-transparent bg-zinc-900/70 space-y-2"
+              className="p-3 rounded-lg border border-transparent bg-zinc-900/70 space-y-2"
             >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-medium text-zinc-400">Password strength</p>
+                <span
+                  className={cn(
+                    'text-[9px] font-semibold px-1.5 py-0.5 rounded-full border transition-colors',
+                    metRequirementsCount === 3
+                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      : metRequirementsCount === 2
+                        ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
+                        : 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                  )}
+                >
+                  {strengthLabel} • {metRequirementsCount}/3
+                </span>
+              </div>
+
+              <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all duration-300',
+                    metRequirementsCount === 3
+                      ? 'bg-emerald-500'
+                      : metRequirementsCount === 2
+                        ? 'bg-indigo-500'
+                        : 'bg-zinc-500'
+                  )}
+                  style={{ width: `${(metRequirementsCount / passwordRequirements.length) * 100}%` }}
+                />
+              </div>
+
               {passwordRequirements.map((req, index) => (
-                <div key={index} className="flex items-center gap-3">
+                <div
+                  key={index}
+                  className={cn(
+                    'flex items-center gap-2.5 transition-all duration-300',
+                    req.met
+                      ? 'text-emerald-300'
+                      : 'text-slate-400'
+                  )}
+                >
                   <div className={cn(
-                    "w-4 h-4 rounded-full flex items-center justify-center transition-colors",
-                    req.met ? "bg-green-500" : "bg-neutral-600"
+                    'w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors',
+                    req.met ? 'bg-emerald-500' : 'bg-neutral-600'
                   )}>
-                    {req.met && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                    {req.met ? (
+                      <Check className="h-2 w-2 text-white" strokeWidth={3} />
+                    ) : (
+                      <span className="h-1 w-1 rounded-full bg-zinc-400" />
+                    )}
                   </div>
                   <span 
-                    className="text-sm transition-colors"
-                    style={{ color: req.met ? '#4ade80' : 'rgb(148 163 184)' }}
+                    className={cn(
+                      'text-[13px] transition-colors',
+                      req.met ? 'text-emerald-300' : 'text-slate-400'
+                    )}
                   >
                     {req.label}
                   </span>
@@ -360,13 +415,24 @@ export default function Auth() {
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full h-12 rounded-lg font-semibold text-base bg-white hover:bg-white/90 text-black mt-6"
+            className="group relative overflow-hidden w-full h-12 rounded-lg font-bold text-base bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-400 hover:via-indigo-500 hover:to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 mt-6"
             disabled={isLoading || (isSignUp && !allRequirementsMet)}
           >
-            {isLoading 
-              ? (isSignUp ? 'Creating account...' : 'Signing in...') 
-              : (isSignUp ? 'Sign Up' : 'Sign In')
-            }
+            <span className="flex items-center justify-center relative overflow-hidden h-5">
+              <span className="transition-all duration-500 group-hover:translate-y-[-100%]">
+                {isLoading 
+                  ? (isSignUp ? 'Creating account...' : 'Signing in...') 
+                  : (isSignUp ? 'Sign Up' : 'Sign In')
+                }
+              </span>
+              <span className="absolute top-[100%] left-0 transition-all duration-500 group-hover:translate-y-[-100%]">
+                {isLoading 
+                  ? (isSignUp ? 'Creating account...' : 'Signing in...') 
+                  : (isSignUp ? 'Sign Up' : 'Sign In')
+                }
+              </span>
+            </span>
+            <span className="absolute top-0 left-[-100%] w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] group-hover:left-[100%] transition-all duration-700" />
           </Button>
         </motion.form>
 

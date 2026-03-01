@@ -8,7 +8,7 @@ import { ArrowLeft, TrendingUp, Target, BarChart3, AlertTriangle, Calendar, Repe
 import { Button } from '@/components/ui/button';
 import { getCurrencySymbol } from '@/types/trade';
 import { cn } from '@/lib/utils';
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, startOfWeek, subDays } from 'date-fns';
 import { Label, Pie, PieChart } from 'recharts';
 import {
   type ChartConfig,
@@ -38,6 +38,7 @@ export default function Summary() {
   const { settings } = useSettings();
   const { preferences } = usePreferences();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [timeFrame, setTimeFrame] = useState<'1D' | '1W' | '1M' | '1Y'>('1M');
   
   const currencySymbol = activeAccount?.currency 
     ? getCurrencySymbol(activeAccount.currency as any) 
@@ -49,16 +50,34 @@ export default function Summary() {
 
   const chartId = "performance-chart";
 
-  // Filter trades for selected month
+  // Filter trades based on timeframe
   const monthTrades = useMemo(() => {
-    const monthStart = startOfMonth(selectedMonth);
-    const monthEnd = endOfMonth(selectedMonth);
+    const now = new Date();
+    let startDate: Date;
+    
+    switch (timeFrame) {
+      case '1D':
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case '1W':
+        startDate = startOfWeek(now, { weekStartsOn: 1 }); // Start week on Monday
+        break;
+      case '1Y':
+        startDate = new Date(now);
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      case '1M':
+      default:
+        startDate = startOfMonth(now);
+        break;
+    }
     
     return trades.filter(t => {
       const tradeDate = new Date(t.date);
-      return tradeDate >= monthStart && tradeDate <= monthEnd && !t.isPaperTrade && !t.noTradeTaken;
+      return tradeDate >= startDate && !t.isPaperTrade && !t.noTradeTaken;
     });
-  }, [trades, selectedMonth]);
+  }, [trades, timeFrame]);
 
   // Prepare data for circular chart
   const chartData = useMemo(() => {
@@ -298,41 +317,24 @@ export default function Summary() {
               <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Performance Summary</h1>
             </div>
             
-            {/* Month Selector */}
+            {/* Timeframe Selector */}
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
-                className="h-9 text-sm rounded-lg bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3"
-              >
-                Previous
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setSelectedMonth(new Date())}
-                className="h-9 text-sm rounded-lg bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3"
-                disabled={format(selectedMonth, 'yyyy-MM') === format(new Date(), 'yyyy-MM')}
-              >
-                Current
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setSelectedMonth(prev => {
-                  const next = new Date(prev);
-                  next.setMonth(next.getMonth() + 1);
-                  return next <= new Date() ? next : prev;
-                })}
-                className="h-9 text-sm rounded-lg bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3"
-                disabled={format(selectedMonth, 'yyyy-MM') === format(new Date(), 'yyyy-MM')}
-              >
-                Next
-              </Button>
-              <div className="text-sm text-muted-foreground ml-2">
-                {format(selectedMonth, 'MMMM yyyy')}
-              </div>
+              {(['1D', '1W', '1M', '1Y'] as const).map((frame) => (
+                <Button
+                  key={frame}
+                  variant={timeFrame === frame ? 'default' : 'secondary'}
+                  size="sm"
+                  onClick={() => setTimeFrame(frame)}
+                  className={cn(
+                    "h-9 text-sm rounded-lg px-3",
+                    timeFrame === frame 
+                      ? "bg-indigo-600 border border-indigo-500 hover:bg-indigo-700" 
+                      : "bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors"
+                  )}
+                >
+                  {frame}
+                </Button>
+              ))}
             </div>
           </div>
         </div>

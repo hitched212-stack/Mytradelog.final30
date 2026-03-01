@@ -4,6 +4,8 @@ import { AlertTriangle, Menu, X } from "lucide-react"
 export default function TermsPage() {
   const sectionsRef = useRef<HTMLDivElement>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState("features")
 
   const handleLoginClick = () => {
     window.location.assign("/app/auth")
@@ -15,6 +17,17 @@ export default function TermsPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    handleScroll()
+
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
@@ -35,135 +48,191 @@ export default function TermsPage() {
     return () => observer.disconnect()
   }, [])
 
+  const NavLink = ({ href, label, sectionId }: { href: string; label: string; sectionId: string }) => {
+    const isActive = activeSection === sectionId
+
+    return (
+      <a
+        href={href}
+        onClick={() => setActiveSection(sectionId)}
+        className={`group relative overflow-hidden px-3 py-1.5 text-sm font-medium transition-all duration-300 rounded-full ${
+          isActive
+            ? "text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600"
+            : "text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600"
+        }`}
+      >
+        <span className="flex items-center justify-center relative overflow-hidden h-5">
+          <span className="transition-all duration-500 group-hover:translate-y-[-100%]">{label}</span>
+          <span className="absolute top-[100%] left-0 transition-all duration-500 group-hover:translate-y-[-100%]">{label}</span>
+        </span>
+        <span
+          className={`absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/20 to-indigo-500/0 transition-opacity duration-300 ${
+            isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
+        ></span>
+      </a>
+    )
+  }
+
+  const handleLinkClick = () => {
+    setMobileMenuOpen(false)
+  }
+
   return (
     <div ref={sectionsRef} data-theme="landing" className="bg-black min-h-screen">
       {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/80 backdrop-blur-md">
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+          scrolled || mobileMenuOpen ? "border-b border-white/5 bg-zinc-950/80 backdrop-blur-md" : ""
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center group-hover:bg-zinc-200 transition-colors">
-              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 5.5L8 18.5" stroke="black" strokeWidth="2.25" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="text-sm font-medium text-white tracking-tight">MyTradeLog</span>
+          <a href="/" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+            <img
+              src="/images/landing-page-logo.png"
+              alt="MyTradeLog"
+              className="h-10 w-auto object-contain"
+            />
           </a>
 
-          <div className="hidden md:flex items-center gap-8 text-xs font-medium text-zinc-400">
-            <a href="/#features" className="hover:text-white transition-colors">
-              The Truth
-            </a>
-            <a href="/#highlights" className="hover:text-white transition-colors">
-              Features
-            </a>
-            <a href="/#pricing" className="hover:text-white transition-colors">
-              Pricing
-            </a>
-            <a href="/#mobile" className="hover:text-white transition-colors">
-              Mobile
-            </a>
-            <a href="/#faq" className="hover:text-white transition-colors">
-              Excuses
-            </a>
+          <div className="hidden lg:flex items-center gap-2 bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-full px-6 py-2.5 shadow-lg animate-in fade-in slide-in-from-top-4 duration-700">
+            <NavLink href="/#features" sectionId="features" label="The System" />
+            <NavLink href="/#highlights" sectionId="highlights" label="Features" />
+            <NavLink href="/#pricing" sectionId="pricing" label="Pricing" />
+            <NavLink href="/#approach" sectionId="approach" label="Our Approach" />
+            <NavLink href="/#mobile" sectionId="mobile" label="Mobile" />
+            <NavLink href="/#faq" sectionId="faq" label="Excuses" />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2 bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-full px-2 py-2 shadow-lg animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
             <a
               href="/app/auth"
               onClick={handleLoginClick}
-              className="text-xs font-medium text-zinc-400 hover:text-white transition-colors hidden sm:block"
+              className="group relative overflow-hidden px-4 py-1.5 text-sm font-medium text-zinc-400 hover:text-white transition-all duration-300 rounded-full hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600"
             >
-              Log in
+              <span className="flex items-center justify-center relative overflow-hidden h-5">
+                <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Log in</span>
+                <span className="absolute top-[100%] left-0 transition-all duration-500 group-hover:translate-y-[-100%]">Log in</span>
+              </span>
+              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/20 to-indigo-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             </a>
             <a
               href="/app/auth?tab=signup"
               onClick={handleSignUpClick}
-              className="group relative overflow-hidden bg-white hover:bg-zinc-100 text-zinc-950 text-xs font-medium px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] hover:scale-105 hidden sm:block"
+              className="group relative overflow-hidden bg-white hover:bg-white/90 text-zinc-950 text-sm font-bold px-5 py-1.5 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg"
             >
-              Sign Up
-              <span className="absolute top-0 left-[-100%] w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] group-hover:left-[100%] transition-all duration-500" />
+              <span className="flex items-center justify-center relative overflow-hidden h-5">
+                <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Sign Up</span>
+                <span className="absolute top-[100%] left-0 transition-all duration-500 group-hover:translate-y-[-100%]">Sign Up</span>
+              </span>
+              <span className="absolute top-0 left-[-100%] w-[200%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] group-hover:left-[100%] transition-all duration-500"></span>
             </a>
+          </div>
 
+          <div className="sm:hidden">
             <button
-              className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
+              className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/5 bg-zinc-950/80 backdrop-blur-md">
-            <div className="px-4 py-4 flex flex-col gap-4">
+        <div
+          className={`lg:hidden overflow-hidden transition-[max-height] duration-300 ease-out ${
+            mobileMenuOpen ? "max-h-[500px]" : "max-h-0"
+          }`}
+        >
+          <div
+            className={`px-4 sm:px-6 py-4 bg-zinc-950/80 backdrop-blur-md border-t border-white/5 transition-opacity duration-200 ${
+              mobileMenuOpen ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <div className="flex flex-col gap-4">
               <a
                 href="/#features"
-                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={handleLinkClick}
+                className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 transition-all duration-300 py-2 px-3 rounded-lg"
               >
-                The Truth
+                The System
               </a>
               <a
                 href="/#highlights"
-                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={handleLinkClick}
+                className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 transition-all duration-300 py-2 px-3 rounded-lg"
               >
                 Features
               </a>
               <a
                 href="/#pricing"
-                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={handleLinkClick}
+                className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 transition-all duration-300 py-2 px-3 rounded-lg"
+              >
+                Pricing
+              </a>
+              <a
+                href="/#approach"
+                onClick={handleLinkClick}
+                className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 transition-all duration-300 py-2 px-3 rounded-lg"
+              >
+                Our Approach
+              </a>
+              <a
+                href="/#mobile"
+                onClick={handleLinkClick}
+                className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 transition-all duration-300 py-2 px-3 rounded-lg"
               >
                 Pricing
               </a>
               <a
                 href="/#mobile"
-                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={handleLinkClick}
+                className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 transition-all duration-300 py-2 px-3 rounded-lg"
               >
                 Mobile
               </a>
               <a
                 href="/#faq"
-                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={handleLinkClick}
+                className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 transition-all duration-300 py-2 px-3 rounded-lg"
               >
                 Excuses
               </a>
-              <div className="pt-4 border-t border-white/10 flex gap-3">
+
+              <div className="flex gap-3 pt-4 border-t border-white/10">
                 <a
                   href="/app/auth?tab=signup"
                   onClick={() => {
-                    setMobileMenuOpen(false)
+                    handleLinkClick()
                     handleSignUpClick()
                   }}
-                  className="flex-1 bg-white hover:bg-zinc-100 text-zinc-950 text-sm font-medium px-4 py-3 rounded-xl text-center transition-all"
+                  className="flex-1 bg-white hover:bg-white/90 text-zinc-950 text-sm font-bold px-4 py-3 rounded-full text-center transition-all duration-300 hover:scale-105"
                 >
                   Sign Up
                 </a>
                 <a
                   href="/app/auth"
                   onClick={() => {
-                    setMobileMenuOpen(false)
+                    handleLinkClick()
                     handleLoginClick()
                   }}
-                  className="flex-1 bg-transparent border border-zinc-700 hover:border-zinc-500 text-white text-sm font-medium px-4 py-3 rounded-xl text-center transition-all"
+                  className="flex-1 bg-transparent border border-zinc-700 hover:border-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:via-indigo-600 hover:to-purple-600 text-white text-sm font-bold px-4 py-3 rounded-full text-center transition-all duration-300"
                 >
                   Log in
                 </a>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </nav>
 
       {/* Header Section */}
       <header className="pt-32 sm:pt-40 pb-12 sm:pb-16 text-center border-b border-white/5">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-white tracking-tight mb-6 reveal-on-scroll">
-            Terms and Services
+            Terms and <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Services</span>
           </h1>
           <p className="text-zinc-400 reveal-on-scroll">
             Effective Date: <span className="text-zinc-300">January 16, 2026</span>
@@ -307,9 +376,9 @@ export default function TermsPage() {
           <p className="text-zinc-500 text-sm mb-6">We&apos;re here to help clarify any part of these terms.</p>
           <a
             href="mailto:legal@mytradelog.net"
-            className="inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="inline-flex items-center gap-2 text-sm transition-opacity duration-300 hover:opacity-90"
           >
-            Contact us
+            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Contact us</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -329,7 +398,8 @@ export default function TermsPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-6 sm:py-8 bg-black">
+      <footer className="relative border-t border-white/5 py-6 sm:py-8 bg-black overflow-hidden">
+        <div className="pointer-events-none absolute top-0 left-1/2 h-px w-[60%] -translate-x-1/2 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-xs sm:text-sm text-zinc-500">© 2026 MyTradeLog. Stop losing money.</div>
           <div className="flex items-center gap-6 sm:gap-8 text-xs sm:text-sm text-zinc-500">

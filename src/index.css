@@ -483,14 +483,14 @@ a,
 /* Landing page reveal-on-scroll animation */
 .reveal-on-scroll {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(30px) scale(0.95);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: transform, opacity;
 }
 
 .reveal-on-scroll.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -550,6 +550,59 @@ a,
 
 .animate-shimmer {
   animation: shimmer 2s infinite;
+}
+
+@keyframes dashboardFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes dashboardGlowPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes dashboardBorderFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-dashboard-float {
+  animation: dashboardFloat 6s ease-in-out infinite;
+}
+
+.animate-dashboard-glow {
+  animation: dashboardGlowPulse 4s ease-in-out infinite;
+}
+
+.animate-dashboard-border {
+  background-size: 200% 200%;
+  animation: dashboardBorderFlow 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dashboard-float,
+  .animate-dashboard-glow,
+  .animate-dashboard-border {
+    animation: none;
+  }
 }
 
 /* Rich text content styling */

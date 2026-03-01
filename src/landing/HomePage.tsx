@@ -5,6 +5,7 @@ import { HighlightsSection } from "./components/highlights-section"
 import { MobileSection } from "./components/mobile-section"
 import { AddToHomeScreen } from "./components/add-to-homescreen"
 import { PricingSection } from "./components/pricing-section"
+import { PrinciplesSection } from "./components/principles-section"
 import { ExcusesSection } from "./components/excuses-section"
 import { CTASection } from "./components/cta-section"
 import { Footer } from "./components/footer"
@@ -20,6 +21,7 @@ export default function HomePage() {
       <FeaturesSection />
       <HighlightsSection />
       <PricingSection />
+      <PrinciplesSection />
       <MobileSection />
       <AddToHomeScreen />
       <ExcusesSection />

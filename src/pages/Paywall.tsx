@@ -84,153 +84,162 @@ export default function Paywall() {
       <main className="flex-1 flex flex-col px-4 pb-8 pt-2 sm:px-6 sm:py-12 sm:justify-center sm:items-center overflow-y-auto">
         <div className="w-full max-w-3xl mx-auto">
           {/* Header Text */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: '#ffffff' }}>Choose Your Plan</h1>
-            <p className="text-sm sm:text-base" style={{ color: 'rgba(255,255,255,0.5)' }}>Unlock your trading potential</p>
+          <div className="text-center mb-8 sm:mb-10">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3 text-white">
+              Choose Your Plan
+            </h1>
+            <p className="text-base sm:text-lg max-w-xl mx-auto leading-relaxed font-bold">
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Unlock your trading potential</span>
+              <span className="text-zinc-400"> with the plan that matches your </span>
+              <span className="text-zinc-400">pace</span>
+              <span className="text-zinc-400">.</span>
+            </p>
           </div>
 
           {/* Mobile Layout */}
-          <div className="sm:hidden flex flex-col gap-4">
+          <div className="sm:hidden flex flex-col gap-6 pt-2">
             {/* Annual Plan - Mobile */}
             <button
               onClick={() => setSelectedPlan('annual')}
               className={cn(
-                'relative p-5 rounded-2xl text-left transition-all duration-300 border',
+                'group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-3xl p-8 text-left transition-all duration-500 border h-full',
                 selectedPlan === 'annual'
-                  ? 'shadow-[0_0_30px_rgba(124,92,255,0.15)]'
-                  : ''
+                  ? 'border-indigo-500/60 shadow-2xl shadow-indigo-500/20'
+                  : 'border-indigo-500/40 hover:border-indigo-500/60 hover:shadow-2xl hover:shadow-indigo-500/20'
               )}
-              style={{ 
-                backgroundColor: '#12121a',
-                borderColor: selectedPlan === 'annual' ? 'rgba(124,92,255,0.5)' : 'rgba(255,255,255,0.1)'
-              }}
             >
-              {/* Badge */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <div 
-                  className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap"
-                  style={{ backgroundColor: '#7c5cff', color: '#ffffff' }}
-                >
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <div className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
                   Save 34% Recommended
                 </div>
               </div>
-              
-              <div className="flex items-start justify-between gap-4 pt-2">
-                <div className="flex-1 space-y-1">
-                  <h3 className="text-lg font-semibold" style={{ color: '#ffffff' }}>Annual</h3>
-                  <p className="italic text-xs" style={{ color: '#a78bfa' }}>"For serious traders"</p>
+
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-white mb-1">Serious Trader (Annual)</h3>
+
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-white">$19</span>
+                  <span className="text-lg text-zinc-400">/mo</span>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-3xl font-bold" style={{ color: '#ffffff' }}>$19</span>
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>/mo</span>
+
+                <p className="italic text-sm text-zinc-300 leading-relaxed">
+                  &quot;For traders who actually plan to still be trading next year.&quot;
+                </p>
+
+                <p className="text-sm text-zinc-500 mb-8 flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                  Billed $228 annually.
+                </p>
+
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                    <span>Unlimited Trade Imports</span>
                   </div>
-                  <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Billed $228/year</p>
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                    <span>Advanced Analytics</span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Features - only show when selected */}
-              <div className={cn(
-                "space-y-2 pt-4",
-                selectedPlan === 'annual' ? "block" : "hidden"
-              )}>
-                <div className="flex items-center gap-2.5">
-                  <Check className="h-4 w-4 flex-shrink-0" style={{ color: '#7c5cff' }} />
-                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>Unlimited Trade Imports</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Check className="h-4 w-4 flex-shrink-0" style={{ color: '#7c5cff' }} />
-                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>Advanced Analytics</span>
-                </div>
-              </div>
-              
-              {/* Selection indicator */}
-              <div 
-                className="absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                style={{ 
-                  borderColor: selectedPlan === 'annual' ? '#7c5cff' : 'rgba(255,255,255,0.3)',
-                  backgroundColor: selectedPlan === 'annual' ? '#7c5cff' : 'transparent'
-                }}
-              >
-                {selectedPlan === 'annual' && <Check className="h-3 w-3" style={{ color: '#ffffff' }} />}
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPlan('annual');
+                    handleSubscribe('annual');
+                  }}
+                  disabled={isLoading}
+                  className="group relative overflow-hidden w-full h-12 rounded-xl font-semibold text-base mt-4 border-0 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/50"
+                >
+                  {isLoading && selectedPlan === 'annual' ? (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 border-2 rounded-full animate-spin"
+                        style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#ffffff' }}
+                      />
+                      Processing...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="flex items-center justify-center relative overflow-hidden h-6">
+                        <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                        <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                      </span>
+                      <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
+                    </>
+                  )}
+                </Button>
               </div>
             </button>
 
             {/* Monthly Plan - Mobile */}
             <button
               onClick={() => setSelectedPlan('monthly')}
-              className="relative p-5 rounded-2xl text-left transition-all duration-300 border"
-              style={{ 
-                backgroundColor: '#0e0e14',
-                borderColor: selectedPlan === 'monthly' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.05)'
-              }}
+              className={cn(
+                'group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-3xl p-8 text-left transition-all duration-500 border h-full',
+                selectedPlan === 'monthly'
+                  ? 'border-zinc-700/80 shadow-2xl shadow-zinc-500/10'
+                  : 'border-zinc-800/50 hover:border-zinc-700/60 hover:shadow-2xl hover:shadow-zinc-500/10'
+              )}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 space-y-1">
-                  <h3 className="text-lg font-semibold" style={{ color: '#ffffff' }}>Monthly</h3>
-                  <p className="italic text-xs" style={{ color: '#a78bfa' }}>"Flexible billing"</p>
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-white mb-1">Flexible (Monthly)</h3>
+
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-white">$29</span>
+                  <span className="text-lg text-zinc-400">/mo</span>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-3xl font-bold" style={{ color: '#ffffff' }}>$29</span>
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>/mo</span>
+
+                <p className="italic text-sm text-zinc-300 leading-relaxed">
+                  &quot;For people who are afraid of commitment.&quot;
+                </p>
+
+                <p className="text-sm text-zinc-500 mb-8 flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                  Billed monthly. Cancel anytime.
+                </p>
+
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                    <span>Unlimited Trade Imports</span>
                   </div>
-                  <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Cancel anytime</p>
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                    <span>Advanced Analytics</span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Features - only show when selected */}
-              <div className={cn(
-                "space-y-2 pt-4",
-                selectedPlan === 'monthly' ? "block" : "hidden"
-              )}>
-                <div className="flex items-center gap-2.5">
-                  <Check className="h-4 w-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} />
-                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Unlimited Trade Imports</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Check className="h-4 w-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} />
-                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Advanced Analytics</span>
-                </div>
-              </div>
-              
-              {/* Selection indicator */}
-              <div 
-                className="absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                style={{ 
-                  borderColor: selectedPlan === 'monthly' ? '#ffffff' : 'rgba(255,255,255,0.3)',
-                  backgroundColor: selectedPlan === 'monthly' ? '#ffffff' : 'transparent'
-                }}
-              >
-                {selectedPlan === 'monthly' && <Check className="h-3 w-3" style={{ color: '#000000' }} />}
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPlan('monthly');
+                    handleSubscribe('monthly');
+                  }}
+                  disabled={isLoading}
+                  variant="secondary"
+                  className="group relative overflow-hidden w-full h-12 rounded-xl font-semibold text-base mt-4 border-0 bg-white/15 hover:bg-white/20 text-white transition-all duration-300 hover:shadow-md hover:shadow-white/10"
+                >
+                  {isLoading && selectedPlan === 'monthly' ? (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 border-2 rounded-full animate-spin"
+                        style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#ffffff' }}
+                      />
+                      Processing...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="flex items-center justify-center relative overflow-hidden h-6">
+                        <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                        <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                      </span>
+                      <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
+                    </>
+                  )}
+                </Button>
               </div>
             </button>
-
-            {/* Mobile CTA Button */}
-            <Button
-              onClick={() => handleSubscribe()}
-              disabled={isLoading}
-              className="w-full h-14 rounded-xl font-semibold text-base mt-4 border-0"
-              style={{ 
-                backgroundColor: selectedPlan === 'annual' ? '#ffffff' : 'rgba(255,255,255,0.1)',
-                color: selectedPlan === 'annual' ? '#0a0a0f' : '#ffffff'
-              }}
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-4 h-4 border-2 rounded-full animate-spin"
-                    style={{
-                      borderColor: selectedPlan === 'annual' ? 'rgba(10,10,15,0.3)' : 'rgba(255,255,255,0.3)',
-                      borderTopColor: selectedPlan === 'annual' ? '#0a0a0f' : '#ffffff'
-                    }}
-                  />
-                  Processing...
-                </div>
-              ) : (
-                <>Continue with {selectedPlan === 'annual' ? 'Annual' : 'Monthly'}</>
-              )}
-            </Button>
           </div>
 
           {/* Desktop/Tablet Layout */}
@@ -239,49 +248,45 @@ export default function Paywall() {
             <button
               onClick={() => setSelectedPlan('annual')}
               className={cn(
-                'relative p-8 rounded-2xl text-left transition-all duration-300 border',
-                selectedPlan === 'annual' ? 'shadow-[0_0_30px_rgba(124,92,255,0.15)]' : ''
+                'group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-3xl p-8 text-left transition-all duration-500 border h-full',
+                selectedPlan === 'annual'
+                  ? 'border-indigo-500/60 shadow-2xl shadow-indigo-500/20'
+                  : 'border-indigo-500/40 hover:border-indigo-500/60 hover:shadow-2xl hover:shadow-indigo-500/20 hover:scale-[1.02]'
               )}
-              style={{ 
-                backgroundColor: '#12121a',
-                borderColor: selectedPlan === 'annual' ? 'rgba(124,92,255,0.5)' : 'rgba(255,255,255,0.1)'
-              }}
             >
               {/* Badge */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <div 
-                  className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider whitespace-nowrap"
-                  style={{ backgroundColor: '#7c5cff', color: '#ffffff' }}
-                >
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <div className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
                   Save 34% Recommended
                 </div>
               </div>
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold" style={{ color: '#ffffff' }}>
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-white mb-1">
                   Serious Trader (Annual)
                 </h3>
                 
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-bold" style={{ color: '#ffffff' }}>$19</span>
-                  <span className="text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}>/mo</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-white">$19</span>
+                  <span className="text-lg text-zinc-400">/mo</span>
                 </div>
                 
-                <p className="italic text-sm" style={{ color: '#a78bfa' }}>
+                <p className="italic text-sm text-zinc-300 leading-relaxed">
                   "For traders who actually plan to still be trading next year."
                 </p>
                 
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-sm text-zinc-500 mb-8 flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                   Billed $228 annually.
                 </p>
                 
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-3">
-                    <Check className="h-4 w-4" style={{ color: '#7c5cff' }} />
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>Unlimited Trade Imports</span>
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                    <span>Unlimited Trade Imports</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="h-4 w-4" style={{ color: '#7c5cff' }} />
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>Advanced Analytics</span>
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                    <span>Advanced Analytics</span>
                   </div>
                 </div>
                 
@@ -292,19 +297,24 @@ export default function Paywall() {
                     handleSubscribe('annual');
                   }}
                   disabled={isLoading}
-                  className="w-full h-12 rounded-xl font-semibold text-base mt-4 border-0"
-                  style={{ backgroundColor: '#ffffff', color: '#0a0a0f' }}
+                  className="group relative overflow-hidden w-full h-12 rounded-xl font-semibold text-base mt-4 border-0 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/50"
                 >
                   {isLoading && selectedPlan === 'annual' ? (
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-4 h-4 border-2 rounded-full animate-spin"
-                        style={{ borderColor: 'rgba(10,10,15,0.3)', borderTopColor: '#0a0a0f' }}
+                        style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#ffffff' }}
                       />
                       Processing...
                     </div>
                   ) : (
-                    'Commit for a Year'
+                    <>
+                      <span className="flex items-center justify-center relative overflow-hidden h-6">
+                        <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                        <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                      </span>
+                      <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
+                    </>
                   )}
                 </Button>
               </div>
@@ -313,38 +323,40 @@ export default function Paywall() {
             {/* Monthly Plan */}
             <button
               onClick={() => setSelectedPlan('monthly')}
-              className="relative p-8 rounded-2xl text-left transition-all duration-300 border"
-              style={{ 
-                backgroundColor: '#0e0e14',
-                borderColor: selectedPlan === 'monthly' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.05)'
-              }}
+              className={cn(
+                'group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-3xl p-8 text-left transition-all duration-500 border h-full',
+                selectedPlan === 'monthly'
+                  ? 'border-zinc-700/80 shadow-2xl shadow-zinc-500/10'
+                  : 'border-zinc-800/50 hover:border-zinc-700/60 hover:shadow-2xl hover:shadow-zinc-500/10 hover:scale-[1.02]'
+              )}
             >
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold" style={{ color: '#ffffff' }}>
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-white mb-1">
                   Flexible (Monthly)
                 </h3>
                 
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-bold" style={{ color: '#ffffff' }}>$29</span>
-                  <span className="text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}>/mo</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-white">$29</span>
+                  <span className="text-lg text-zinc-400">/mo</span>
                 </div>
                 
-                <p className="italic text-sm" style={{ color: '#a78bfa' }}>
+                <p className="italic text-sm text-zinc-300 leading-relaxed">
                   "For people who are afraid of commitment."
                 </p>
                 
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-sm text-zinc-500 mb-8 flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
                   Billed monthly. Cancel anytime.
                 </p>
                 
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-3">
-                    <Check className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.6)' }} />
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Unlimited Trade Imports</span>
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                    <span>Unlimited Trade Imports</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.6)' }} />
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Advanced Analytics</span>
+                  <div className="flex items-start gap-3 text-sm text-zinc-300">
+                    <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                    <span>Advanced Analytics</span>
                   </div>
                 </div>
                 
@@ -356,8 +368,7 @@ export default function Paywall() {
                   }}
                   disabled={isLoading}
                   variant="secondary"
-                  className="w-full h-12 rounded-xl font-semibold text-base mt-4 border-0"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#ffffff' }}
+                  className="group relative overflow-hidden w-full h-12 rounded-xl font-semibold text-base mt-4 border-0 bg-white/15 hover:bg-white/20 text-white transition-all duration-300 hover:shadow-md hover:shadow-white/10"
                 >
                   {isLoading && selectedPlan === 'monthly' ? (
                     <div className="flex items-center gap-2">
@@ -368,7 +379,13 @@ export default function Paywall() {
                       Processing...
                     </div>
                   ) : (
-                    'Start Monthly'
+                    <>
+                      <span className="flex items-center justify-center relative overflow-hidden h-6">
+                        <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                        <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                      </span>
+                      <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
+                    </>
                   )}
                 </Button>
               </div>

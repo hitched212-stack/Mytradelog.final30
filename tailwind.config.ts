@@ -134,6 +134,10 @@ export default {
           "0%, 60%, 100%": { transform: "translateY(0)" },
           "30%": { transform: "translateY(-10px)" },
         },
+        "shimmer": {
+          "0%": { left: "-100%" },
+          "100%": { left: "100%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -148,6 +152,7 @@ export default {
         "chat-bounce-1": "chat-bounce-1 1.4s infinite",
         "chat-bounce-2": "chat-bounce-2 1.4s infinite 0.2s",
         "chat-bounce-3": "chat-bounce-3 1.4s infinite 0.4s",
+        "shimmer": "shimmer 2s infinite",
       },
     },
   },
