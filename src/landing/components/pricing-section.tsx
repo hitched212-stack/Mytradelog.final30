@@ -1,9 +1,11 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { Switch } from "@/components/ui/switch"
 
 export function PricingSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
+  const [isAnnual, setIsAnnual] = useState(true)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -24,94 +26,256 @@ export function PricingSection() {
   }, [])
 
   return (
-    <section className="py-16 sm:py-24 bg-black scroll-mt-16" id="pricing" ref={sectionRef}>
+    <section className="py-20 sm:py-28 bg-black scroll-mt-4" id="pricing" ref={sectionRef}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10 sm:mb-16 reveal-on-scroll">
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-medium text-white tracking-tight mb-4">
+        <div className="text-center mb-16 sm:mb-20 reveal-on-scroll">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight mb-8">
             Invest In Your Business
           </h2>
-          <p className="text-base sm:text-lg text-zinc-400">
-            If MyTradeLog helps you avoid just one revenge trade, one moment of overtrading, one emotional decision — it pays for itself many times over.
+          <p className="text-lg sm:text-xl md:text-2xl max-w-5xl mx-auto leading-relaxed font-bold">
+            <span className="text-zinc-400">If MyTradeLog helps you avoid just </span>
+            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">one revenge trade</span>
+            <span className="text-zinc-400">, </span>
+            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">one moment of overtrading</span>
+            <span className="text-zinc-400">, </span>
+            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">one emotional decision</span>
+            <span className="text-zinc-400"> — it pays for itself many times over.</span>
           </p>
         </div>
 
-        <div className="relative max-w-4xl mx-auto py-10 sm:py-20 px-2 sm:px-6">
-          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
-            {/* ANNUAL PLAN (RECOMMENDED) */}
-            <div className="group relative reveal-on-scroll delay-100">
-              <div className="relative w-full overflow-visible [perspective:1200px]">
-                {/* Purple Glow */}
-                <div className="absolute -inset-2 rounded-3xl bg-indigo-500/15 blur-xl opacity-60 transition-all duration-700 group-hover:opacity-80 group-hover:blur-2xl"></div>
+        <div className="relative max-w-4xl mx-auto py-2 sm:py-4 px-2 sm:px-6">
+          {/* Mobile Switch - Only visible on small screens */}
+          <div className="sm:hidden flex items-center justify-center mb-10">
+            <div className="relative inline-flex items-center bg-gradient-to-r from-zinc-900/60 to-zinc-800/60 backdrop-blur-xl rounded-full p-1 border border-zinc-700/50 shadow-lg shadow-black/50">
+              {/* Annual Label */}
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 relative z-10 ${
+                  isAnnual
+                    ? 'text-white'
+                    : 'text-zinc-400 hover:text-zinc-300'
+                }`}
+              >
+                Annual
+              </button>
 
-                {/* Back page */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/20 via-indigo-600/30 to-indigo-800/40 ring-1 ring-white/10 shadow-2xl [transform-style:preserve-3d] transition-transform duration-700 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:[transform:rotateY(45deg)_translateX(-20px)_translateZ(-30px)_translateY(-15px)_scale(0.95)]"></div>
+              {/* Animated Slider Background */}
+              <div
+                className={`absolute top-1 bottom-1 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 ease-out shadow-lg shadow-indigo-500/50 ${
+                  isAnnual
+                    ? 'left-1 w-[calc(50%-2px)]'
+                    : 'left-[calc(50%-1px)] w-[calc(50%-2px)]'
+                }`}
+              />
 
-                {/* Front card */}
-                <div className="relative z-10 rounded-2xl p-6 sm:p-8 h-full bg-zinc-900/80 border border-indigo-400/30 shadow-[0_0_0_1px_rgba(99,102,241,0.25),0_12px_32px_rgba(99,102,241,0.25)] [transform-style:preserve-3d] origin-left transition-transform duration-700 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:[transform:rotateY(-10deg)_translateY(-12px)_translateZ(10px)] transform-gpu">
+              {/* Monthly Label */}
+              <button
+                onClick={() => setIsAnnual(false)}
+                className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 relative z-10 ${
+                  !isAnnual
+                    ? 'text-white'
+                    : 'text-zinc-400 hover:text-zinc-300'
+                }`}
+              >
+                Monthly
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Layout - Single card based on switch */}
+          <div className="sm:hidden flex justify-center">
+            {isAnnual ? (
+              <div className="reveal-on-scroll w-full">
+                <div className="group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm border border-indigo-500/40 rounded-3xl p-10 hover:border-indigo-500/60 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/20 h-full">
                   {/* Badge */}
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold tracking-wide text-white bg-indigo-500 px-3 py-1 rounded-full shadow-lg whitespace-nowrap">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-bold tracking-widest text-white bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
                     SAVE 34% RECOMMENDED
                   </div>
 
-                  <h3 className="text-lg sm:text-xl font-medium text-white mb-2 mt-2">Serious Trader (Annual)</h3>
+                  <div className="pt-2">
+                    <div className="flex items-baseline gap-2 mb-6">
+                      <span className="text-5xl font-bold text-white">$19</span>
+                      <span className="text-zinc-400 text-lg">/mo</span>
+                    </div>
 
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-3xl sm:text-4xl font-bold text-white">$19</span>
-                    <span className="text-zinc-500">/mo</span>
+                    <h3 className="text-xl font-bold text-white mb-1">Serious Trader</h3>
+                    <p className="text-sm text-zinc-400 mb-6">Annual Plan</p>
+
+                    <p className="text-sm text-zinc-300 mb-6 italic leading-relaxed">
+                      &quot;For traders who actually plan to still be trading next year.&quot;
+                    </p>
+
+                    <p className="text-xs text-zinc-500 mb-8 flex items-center gap-2">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                      Billed $228 annually
+                    </p>
+
+                    <ul className="space-y-4 mb-10">
+                      <li className="flex items-start gap-3 text-sm text-zinc-300">
+                        <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                        <span>Unlimited Trade Imports</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-sm text-zinc-300">
+                        <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                        <span>Advanced Analytics</span>
+                      </li>
+                    </ul>
+
+                    <a
+                      href="/app/auth?tab=signup"
+                      className="group relative overflow-hidden block w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-center py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/50 hover:scale-105"
+                    >
+                      <span className="flex items-center justify-center relative overflow-hidden h-6">
+                        <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                        <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                      </span>
+                      <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="reveal-on-scroll w-full">
+                <div className="group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm border border-zinc-800/50 rounded-3xl p-10 hover:border-zinc-700/60 transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-500/10 h-full">
+                  <div>
+                    <div className="flex items-baseline gap-2 mb-6">
+                      <span className="text-5xl font-bold text-white">$29</span>
+                      <span className="text-zinc-400 text-lg">/mo</span>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white mb-1">Flexible</h3>
+                    <p className="text-sm text-zinc-400 mb-6">Monthly Plan</p>
+
+                    <p className="text-sm text-zinc-300 mb-6 italic leading-relaxed">
+                      &quot;For people who are afraid of commitment.&quot;
+                    </p>
+
+                    <p className="text-xs text-zinc-500 mb-8 flex items-center gap-2">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                      Billed monthly. Cancel anytime.
+                    </p>
+
+                    <ul className="space-y-4 mb-10">
+                      <li className="flex items-start gap-3 text-sm text-zinc-300">
+                        <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                        <span>Unlimited Trade Imports</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-sm text-zinc-300">
+                        <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                        <span>Advanced Analytics</span>
+                      </li>
+                    </ul>
+
+                    <a
+                      href="/app/auth?tab=signup"
+                      className="group relative overflow-hidden block w-full bg-white/15 hover:bg-white/20 text-white text-center py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-md hover:shadow-white/10 hover:scale-105"
+                    >
+                      <span className="flex items-center justify-center relative overflow-hidden h-6">
+                        <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                        <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                      </span>
+                      <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop/Tablet Layout - Side by side */}
+          <div className="hidden sm:grid md:grid-cols-2 gap-6 sm:gap-8">
+            {/* ANNUAL PLAN (RECOMMENDED) */}
+            <div className="reveal-on-scroll delay-100">
+              <div className="group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm border border-indigo-500/40 rounded-3xl p-10 hover:border-indigo-500/60 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/20 hover:scale-[1.02] h-full">
+                {/* Badge */}
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-bold tracking-widest text-white bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                  SAVE 34% RECOMMENDED
+                </div>
+
+                <div className="pt-2">
+                  <div className="flex items-baseline gap-2 mb-6">
+                    <span className="text-5xl font-bold text-white">$19</span>
+                    <span className="text-zinc-400 text-lg">/mo</span>
                   </div>
 
-                  <p className="text-sm text-zinc-400 mb-4 sm:mb-6 italic">
+                  <h3 className="text-xl font-bold text-white mb-1">Serious Trader</h3>
+                  <p className="text-sm text-zinc-400 mb-6">Annual Plan</p>
+
+                  <p className="text-sm text-zinc-300 mb-6 italic leading-relaxed">
                     &quot;For traders who actually plan to still be trading next year.&quot;
                   </p>
 
-                  <p className="text-xs text-zinc-500 mb-6 sm:mb-8">Billed $228 annually.   </p>
+                  <p className="text-xs text-zinc-500 mb-8 flex items-center gap-2">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                    Billed $228 annually
+                  </p>
 
-                  <ul className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                    <li className="flex items-center gap-3 text-sm text-zinc-300">✔ Unlimited Trade Imports</li>
-                    <li className="flex items-center gap-3 text-sm text-zinc-300">✔ Advanced Analytics</li>
+                  <ul className="space-y-4 mb-10">
+                    <li className="flex items-start gap-3 text-sm text-zinc-300">
+                      <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                      <span>Unlimited Trade Imports</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-zinc-300">
+                      <span className="text-indigo-400 font-bold mt-0.5">✓</span>
+                      <span>Advanced Analytics</span>
+                    </li>
                   </ul>
 
                   <a
                     href="/app/auth?tab=signup"
-                    className="block w-full bg-white text-zinc-950 text-center py-3 rounded-lg text-sm font-medium transition-all hover:bg-zinc-200 hover:-translate-y-0.5"
+                    className="group relative overflow-hidden block w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-center py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/50 hover:scale-105"
                   >
-                    Commit for a Year
+                    <span className="flex items-center justify-center relative overflow-hidden h-6">
+                      <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                      <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Commit for a Year</span>
+                    </span>
+                    <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
                   </a>
                 </div>
               </div>
             </div>
 
             {/* MONTHLY PLAN */}
-            <div className="group relative reveal-on-scroll delay-200">
-              <div className="relative w-full overflow-visible [perspective:1200px]">
-                {/* Back page */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-zinc-500/10 via-zinc-600/20 to-zinc-800/30 ring-1 ring-white/10 shadow-2xl [transform-style:preserve-3d] transition-transform duration-700 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:[transform:rotateY(45deg)_translateX(-20px)_translateZ(-30px)_translateY(-15px)_scale(0.95)]"></div>
-
-                {/* Front card */}
-                <div className="relative z-10 rounded-2xl p-6 sm:p-8 h-full bg-zinc-900/70 border border-white/10 shadow-2xl [transform-style:preserve-3d] origin-left transition-transform duration-700 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:[transform:rotateY(-10deg)_translateY(-12px)_translateZ(10px)] transform-gpu">
-                  <h3 className="text-lg sm:text-xl font-medium text-white mb-2">Flexible (Monthly)</h3>
-
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-3xl sm:text-4xl font-bold text-white">$29</span>
-                    <span className="text-zinc-500">/mo</span>
+            <div className="reveal-on-scroll delay-200">
+              <div className="group relative bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm border border-zinc-800/50 rounded-3xl p-10 hover:border-zinc-700/60 transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-500/10 hover:scale-[1.02] h-full">
+                <div>
+                  <div className="flex items-baseline gap-2 mb-6">
+                    <span className="text-5xl font-bold text-white">$29</span>
+                    <span className="text-zinc-400 text-lg">/mo</span>
                   </div>
 
-                  <p className="text-sm text-zinc-400 mb-4 sm:mb-6 italic">
+                  <h3 className="text-xl font-bold text-white mb-1">Flexible</h3>
+                  <p className="text-sm text-zinc-400 mb-6">Monthly Plan</p>
+
+                  <p className="text-sm text-zinc-300 mb-6 italic leading-relaxed">
                     &quot;For people who are afraid of commitment.&quot;
                   </p>
 
-                  <p className="text-xs text-zinc-500 mb-6 sm:mb-8">Billed monthly. Cancel anytime.</p>
+                  <p className="text-xs text-zinc-500 mb-8 flex items-center gap-2">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                    Billed monthly. Cancel anytime.
+                  </p>
 
-                  <ul className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                    <li className="flex items-center gap-3 text-sm text-zinc-300">✔ Unlimited Trade Imports</li>
-                    <li className="flex items-center gap-3 text-sm text-zinc-300">✔ Advanced Analytics</li>
+                  <ul className="space-y-4 mb-10">
+                    <li className="flex items-start gap-3 text-sm text-zinc-300">
+                      <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                      <span>Unlimited Trade Imports</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-zinc-300">
+                      <span className="text-zinc-400 font-bold mt-0.5">✓</span>
+                      <span>Advanced Analytics</span>
+                    </li>
                   </ul>
 
                   <a
                     href="/app/auth?tab=signup"
-                    className="block w-full border border-white/10 text-white text-center py-3 rounded-lg text-sm font-medium transition-all hover:bg-white/5 hover:-translate-y-0.5"
+                    className="group relative overflow-hidden block w-full bg-white/15 hover:bg-white/20 text-white text-center py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-md hover:shadow-white/10 hover:scale-105"
                   >
-                    Start Monthly
+                    <span className="flex items-center justify-center relative overflow-hidden h-6">
+                      <span className="transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                      <span className="absolute top-[100%] left-1/2 -translate-x-1/2 transition-all duration-500 group-hover:translate-y-[-100%]">Start Monthly</span>
+                    </span>
+                    <span className="absolute top-0 left-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shimmer" />
                   </a>
                 </div>
               </div>
