@@ -104,6 +104,7 @@ export default function History() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [deleteTradeId, setDeleteTradeId] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     const tradeId = searchParams.get('tradeId');
