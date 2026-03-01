@@ -89,7 +89,7 @@ export function BalanceCard({
       }
       
       case '1W': {
-        // Last 7 days - show only days with trades
+        // This week - show only days with trades
         startDate = subDays(now, 6);
         startDate = startOfDay(startDate);
         label = 'this week';
@@ -132,8 +132,8 @@ export function BalanceCard({
       }
       
       case '1M': {
-        // Last 30 days - show only days with trades
-        startDate = subDays(now, 29);
+        // Current month - show only days with trades
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         startDate = startOfDay(startDate);
         label = 'this month';
         

@@ -1218,7 +1218,7 @@ export default function Backtesting() {
                       {/* Notes below the chart */}
                       {chart.notes && (
                         <div className="rounded-lg border border-border bg-muted/50 p-3">
-                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{chart.notes}</p>
+                          <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: chart.notes }} />
                         </div>
                       )}
                     </div>

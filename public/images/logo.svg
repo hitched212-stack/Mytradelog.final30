@@ -1,0 +1,10 @@
+<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- N -->
+  <path d="M 120 50 L 120 150 L 160 70 L 160 150" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Candlestick pattern -->
+  <line x1="225" y1="100" x2="275" y2="100" stroke="currentColor" stroke-width="3"/>
+  
+  <!-- MyTradeLog text -->
+  <text x="340" y="130" font-family="Arial, sans-serif" font-size="80" fill="currentColor" opacity="0.15">MyTradeLog</text>
+</svg>

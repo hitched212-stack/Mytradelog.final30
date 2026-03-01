@@ -63,14 +63,14 @@ export function SplashScreen({ onComplete, minDisplayTime = 1000, isDataReady = 
           {/* Content */}
           <div className="relative flex flex-col items-center gap-6">
             {/* Logo Icon - matching dashboard sidebar logo */}
-            <motion.div
+            <motion.img
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="w-12 h-12 rounded-lg bg-white flex items-center justify-center"
-            >
-              <SlashLogoIcon className="w-6 h-6 text-black" />
-            </motion.div>
+              src="/splash-icon.png"
+              alt="MyTradeLog"
+              className="h-12 w-auto object-contain dark:invert-0 invert"
+            />
           </div>
         </motion.div>
       )}

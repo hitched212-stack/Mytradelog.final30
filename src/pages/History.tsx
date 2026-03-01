@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, subDays, startOfWeek, startOfMonth } from 'date-fns';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTrades } from '@/hooks/useTrades';
@@ -292,32 +292,178 @@ export default function History() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={(range) => {
-                  setDateRange(range || { from: undefined, to: undefined } as any);
-                  setCurrentPage(1);
-                }}
-                numberOfMonths={2}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-              {dateRange.from && (
-                <div className="p-3 border-t border-border">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full text-muted-foreground"
+              <div className="flex">
+                {/* Left side - Preset buttons */}
+                <div className="flex flex-col gap-2 p-3 border-r border-border min-w-[160px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
-                      setDateRange({ from: undefined, to: undefined });
+                      const today = new Date();
+                      setDateRange({ from: today, to: today });
+                      setCurrentMonth(today);
                       setCurrentPage(1);
                     }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      dateRange.from && dateRange.to && 
+                      format(dateRange.from, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                      format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                      "bg-muted font-medium"
+                    )}
                   >
-                    Clear date filter
+                    Today
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const yesterday = subDays(new Date(), 1);
+                      setDateRange({ from: yesterday, to: yesterday });
+                      setCurrentMonth(yesterday);
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      dateRange.from && dateRange.to &&
+                      format(dateRange.from, 'yyyy-MM-dd') === format(subDays(new Date(), 1), 'yyyy-MM-dd') &&
+                      format(dateRange.to, 'yyyy-MM-dd') === format(subDays(new Date(), 1), 'yyyy-MM-dd') &&
+                      "bg-muted font-medium"
+                    )}
+                  >
+                    Yesterday
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+                      setDateRange({ from: weekStart, to: today });
+                      setCurrentMonth(today);
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      dateRange.from && dateRange.to &&
+                      format(dateRange.from, 'yyyy-MM-dd') === format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd') &&
+                      format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                      "bg-muted font-medium"
+                    )}
+                  >
+                    This week
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      const sevenDaysAgo = subDays(today, 6);
+                      setDateRange({ from: sevenDaysAgo, to: today });
+                      setCurrentMonth(today);
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      dateRange.from && dateRange.to &&
+                      format(dateRange.from, 'yyyy-MM-dd') === format(subDays(new Date(), 6), 'yyyy-MM-dd') &&
+                      format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                      "bg-muted font-medium"
+                    )}
+                  >
+                    Last 7 days
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      const thirtyDaysAgo = subDays(today, 29);
+                      setDateRange({ from: thirtyDaysAgo, to: today });
+                      setCurrentMonth(today);
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      dateRange.from && dateRange.to &&
+                      format(dateRange.from, 'yyyy-MM-dd') === format(subDays(new Date(), 29), 'yyyy-MM-dd') &&
+                      format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                      "bg-muted font-medium"
+                    )}
+                  >
+                    Last 30 days
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      const monthStart = startOfMonth(today);
+                      setDateRange({ from: monthStart, to: today });
+                      setCurrentMonth(today);
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      dateRange.from && dateRange.to &&
+                      format(dateRange.from, 'yyyy-MM-dd') === format(startOfMonth(new Date()), 'yyyy-MM-dd') &&
+                      format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                      "bg-muted font-medium"
+                    )}
+                  >
+                    This month
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      const yearStart = new Date(today.getFullYear(), 0, 1);
+                      setDateRange({ from: yearStart, to: today });
+                      setCurrentMonth(today);
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      dateRange.from && dateRange.to &&
+                      format(dateRange.from, 'yyyy-MM-dd') === format(new Date(new Date().getFullYear(), 0, 1), 'yyyy-MM-dd') &&
+                      format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                      "bg-muted font-medium"
+                    )}
+                  >
+                    This year
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDateRange({ from: undefined, to: undefined });
+                      setCurrentMonth(new Date());
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "justify-start hover:bg-muted",
+                      !dateRange.from && !dateRange.to && "bg-muted font-medium"
+                    )}
+                  >
+                    All time
                   </Button>
                 </div>
-              )}
+                {/* Right side - Calendar */}
+                <div>
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={(range) => {
+                      setDateRange(range || { from: undefined, to: undefined } as any);
+                      setCurrentPage(1);
+                    }}
+                    numberOfMonths={2}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </div>
+              </div>
             </PopoverContent>
           </Popover>
         </div>

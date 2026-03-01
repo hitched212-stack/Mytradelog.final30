@@ -302,15 +302,18 @@ export function Sidebar({
           "flex items-center gap-2 transition-all duration-200",
           isCollapsed ? "justify-center" : ""
         )}>
-          <button
-            className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-lg bg-foreground hover:opacity-80 transition-opacity flex-shrink-0",
-            )}
-          >
-            <SlashLogoIcon className="h-4 w-4 text-background" />
-          </button>
-          {!isCollapsed && (
-            <span className="text-xs font-bold uppercase tracking-widest text-foreground whitespace-nowrap">MyTradeLog</span>
+          {isCollapsed ? (
+            <img 
+              src="/images/mytradelog-icon.png" 
+              alt="MyTradeLog" 
+              className="h-11 w-11 object-contain transition-all duration-200 dark:invert-0 invert"
+            />
+          ) : (
+            <img 
+              src="/images/mytradelog-logo-new.png" 
+              alt="MyTradeLog" 
+              className="h-11 w-auto object-contain transition-all duration-200 dark:invert-0 invert"
+            />
           )}
         </div>
       </div>
