@@ -518,9 +518,9 @@ export default function History() {
       </div>
 
       {/* Desktop/Tablet Header - Single Row */}
-      <div className="hidden md:flex items-center gap-3 rounded-2xl border border-border/50 bg-card/60 p-4">
+      <div className="hidden md:flex items-center gap-3 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
         {/* Title and Stats */}
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="relative flex items-center gap-4 flex-shrink-0">
           <div>
             <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
             <p className="text-xs text-muted-foreground mt-0.5">{filteredTrades.length} total trades</p>
@@ -548,7 +548,7 @@ export default function History() {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="pl-8 h-9 rounded-lg bg-muted/50 border-border/50 text-sm"
+            className="pl-8 h-9 rounded-xl bg-muted/50 dark:bg-black/20 border-border/50 dark:border-white/10 text-sm"
           />
         </div>
 
@@ -558,7 +558,7 @@ export default function History() {
             <Button
               variant="outline"
               className={cn(
-                "h-9 gap-2 rounded-lg bg-muted/50 border-border/50 hover:bg-muted flex-shrink-0 px-3",
+                "h-9 gap-2 rounded-xl bg-muted/50 dark:bg-black/20 border-border/50 dark:border-white/10 hover:bg-muted dark:hover:bg-black/30 flex-shrink-0 px-3",
                 dateRange.from ? "text-foreground" : "text-muted-foreground"
               )}
             >
@@ -606,7 +606,7 @@ export default function History() {
             setCurrentPage(1);
           }}
         >
-          <SelectTrigger className="w-auto h-9 gap-2 rounded-lg bg-muted/50 border-border/50 hover:bg-muted flex-shrink-0 px-3">
+          <SelectTrigger className="w-auto h-9 gap-2 rounded-xl bg-muted/50 dark:bg-black/20 border-border/50 dark:border-white/10 hover:bg-muted dark:hover:bg-black/30 flex-shrink-0 px-3">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
@@ -618,7 +618,7 @@ export default function History() {
         </Select>
 
         {/* Direction Filter Buttons */}
-        <div className="flex gap-1 bg-muted/30 rounded-lg p-1 flex-shrink-0">
+        <div className="flex gap-1 bg-muted/50 dark:bg-black/20 border border-border/50 dark:border-white/10 rounded-xl p-1 flex-shrink-0">
           {[
             { value: 'all' as const, label: 'All' },
             { value: 'long' as const, label: 'Buy' },
@@ -884,17 +884,17 @@ export default function History() {
 
       {/* Desktop Table View - Professional Binance-style */}
       <div className={cn(
-        "hidden md:block rounded-xl border overflow-hidden relative",
+        "hidden md:block rounded-[1.75rem] border overflow-hidden relative shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
         isGlassEnabled
-          ? "border-border/50 bg-background/95 dark:bg-background/80 backdrop-blur-xl"
-          : "border-border/50 bg-background"
+          ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+          : "border-border/60 bg-card"
       )}>
         {/* Dot pattern - only show when glass is enabled */}
         {isGlassEnabled && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="history-table-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#history-table-dots)" />

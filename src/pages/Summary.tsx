@@ -329,7 +329,7 @@ export default function Summary() {
                     "h-9 text-sm rounded-lg px-3",
                     timeFrame === frame 
                       ? "bg-indigo-600 border border-indigo-500 hover:bg-indigo-700" 
-                      : "bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors"
+                      : "bg-foreground/[0.08] dark:bg-white/5 border border-foreground/[0.12] dark:border-white/10 hover:bg-foreground/[0.12] dark:hover:bg-muted/60 transition-colors"
                   )}
                 >
                   {frame}

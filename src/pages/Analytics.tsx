@@ -928,13 +928,18 @@ export default function Analytics() {
       <div className="px-4 py-6 md:px-6 space-y-6 max-w-7xl mx-auto">
         
         {/* Equity Curve with Net P&L - Premium Dark Fintech Style */}
-        <div className="rounded-2xl p-4 md:p-6 pb-4 relative overflow-hidden border border-border/40 bg-card/70">
+        <div className={cn(
+          "rounded-[1.75rem] p-4 md:p-6 pb-4 relative overflow-hidden border shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+          preferences.liquidGlassEnabled
+            ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+            : "border-border/60 bg-card"
+        )}>
           {/* Header with Net P&L and Chart Toggle */}
-          <div className="flex items-start justify-between mb-6 md:mb-8">
+          <div className="relative flex items-start justify-between mb-6 md:mb-8">
             {/* Left: Income info */}
             <div>
               <div className="flex items-start justify-between gap-4">
-                <p className="text-xs text-foreground mb-1 md:mb-2 font-semibold uppercase tracking-wider">Total Pnl</p>
+                <p className="text-xs text-foreground mb-1 md:mb-2 font-semibold uppercase tracking-[0.2em]">Total Pnl</p>
                 <span className={cn("text-sm font-medium font-display tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
                   {stats.totalPnl >= 0 ? '+' : ''}{stats.pnlPercentage.toFixed(2)}%
                 </span>
@@ -948,13 +953,18 @@ export default function Analytics() {
             </div>
             
             {/* Right: Chart Type Toggle */}
-            <div className="flex items-center bg-muted rounded-lg p-1">
-              <button onClick={() => setEquityChartView('bar')} className={cn("p-2 rounded-md transition-all duration-200", equityChartView === 'bar' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+            <div className={cn(
+              "flex items-center rounded-xl p-1 border",
+              preferences.liquidGlassEnabled
+                ? "border-white/10 bg-black/20 backdrop-blur-sm"
+                : "border-foreground/[0.12] bg-foreground/[0.08] dark:bg-muted/40 dark:border-border/50"
+            )}>
+              <button onClick={() => setEquityChartView('bar')} className={cn("p-2 rounded-md transition-all duration-200", equityChartView === 'bar' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
                   <path d="M17 20q-.425 0-.712-.288T16 19v-5q0-.425.288-.712T17 13h2q.425 0 .713.288T20 14v5q0 .425-.288.713T19 20zm-6 0q-.425 0-.712-.288T10 19V5q0-.425.288-.712T11 4h2q.425 0 .713.288T14 5v14q0 .425-.288.713T13 20zm-6 0q-.425 0-.712-.288T4 19v-9q0-.425.288-.712T5 9h2q.425 0 .713.288T8 10v9q0 .425-.288.713T7 20z"/>
                 </svg>
               </button>
-              <button onClick={() => setEquityChartView('line')} className={cn("p-2 rounded-md transition-all duration-200", equityChartView === 'line' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+              <button onClick={() => setEquityChartView('line')} className={cn("p-2 rounded-md transition-all duration-200", equityChartView === 'line' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
                   <path d="M2.75 17.75q-.325-.325-.325-.75t.325-.75l5.325-5.325q.575-.575 1.425-.575t1.425.575L13.5 13.5l6.4-7.225q.275-.325.713-.325t.737.3q.275.275.287.662t-.262.688L14.9 14.9q-.575.65-1.425.688T12 15l-2.5-2.5-5.25 5.25q-.325.325-.75.325t-.75-.325"/>
                 </svg>
@@ -963,7 +973,7 @@ export default function Analytics() {
           </div>
           
           {/* Chart - responsive height */}
-          <div className="h-56 md:h-72 -mx-2 md:mx-0">
+          <div className="relative h-56 md:h-72 -mx-2 md:mx-0">
             <ResponsiveContainer width="100%" height="100%">
               {equityChartView === 'line' ? <AreaChart data={equityCurveData} margin={{
               top: 10,
@@ -1044,7 +1054,25 @@ export default function Analytics() {
                 fill: stats.totalPnl >= 0 ? profitColor : lossColor,
                 stroke: 'hsl(var(--background))',
                 strokeWidth: 3
-              }} animationDuration={1500} animationEasing="ease-out" />
+              }} animationDuration={1500} animationEasing="ease-out">
+                    <LabelList 
+                      dataKey="value" 
+                      position="top" 
+                      offset={8}
+                      interval={Math.max(0, Math.floor(equityCurveData.length / 6))}
+                      formatter={(value: number) => {
+                        const absValue = Math.abs(value);
+                        if (absValue >= 1000) {
+                          return `${value >= 0 ? '+' : '-'}${currencySymbol}${(absValue / 1000).toFixed(0)}k`;
+                        }
+                        return `${value >= 0 ? '+' : '-'}${currencySymbol}${absValue.toLocaleString()}`;
+                      }}
+                      fill="hsl(var(--foreground))"
+                      fontSize={10}
+                      fontFamily="Outfit, system-ui, sans-serif"
+                      fontWeight={700}
+                    />
+                  </Area>
                 </AreaChart> : <BarChart data={equityCurveData} margin={{
               top: 10,
               right: 5,
@@ -1098,6 +1126,21 @@ export default function Analytics() {
               }} cursor={false} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
                     {equityCurveData.map((entry, index) => <Cell key={index} fill={entry.value >= 0 ? profitColor : lossColor} className="transition-opacity duration-200" opacity={activeBarIndex === undefined || activeBarIndex === index ? 1 : 0.3} onMouseEnter={() => setActiveBarIndex(index)} />)}
+                    <LabelList 
+                      dataKey="value" 
+                      position="top" 
+                      formatter={(value: number) => {
+                        const absValue = Math.abs(value);
+                        if (absValue >= 1000) {
+                          return `${value >= 0 ? '+' : '-'}${currencySymbol}${(absValue / 1000).toFixed(0)}k`;
+                        }
+                        return `${value >= 0 ? '+' : '-'}${currencySymbol}${absValue.toLocaleString()}`;
+                      }}
+                      fill="hsl(var(--foreground))"
+                      fontSize={11}
+                      fontFamily="Outfit, system-ui, sans-serif"
+                      fontWeight={700}
+                    />
                   </Bar>
                   {activeBarIndex !== undefined && <ReferenceLine y={equityCurveData[activeBarIndex]?.value} stroke={equityCurveData[activeBarIndex]?.value >= 0 ? profitColor : lossColor} strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.5} />}
                 </BarChart>}
@@ -1429,10 +1472,10 @@ export default function Analytics() {
 
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <MetricCard label="Profit Factor" value={stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)} />
-          <MetricCard label="Avg. R:R" value={`${stats.avgRR.toFixed(1)}R`} />
-          <MetricCard label="Avg. Stop Loss" value={stats.avgStopLossPips > 0 ? `${stats.avgStopLossPips.toFixed(1)} pips` : '—'} />
-          <MetricCard label="Trades" value={stats.totalTrades.toString()} />
+          <MetricCard label="Profit Factor" value={stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)} tooltip="Ratio of gross profit to gross loss. Higher is better." />
+          <MetricCard label="Avg. R:R" value={`${stats.avgRR.toFixed(1)}R`} tooltip="Average risk-to-reward ratio across all trades." />
+          <MetricCard label="Avg. Stop Loss" value={stats.avgStopLossPips > 0 ? `${stats.avgStopLossPips.toFixed(1)} pips` : '—'} tooltip="Average distance in pips from entry to stop loss." />
+          <MetricCard label="Trades" value={stats.totalTrades.toString()} tooltip="Total number of trades in this period." />
         </div>
 
         {/* Performance Grade Consistency Card */}
@@ -1533,7 +1576,7 @@ export default function Analytics() {
         {/* Holding Time & Entry Analysis */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Holding Time Card - Grouped Bar Chart */}
-          <GlassCardWrapper patternId="holding-time-dots" className="p-5">
+          <GlassCardWrapper patternId="holding-time-dots" className="p-5 h-full flex flex-col">
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
               Avg. Holding Time
               <Tooltip>
@@ -1568,7 +1611,7 @@ export default function Analytics() {
                 </div>
                 
                 {/* Grouped Bar Chart */}
-                <div className="h-32">
+                <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={holdingTimeByDay} barCategoryGap="20%" barGap={2}>
                       <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{
@@ -1599,9 +1642,19 @@ export default function Analytics() {
           </GlassCardWrapper>
 
           {/* Entry Time Analysis Card */}
-          <GlassCardWrapper patternId="entry-time-dots" className="p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
+          <GlassCardWrapper patternId="entry-time-dots" className="p-5 h-full flex flex-col">
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-1.5">
               Entry Time Range
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="inline-flex">
+                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-sm">Distribution of entry times during the trading day.</p>
+                </TooltipContent>
+              </Tooltip>
             </h3>
             
             {entryTimeChartData.chartData.length > 0 ? <>
@@ -1622,7 +1675,7 @@ export default function Analytics() {
                 </div>
                 
                 <div style={{
-            height: Math.max(160, entryTimeChartData.chartData.length * 32)
+            height: Math.max(224, entryTimeChartData.chartData.length * 40)
           }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={entryTimeChartData.chartData} layout="vertical" barCategoryGap="20%" margin={{
@@ -1814,7 +1867,19 @@ export default function Analytics() {
           </GlassCardWrapper>
           
           <GlassCardWrapper patternId="frequency-dots" className="p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Frequency</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              Frequency
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="inline-flex">
+                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-sm">How often you trade per week and per day on average.</p>
+                </TooltipContent>
+              </Tooltip>
+            </h3>
             <div className="space-y-1.5">
               <StatItemCompact label="Trades/Week" value={(stats.totalTrades / 4).toFixed(1)} />
               <StatItemCompact label="Trade Freq." value={filteredTrades.length > 0 ? `${(filteredTrades.length / (timeFrame === 'Daily' ? 1 : timeFrame === 'Week' ? 7 : timeFrame === 'Month' ? 30 : 365)).toFixed(1)}/day` : '0/day'} />
@@ -1823,13 +1888,16 @@ export default function Analytics() {
         </div>
 
         {/* Rule Violations Heatmap - Compact Design */}
-        <div className={cn("rounded-2xl border p-5 overflow-hidden relative transition-colors", emotionData.level === 1 && "bg-red-500/15 border-red-500/30 dark:bg-red-500/10 dark:border-red-500/20", emotionData.level === 2 && "bg-yellow-500/15 border-yellow-500/30 dark:bg-yellow-500/10 dark:border-yellow-500/20", emotionData.level === 3 && "bg-emerald-500/15 border-emerald-500/30 dark:bg-emerald-500/10 dark:border-emerald-500/20", !emotionData.level && "bg-card border-border")}>
-          {/* Subtle gradient overlay */}
-          <div className={cn("absolute inset-0 opacity-30", emotionData.level === 1 && "bg-gradient-to-br from-red-500/20 to-transparent", emotionData.level === 2 && "bg-gradient-to-br from-yellow-500/20 to-transparent", emotionData.level === 3 && "bg-gradient-to-br from-emerald-500/20 to-transparent")} />
-          
+        <div className={cn(
+          "rounded-[1.75rem] border p-5 overflow-hidden relative transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+          emotionData.level === 1 && "bg-red-500/15 border-red-500/30 dark:bg-red-500/10 dark:border-red-500/20",
+          emotionData.level === 2 && "bg-yellow-500/15 border-yellow-500/30 dark:bg-yellow-500/10 dark:border-yellow-500/20",
+          emotionData.level === 3 && "bg-emerald-500/15 border-emerald-500/30 dark:bg-emerald-500/10 dark:border-emerald-500/20",
+          !emotionData.level && "border-white/10 bg-card/85 backdrop-blur-2xl"
+        )}>
           <div className="relative flex flex-col h-full">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Avg. Emotion</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Avg. Emotion</h3>
               <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border", emotionData.level === 1 && "bg-red-500/30 border-red-500/50", emotionData.level === 2 && "bg-yellow-500/30 border-yellow-500/50", emotionData.level === 3 && "bg-emerald-500/30 border-emerald-500/50")}>
                 <emotionData.icon className={cn("w-4 h-4", emotionData.level === 1 && "text-red-600 dark:text-red-400", emotionData.level === 2 && "text-yellow-600 dark:text-yellow-400", emotionData.level === 3 && "text-emerald-600 dark:text-emerald-400")} />
               </div>
@@ -1866,17 +1934,17 @@ function GlassCardWrapper({
   
   return (
     <div className={cn(
-      "rounded-2xl border transition-all duration-300 relative overflow-hidden",
+      "rounded-[1.75rem] border transition-all duration-300 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
       isGlassEnabled
-        ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-        : "border-border/50 bg-card",
+        ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+        : "border-border/60 bg-card",
       className
     )}>
       {isGlassEnabled && (
         <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id={patternId} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-              <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+              <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill={`url(#${patternId})`} />
@@ -1891,35 +1959,49 @@ function GlassCardWrapper({
 function MetricCard({
   label,
   value,
-  icon
+  icon,
+  tooltip
 }: {
   label: string;
   value: string;
   icon?: React.ReactNode;
+  tooltip?: string;
 }) {
   const { preferences } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   
   return (
     <div className={cn(
-      "rounded-xl border transition-all duration-300 p-4 relative overflow-hidden",
+      "rounded-2xl border transition-all duration-300 p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
       isGlassEnabled
-        ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-        : "border-border/50 bg-card shadow-sm"
+        ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+        : "border-border/60 bg-card"
     )}>
       {isGlassEnabled && (
         <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id={`metric-${label.replace(/\s/g, '-')}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-              <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+              <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill={`url(#metric-${label.replace(/\s/g, '-')})`} />
         </svg>
       )}
       <div className="relative">
-        <div className="text-muted-foreground mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
+        <div className="text-muted-foreground mb-2 flex items-center gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-[0.14em]">{label}</span>
+          {tooltip && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="inline-flex">
+                  <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs text-sm">{tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
         <p className="text-xl font-display font-bold tabular-nums">{value}</p>
       </div>

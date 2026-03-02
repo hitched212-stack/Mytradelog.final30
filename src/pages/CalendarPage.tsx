@@ -5,7 +5,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useAccount } from '@/hooks/useAccount';
 import { usePreferences, GoalPeriod } from '@/hooks/usePreferences';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ArrowLeftRight, TrendingUp, TrendingDown, Target, Activity, X, Plus, Link2, Calendar as CalendarIcon, MoreVertical, Eye, Pencil, Trash2, BarChart3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ArrowLeftRight, TrendingUp, TrendingDown, Target, Activity, X, Plus, Link2, Calendar as CalendarIcon, MoreVertical, Eye, Pencil, Trash2, BarChart3 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths, getDay, startOfWeek, endOfWeek, isSameMonth, eachWeekOfInterval, addYears, subYears, startOfYear, eachMonthOfInterval, endOfYear, subDays } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -755,16 +755,21 @@ export default function CalendarPage() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-9 rounded-xl bg-muted/50 border-border/50 hover:bg-muted flex-shrink-0 text-sm gap-2 flex items-center justify-center",
-                    isMobile ? "w-9 p-0" : "px-3"
+                    "group h-10 rounded-2xl border transition-all duration-300 flex-shrink-0 text-sm flex items-center justify-center",
+                    "bg-card/80 dark:bg-card/70 border-border/60 dark:border-white/10",
+                    "hover:bg-card hover:border-border/80",
+                    "text-white group-hover:text-primary",
+                    isMobile ? "w-10 p-0" : "px-3.5 gap-2.5"
                   )}
                   onClick={() => navigate('/summary')}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20" fill="currentColor" style={{opacity:1}}>
-                    <path d="m58 362.09l-6.51-14.59A224 224 0 0 1 256 32h16v234.37Z"/>
-                    <path d="M304 66.46v220.65L94.62 380.78A208.31 208.31 0 0 0 272 480c114.69 0 208-93.31 208-208c0-103.81-76.45-190.1-176-205.54"/>
-                  </svg>
-                  {!isMobile && <span>Summary</span>}
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-foreground">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor" style={{opacity:1}}>
+                      <path d="m58 362.09l-6.51-14.59A224 224 0 0 1 256 32h16v234.37Z"/>
+                      <path d="M304 66.46v220.65L94.62 380.78A208.31 208.31 0 0 0 272 480c114.69 0 208-93.31 208-208c0-103.81-76.45-190.1-176-205.54"/>
+                    </svg>
+                  </span>
+                  {!isMobile && <span className="font-semibold">Summary</span>}
                 </Button>
                 <DashboardAccountSelector />
                 
@@ -773,13 +778,16 @@ export default function CalendarPage() {
                     key="disabled-btn"
                     variant="outline"
                     className={cn(
-                      "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 px-3 flex-shrink-0 text-sm",
+                      "h-10 rounded-2xl border bg-card/80 dark:bg-card/70 border-border/60 dark:border-white/10 px-3.5 gap-2.5 flex-shrink-0 text-sm",
                       "opacity-50 cursor-not-allowed"
                     )}
                     disabled
                   >
-                    <CalendarIcon className="h-4 w-4" />
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-foreground">
+                      <CalendarIcon className="h-4 w-4" />
+                    </span>
                     <span className="hidden md:inline">Date Range</span>
+                    <ChevronDown className="hidden md:inline-flex h-3.5 w-3.5 text-muted-foreground" />
                   </Button>
                 ) : (
                   <Popover key="date-popover" open={dateRangePopoverOpen && !dayDialogOpen && !tradeViewOpen} onOpenChange={(open) => {
@@ -793,11 +801,15 @@ export default function CalendarPage() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "h-9 gap-2 rounded-xl bg-muted/50 border-border/50 hover:bg-muted px-3 flex-shrink-0 text-sm",
-                          dateRange.from ? "text-foreground" : "text-muted-foreground"
+                          "group h-10 rounded-2xl border transition-all duration-300 px-3.5 gap-2.5 flex-shrink-0 text-sm",
+                          "bg-card/80 dark:bg-card/70 border-border/60 dark:border-white/10",
+                          "hover:bg-card hover:border-border/80",
+                          "text-white group-hover:text-primary"
                         )}
                       >
-                        <CalendarIcon className="h-4 w-4" />
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-foreground">
+                          <CalendarIcon className="h-4 w-4" />
+                        </span>
                         <span className="hidden md:inline">
                           {displayRange.from ? (
                             displayRange.to ? (
@@ -807,6 +819,7 @@ export default function CalendarPage() {
                             )
                           ) : 'Date Range'}
                         </span>
+                        <ChevronDown className="hidden md:inline-flex h-3.5 w-3.5 text-muted-foreground" />
                       </Button>
                     </PopoverTrigger>
                     {!dayDialogOpen && !tradeViewOpen && (
@@ -997,8 +1010,8 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-              <div>
+            <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr] items-stretch">
+              <div className="h-full flex flex-col">
                 <BalanceCard
                   currentBalance={accountBalance}
                   currencySymbol={currencySymbol}
@@ -1011,44 +1024,44 @@ export default function CalendarPage() {
                   onToggleBalanceHidden={() => setBalanceHidden(!settings.balanceHidden)}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 flex-1 min-h-0">
                   {/* Avg. Holding Time */}
                   <div className={cn(
-                    "rounded-2xl border p-4 relative overflow-hidden",
+                    "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] h-full",
                     preferences.liquidGlassEnabled
-                      ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                      : "border-border/50 bg-card"
+                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                      : "border-border/60 bg-card"
                   )}>
                     {preferences.liquidGlassEnabled && (
                       <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                           <pattern id="holding-time-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                            <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                            <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                           </pattern>
                         </defs>
                         <rect width="100%" height="100%" fill="url(#holding-time-dots)" />
                       </svg>
                     )}
-                    <div className="relative">
-                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    <div className="relative h-full flex flex-col">
+                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground mb-2">
                         Avg. Holding Time
                       </h3>
                       <div className="flex items-center gap-4 mb-3">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
-                          <span className="text-[11px] text-muted-foreground">Winners:</span>
+                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Winners:</span>
                           <span className="text-sm font-semibold" style={{ color: profitColor }}>{avgHoldingTimeWins}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: lossColor }} />
-                          <span className="text-[11px] text-muted-foreground">Losers:</span>
+                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Losers:</span>
                           <span className="text-sm font-semibold" style={{ color: lossColor }}>{avgHoldingTimeLosses}</span>
                         </div>
                       </div>
-                      <div className="h-24">
+                      <div className="flex-1 min-h-[180px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={holdingTimeByDay} barCategoryGap="20%" barGap={2}>
-                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} dy={5} />
+                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700 }} dy={5} />
                             <YAxis hide />
                             <Tooltip cursor={false} contentStyle={{
                               backgroundColor: 'hsl(var(--card))',
@@ -1067,36 +1080,36 @@ export default function CalendarPage() {
 
                   {/* Entry Time Range */}
                   <div className={cn(
-                    "rounded-2xl border p-4 relative overflow-hidden",
+                    "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] h-full",
                     preferences.liquidGlassEnabled
-                      ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                      : "border-border/50 bg-card"
+                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                      : "border-border/60 bg-card"
                   )}>
                     {preferences.liquidGlassEnabled && (
                       <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                           <pattern id="entry-time-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                            <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                            <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                           </pattern>
                         </defs>
                         <rect width="100%" height="100%" fill="url(#entry-time-dots)" />
                       </svg>
                     )}
-                    <div className="relative">
-                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    <div className="relative h-full flex flex-col">
+                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground mb-2">
                         Entry Time Range
                       </h3>
                       <div className="flex items-center gap-4 mb-3">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
-                          <span className="text-[11px] text-muted-foreground">Winners</span>
+                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Winners</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: lossColor }} />
-                          <span className="text-[11px] text-muted-foreground">Losers</span>
+                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Losers</span>
                         </div>
                       </div>
-                      <div style={{ height: Math.max(120, entryTimeChartData.length * 28) }}>
+                      <div className="flex-1 min-h-[180px]" style={{ height: Math.max(180, entryTimeChartData.length * 34) }}>
                         {entryTimeChartData.length === 0 ? (
                           <div className="h-full flex items-center justify-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                             No entry time data available
@@ -1129,6 +1142,8 @@ export default function CalendarPage() {
                                 tick={{
                                   fill: 'hsl(var(--muted-foreground))',
                                   fontSize: 10,
+                                  fontFamily: 'Outfit, system-ui, sans-serif',
+                                  fontWeight: 700,
                                   style: { whiteSpace: 'nowrap' }
                                 }}
                                 width={72}
@@ -1166,41 +1181,41 @@ export default function CalendarPage() {
 
               {/* Recent Trades */}
               <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
+                "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] h-full flex flex-col",
                 preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
+                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                  : "border-border/60 bg-card"
               )}>
                 {/* Dot pattern - only show when glass is enabled */}
                 {preferences.liquidGlassEnabled && (
                   <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <pattern id="recent-trades-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#recent-trades-dots)" />
                   </svg>
                 )}
-                <div className="relative">
+                <div className="relative flex-1 min-h-0 flex flex-col">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-semibold text-foreground">Recent Trades</h3>
                     </div>
                     <button
                       onClick={() => navigate('/history')}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 bg-foreground text-background shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 bg-white/90 text-black shadow-sm hover:bg-white hover:scale-[1.02] active:scale-[0.98]"
                     >
                       View All
                     </button>
                   </div>
 
                 {recentTrades.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-border bg-card">
+                  <div className="flex-1 flex items-center justify-center py-10 text-center rounded-xl border border-dashed border-border bg-card">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades found</p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex-1 overflow-y-auto">
                     {recentTrades.map(trade => (
                       <div
                         key={trade.id}
@@ -1209,19 +1224,19 @@ export default function CalendarPage() {
                           setTradeViewOpen(true);
                         }}
                         className={cn(
-                          "rounded-xl border px-3 py-2 cursor-pointer relative overflow-hidden group",
+                          "rounded-2xl border px-3 py-2.5 cursor-pointer relative overflow-hidden group",
                           "transition-all duration-200",
-                          "hover:scale-[1.01] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20",
+                          "hover:scale-[1.01] hover:-translate-y-0.5",
                           preferences.liquidGlassEnabled
-                            ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                            : "border-border/50 bg-card"
+                            ? "border-white/12 bg-black/25 backdrop-blur-sm shadow-[0_14px_30px_-22px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/22 hover:bg-black/30 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)]"
+                            : "border-border/70 bg-card shadow-sm hover:border-border hover:shadow-md"
                         )}
                       >
                         {preferences.liquidGlassEnabled && (
                           <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                               <pattern id={`calendar-recent-${trade.id}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                                <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                                <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                               </pattern>
                             </defs>
                             <rect width="100%" height="100%" fill={`url(#calendar-recent-${trade.id})`} />
@@ -1238,8 +1253,8 @@ export default function CalendarPage() {
                                   className={cn(
                                     "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide capitalize whitespace-nowrap",
                                     trade.direction === 'long'
-                                      ? "bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40"
-                                      : "bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40"
+                                      ? "bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/45"
+                                      : "bg-pnl-negative/15 text-pnl-negative border border-pnl-negative/45"
                                   )}
                                 >
                                   {trade.direction}
@@ -1272,7 +1287,7 @@ export default function CalendarPage() {
                               </span>
                             </div>
                           ) : (
-                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-muted/40 text-muted-foreground/80 border border-border/40 whitespace-nowrap">
+                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-white/5 text-muted-foreground/90 border border-white/10 whitespace-nowrap">
                               {trade.isPaperTrade ? 'Paper' : 'No Trade'}
                             </span>
                           )}
@@ -1290,17 +1305,17 @@ export default function CalendarPage() {
           <div className="w-full space-y-3">
             {/* Goal Progress Card - Professional Design */}
             <div className={cn(
-              "rounded-2xl border relative overflow-hidden transition-all duration-300",
+              "rounded-[1.9rem] border relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
               preferences.liquidGlassEnabled
-                ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                : "border-border/50 bg-card"
+                ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                : "border-border/60 bg-card"
             )}>
               {/* Dot pattern - only show when glass is enabled */}
               {preferences.liquidGlassEnabled && (
                 <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <pattern id="calendar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                      <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                      <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                     </pattern>
                   </defs>
                   <rect width="100%" height="100%" fill="url(#calendar-dots)" />
@@ -1310,13 +1325,13 @@ export default function CalendarPage() {
                 {/* Header with Month and Period Filters */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="space-y-0.5">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-foreground uppercase tracking-[0.16em]">
                       {format(currentMonth, 'MMMM yyyy')}
                     </h3>
-                    <p className="text-[10px] text-muted-foreground">{goalLabel}</p>
+                    <p className="text-[10px] text-muted-foreground font-display font-semibold">{goalLabel}</p>
                   </div>
-                  <div className="flex gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/30">
-                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-200', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+                  <div className="flex gap-0.5 p-0.5 rounded-xl border border-white/10 bg-black/20 backdrop-blur-sm">
+                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-200', goalPeriod === period ? 'bg-white text-black shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                         {period}
                       </button>)}
                   </div>
@@ -1331,7 +1346,7 @@ export default function CalendarPage() {
                 
                 {/* Progress Bar - Enhanced */}
                 <div className="space-y-1.5">
-                  <div className="h-2.5 rounded-full bg-muted/40 overflow-hidden border border-border/30">
+                  <div className="h-3 rounded-full bg-foreground/15 dark:bg-white/10 overflow-hidden ring-1 ring-border/60 dark:ring-white/15">
                     <div className={cn('h-full rounded-full transition-all duration-500 relative overflow-hidden', currentPnl >= 0 ? 'bg-pnl-positive' : 'bg-pnl-negative')} style={{
                     width: `${Math.max(0, Math.min(goalProgress, 100))}%`
                   }}>
@@ -1340,11 +1355,11 @@ export default function CalendarPage() {
                     </div>
                   </div>
                   <div className="flex justify-between items-center text-[10px]">
-                    <span className="text-muted-foreground font-medium">
+                    <span className="font-display font-bold tabular-nums text-foreground dark:text-white/95">
                       {Math.round(goalProgress)}% of Goal
                     </span>
-                    <span className="font-display font-bold tabular-nums text-muted-foreground">
-                      {currentPnl < 0 ? `${currencySymbol}0` : formatPnlWithK(currentPnl, false)} <span className="text-muted-foreground/60">/</span> {formatPnlWithK(currentGoal, false)}
+                    <span className="font-display font-bold tabular-nums text-foreground dark:text-white/95">
+                      {currentPnl < 0 ? `${currencySymbol}0` : formatPnlWithK(currentPnl, false)} <span className="text-foreground/70 dark:text-white/70">/</span> {formatPnlWithK(currentGoal, false)}
                     </span>
                   </div>
                 </div>
@@ -1353,11 +1368,14 @@ export default function CalendarPage() {
 
             {/* Calendar Navigation */}
             <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-0.5">
-                <Button variant="outline" size="icon" onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth} className="h-8 w-8 shrink-0">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-base font-medium text-foreground px-1 text-center whitespace-nowrap">
+              <div className="flex items-center">
+                <button 
+                  onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth}
+                  className="h-9 w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
+                >
+                  <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+                </button>
+                <span className="text-base font-semibold text-foreground text-center whitespace-nowrap min-w-[140px]">
                   {viewMode === 'year' ? format(currentMonth, 'yyyy') : (
                     <>
                       <span className="sm:hidden">{format(currentMonth, 'MMM')}</span>
@@ -1365,13 +1383,16 @@ export default function CalendarPage() {
                     </>
                   )}
                 </span>
-                <Button variant="outline" size="icon" onClick={viewMode === 'year' ? handleNextYear : handleNextMonth} className="h-8 w-8 shrink-0">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                <button 
+                  onClick={viewMode === 'year' ? handleNextYear : handleNextMonth}
+                  className="h-9 w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
+                >
+                  <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+                </button>
                 <button 
                   onClick={handleToday} 
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all ml-1 cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0',
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0 ml-2',
                     viewMode === 'month' ? '' : 'hidden',
                     'bg-foreground text-background'
                   )}
@@ -1519,11 +1540,21 @@ export default function CalendarPage() {
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
                 <div className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1 text-center mb-1">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                    <div key={i} className="h-6 flex items-center justify-center rounded-lg border border-border/50 bg-card text-[10px] font-medium text-muted-foreground shadow-xs">
+                    <div key={i} className={cn(
+                      "h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-muted-foreground",
+                      preferences.liquidGlassEnabled
+                        ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                        : "border-border/50 bg-card"
+                    )}>
                       {day}
                     </div>
                   ))}
-                  <div className="w-16 md:w-20 h-6 flex items-center justify-center rounded-lg border border-border/50 bg-card text-[10px] font-medium text-foreground shadow-xs">
+                  <div className={cn(
+                    "w-16 md:w-20 h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-foreground",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                      : "border-border/50 bg-card"
+                  )}>
                     <span className="font-bold">{trades.filter(t => {
                       const tradeDate = new Date(t.date);
                       return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
@@ -1533,11 +1564,21 @@ export default function CalendarPage() {
                 {/* Mobile headers - Mon to Fri only */}
                 <div className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 text-center mb-1">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                    <div key={i} className="h-6 flex items-center justify-center rounded-lg border border-border/50 bg-card text-[10px] font-medium text-muted-foreground shadow-xs">
+                    <div key={i} className={cn(
+                      "h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-muted-foreground",
+                      preferences.liquidGlassEnabled
+                        ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                        : "border-border/50 bg-card"
+                    )}>
                       {day}
                     </div>
                   ))}
-                  <div className="w-14 h-6 flex items-center justify-center rounded-lg border border-border/50 bg-card text-[10px] font-medium text-foreground shadow-xs">
+                  <div className={cn(
+                    "w-14 h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-foreground",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                      : "border-border/50 bg-card"
+                  )}>
                     <span className="font-bold">{trades.filter(t => {
                       const tradeDate = new Date(t.date);
                       return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
@@ -1592,10 +1633,12 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-16 md:h-20 rounded-lg flex flex-col items-center justify-center p-1 transition-all relative border shadow-sm hover:shadow-md',
+                                  'h-16 md:h-20 rounded-lg flex flex-col items-center justify-center p-1 transition-all relative border',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
                                   isTodayDate && 'ring-2 ring-primary/60 shadow-md',
-                                  tradeCount === 0 && 'bg-card border-border/60 hover:bg-muted/10 hover:border-border/80'
+                                  tradeCount === 0 && (preferences.liquidGlassEnabled
+                                    ? 'bg-card/85 backdrop-blur-2xl border-white/10 hover:bg-card/90'
+                                    : 'bg-card border-border/60 hover:bg-muted/10 hover:border-border/80')
                                 )}
                                 style={tradeCount > 0 ? {
                                   backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.18)`,
@@ -1604,8 +1647,8 @@ export default function CalendarPage() {
                               >
                                 {/* Date number - top left */}
                                 <div className={cn(
-                                  'absolute top-0.5 left-0.5 text-[10px] font-medium',
-                                  isTodayDate ? 'font-bold' : 'text-foreground/80'
+                                  'absolute top-0.5 left-0.5 text-[10px] font-display font-bold tabular-nums',
+                                  isTodayDate ? '' : 'text-foreground/80'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
@@ -1617,13 +1660,13 @@ export default function CalendarPage() {
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div className="text-[8px] text-muted-foreground">
+                                    <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
                                       {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
                                     </div>
                                   </div>
                                 )}
                                 {tradeCount === 0 && noTradeTakenCount > 0 && (
-                                  <div className="text-[8px] text-muted-foreground">
+                                  <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
                                     No Trades
                                   </div>
                                 )}
@@ -1632,15 +1675,20 @@ export default function CalendarPage() {
                           })}
                           
                           {/* Weekly Summary */}
-                          <div className="h-16 md:h-20 w-16 md:w-20 flex flex-col items-center justify-center rounded-lg p-1.5 bg-card border border-border/60 shadow-sm">
-                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
+                          <div className={cn(
+                            "h-16 md:h-20 w-16 md:w-20 flex flex-col items-center justify-center rounded-lg p-1.5 border",
+                            preferences.liquidGlassEnabled
+                              ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                              : "bg-card border-border/60"
+                          )}>
+                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap font-display font-bold tabular-nums">
                               Week {weekIndex + 1}
                             </div>
                             <div className="text-xs font-bold font-display tabular-nums mb-0.5 w-full text-center truncate"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
-                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap">
+                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap font-display font-bold tabular-nums">
                               {weekData?.tradeCount || 0} trades
                             </div>
                           </div>
@@ -1664,10 +1712,12 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-16 rounded-lg flex flex-col items-center justify-center p-1 transition-all relative border shadow-sm hover:shadow-md',
+                                  'h-16 rounded-lg flex flex-col items-center justify-center p-1 transition-all relative border',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
                                   isTodayDate && 'ring-2 ring-primary/60 shadow-md',
-                                  tradeCount === 0 && 'bg-card border-border/60 hover:bg-muted/10 hover:border-border/80'
+                                  tradeCount === 0 && (preferences.liquidGlassEnabled
+                                    ? 'bg-card/85 backdrop-blur-2xl border-white/10 hover:bg-card/90'
+                                    : 'bg-card border-border/60 hover:bg-muted/10 hover:border-border/80')
                                 )}
                                 style={tradeCount > 0 ? {
                                   backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.18)`,
@@ -1675,8 +1725,8 @@ export default function CalendarPage() {
                                 } : undefined}
                               >
                                 <div className={cn(
-                                  'absolute top-0.5 left-0.5 text-[10px] font-medium',
-                                  isTodayDate ? 'font-bold' : 'text-foreground/80'
+                                  'absolute top-0.5 left-0.5 text-[10px] font-display font-bold tabular-nums',
+                                  isTodayDate ? '' : 'text-foreground/80'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
@@ -1686,13 +1736,13 @@ export default function CalendarPage() {
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div className="text-[8px] text-muted-foreground">
+                                    <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
                                       {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
                                     </div>
                                   </div>
                                 )}
                                 {tradeCount === 0 && noTradeTakenCount > 0 && (
-                                  <div className="text-[8px] text-muted-foreground">
+                                  <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
                                     No Trades
                                   </div>
                                 )}
@@ -1701,15 +1751,20 @@ export default function CalendarPage() {
                           })}
                           
                           {/* Weekly Summary - Mobile */}
-                          <div className="h-16 w-14 flex flex-col items-center justify-center rounded-lg p-1.5 bg-card border border-border/60 shadow-sm">
-                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap">
+                          <div className={cn(
+                            "h-16 w-14 flex flex-col items-center justify-center rounded-lg p-1.5 border",
+                            preferences.liquidGlassEnabled
+                              ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                              : "bg-card border-border/60"
+                          )}>
+                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap font-display font-bold tabular-nums">
                               Wk {weekIndex + 1}
                             </div>
                             <div className="text-[9px] font-bold font-display tabular-nums mb-0.5 w-full text-center truncate leading-none tracking-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
-                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap">
+                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap font-display font-bold tabular-nums">
                               {weekData?.tradeCount || 0}t
                             </div>
                           </div>
@@ -1761,7 +1816,7 @@ export default function CalendarPage() {
                   </svg>
                 )}
                 <div className="relative">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Performance by Day ({format(currentMonth, 'yyyy')})</h3>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-3">Performance by Day ({format(currentMonth, 'yyyy')})</h3>
                   <div className="space-y-1.5">
                   {(() => {
                     const stats = yearlyDayOfWeekStats;
@@ -1806,17 +1861,17 @@ export default function CalendarPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Monthly Summary */}
               <div className={cn(
-                "rounded-2xl border p-5 relative overflow-hidden",
+                "rounded-[1.75rem] border p-5 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                 preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
+                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                  : "border-border/60 bg-card"
               )}>
                 {/* Dot pattern - only show when glass is enabled */}
                 {preferences.liquidGlassEnabled && (
                   <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <pattern id="summary-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#summary-dots)" />
@@ -1824,7 +1879,7 @@ export default function CalendarPage() {
                 )}
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
                       Win Rate
                     </h3>
                     <span className="text-3xl font-display font-bold tabular-nums" style={{ color: profitColor }}>
@@ -1903,17 +1958,17 @@ export default function CalendarPage() {
 
               {/* Performance Score Radar */}
               <div className={cn(
-                "rounded-2xl border p-5 relative overflow-hidden",
+                "rounded-[1.75rem] border p-5 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                 preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
+                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                  : "border-border/60 bg-card"
               )}>
                 {/* Dot pattern - only show when glass is enabled */}
                 {preferences.liquidGlassEnabled && (
                   <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <pattern id="perf-radar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#perf-radar-dots)" />
@@ -1921,7 +1976,7 @@ export default function CalendarPage() {
                 )}
                 <div className="relative">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Performance Score</h3>
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">Performance Score</h3>
                     <span className="text-3xl font-display font-bold tabular-nums" style={{ color: profitColor }}>
                       {Math.round(tradepathScoreData.overallScore)}%
                     </span>
@@ -1968,31 +2023,31 @@ export default function CalendarPage() {
 
               {/* Performance by Day */}
               <div className={cn(
-                "rounded-2xl border p-4 relative overflow-hidden",
+                "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                 preferences.liquidGlassEnabled
-                  ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-                  : "border-border/50 bg-card"
+                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                  : "border-border/60 bg-card"
               )}>
                 {/* Dot pattern - only show when glass is enabled */}
                 {preferences.liquidGlassEnabled && (
                   <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <pattern id="dayperf-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#dayperf-dots)" />
                   </svg>
                 )}
                 <div className="relative">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Performance by Day</h3>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-3">Performance by Day</h3>
                   <div className="space-y-1.5">
                     {dayOfWeekStats.map(day => {
                     const isBestDay = day.day === bestDay.day && bestDay.pnl > 0;
                     const isWorstDay = day.day === worstDay.day && worstDay.pnl < 0;
                     const maxPnl = Math.max(...dayOfWeekStats.map(d => Math.abs(d.pnl)), 1);
                     const barWidth = day.pnl !== 0 ? Math.abs(day.pnl) / maxPnl * 100 : 0;
-                    return <div key={day.day} className={cn('flex items-center gap-2 p-2 rounded-xl transition-colors', isBestDay && 'bg-pnl-positive/10 border border-pnl-positive/20', isWorstDay && 'bg-pnl-negative/10 border border-pnl-negative/20', !isBestDay && !isWorstDay && 'bg-muted/30 border border-transparent')}>
+                    return <div key={day.day} className={cn('flex items-center gap-2 p-2 rounded-xl transition-colors', isBestDay && 'bg-pnl-positive/10 border border-pnl-positive/20', isWorstDay && 'bg-pnl-negative/10 border border-pnl-negative/20', !isBestDay && !isWorstDay && (preferences.liquidGlassEnabled ? 'bg-black/20 border border-white/10' : 'bg-muted/30 border border-transparent'))}>
                           <div className="w-10 flex-shrink-0">
                             <span className={cn('text-xs font-semibold', day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground')}>
                               {day.shortDay}

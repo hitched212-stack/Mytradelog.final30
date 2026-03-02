@@ -191,6 +191,8 @@ export function Sidebar({
   const { settings } = useSettings();
   const { preferences, setTheme } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
+  const activeNavClass = "text-violet-600 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/15 border border-violet-300 dark:border-violet-400/20";
+  const activeIndicatorClass = "bg-violet-600 dark:bg-violet-400";
   const [isCollapsedState, setIsCollapsedState] = useState(false);
   const isCollapsed = controlledCollapsed ?? isCollapsedState;
   const setIsCollapsed = setControlledCollapsed ?? setIsCollapsedState;
@@ -275,10 +277,10 @@ export function Sidebar({
   return (
     <motion.aside
       className={cn(
-        "hidden md:flex flex-col fixed top-4 left-4 z-40 rounded-2xl shadow-2xl overflow-hidden border",
+        "hidden md:flex flex-col fixed top-4 left-4 z-40 rounded-[2rem] overflow-hidden border shadow-[0_24px_80px_-40px_rgba(0,0,0,0.7)]",
         isGlassEnabled
-          ? "bg-sidebar/95 dark:bg-sidebar/80 backdrop-blur-xl border-sidebar-border/50 dark:border-sidebar-border/30"
-          : "bg-sidebar border-sidebar-border/50 dark:border-sidebar-border/30"
+          ? "bg-sidebar/85 backdrop-blur-2xl border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+          : "bg-sidebar border-border/60"
       )}
       style={{ height: "calc(100vh - 32px)" }}
       initial={false}
@@ -290,7 +292,7 @@ export function Sidebar({
         <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="sidebar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-              <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.08] dark:fill-foreground/[0.04]" />
+              <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#sidebar-dots)" />
@@ -344,20 +346,32 @@ export function Sidebar({
                 key={to}
                 to={to}
                 className={cn(
-                  "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
+                  "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out",
                   "hover:scale-[1.02]",
                   active
-                    ? "text-foreground bg-muted/80"
+                    ? activeNavClass
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   isCollapsed ? "justify-center" : "",
                 )}
               >
-                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-                  <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                  {isCollapsed ? (
+                    <>
+                      <Icon className="h-[18px] w-[18px] stroke-[1.5px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                      <Icon className="h-[18px] w-[18px] stroke-[1.5px] absolute top-[100%] left-0 block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                    </>
+                  ) : (
+                    <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                  )}
                 </div>
                 {!isCollapsed && (
-                  <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
-                    {label}
+                  <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
+                    <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
+                    </span>
+                    <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
+                    </span>
                   </span>
                 )}
                 {active && !isCollapsed && (
@@ -366,7 +380,7 @@ export function Sidebar({
                     animate={{ opacity: 1, scaleY: 1 }}
                     exit={{ opacity: 0, scaleY: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="ml-auto w-[2px] h-4 bg-foreground rounded-full"
+                    className={cn("ml-auto w-[2px] h-4 rounded-full", activeIndicatorClass)}
                   />
                 )}
               </NavLink>
@@ -380,20 +394,32 @@ export function Sidebar({
                 key={to}
                 to={to}
                 className={cn(
-                  "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
+                  "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out",
                   "hover:scale-[1.02]",
                   active
-                    ? "text-foreground bg-muted/80"
+                    ? activeNavClass
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   isCollapsed ? "justify-center" : "",
                 )}
               >
-                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-                  <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                  {isCollapsed ? (
+                    <>
+                      <Icon className="h-[18px] w-[18px] stroke-[1.5px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                      <Icon className="h-[18px] w-[18px] stroke-[1.5px] absolute top-[100%] left-0 block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                    </>
+                  ) : (
+                    <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                  )}
                 </div>
                 {!isCollapsed && (
-                  <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
-                    {label}
+                  <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
+                    <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
+                    </span>
+                    <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
+                    </span>
                   </span>
                 )}
                 {active && !isCollapsed && (
@@ -402,7 +428,7 @@ export function Sidebar({
                     animate={{ opacity: 1, scaleY: 1 }}
                     exit={{ opacity: 0, scaleY: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="ml-auto w-[2px] h-4 bg-foreground rounded-full"
+                    className={cn("ml-auto w-[2px] h-4 rounded-full", activeIndicatorClass)}
                   />
                 )}
               </NavLink>
@@ -416,20 +442,32 @@ export function Sidebar({
                 key={to}
                 to={to}
                 className={cn(
-                  "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
+                  "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out",
                   "hover:scale-[1.02]",
                   active
-                    ? "text-foreground bg-muted/80"
+                    ? activeNavClass
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   isCollapsed ? "justify-center" : "",
                 )}
               >
-                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-                  <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                  {isCollapsed ? (
+                    <>
+                      <Icon className="h-[18px] w-[18px] stroke-[1.5px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                      <Icon className="h-[18px] w-[18px] stroke-[1.5px] absolute top-[100%] left-0 block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                    </>
+                  ) : (
+                    <Icon className="h-[18px] w-[18px] stroke-[1.5px]" />
+                  )}
                 </div>
                 {!isCollapsed && (
-                  <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200">
-                    {label}
+                  <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
+                    <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
+                    </span>
+                    <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
+                    </span>
                   </span>
                 )}
                 {active && !isCollapsed && (
@@ -438,39 +476,52 @@ export function Sidebar({
                     animate={{ opacity: 1, scaleY: 1 }}
                     exit={{ opacity: 0, scaleY: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="ml-auto w-[2px] h-4 bg-foreground rounded-full"
+                    className={cn("ml-auto w-[2px] h-4 rounded-full", activeIndicatorClass)}
                   />
                 )}
               </NavLink>
             );
           })}
-          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
         </div>
+      </nav>
 
+      {/* User Profile & Collapse */}
+      <div className="p-3 border-t border-border/60 dark:border-border/20 space-y-2">
         {/* Settings */}
         <div>
           <NavLink
             to="/settings"
             className={cn(
-              "relative flex items-center gap-3 px-2 py-2 rounded-lg transition-all duration-200 ease-out",
+              "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out",
               "hover:scale-[1.02]",
               isActive("/settings")
-                ? "text-foreground bg-muted/80"
+                ? activeNavClass
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
               isCollapsed ? "justify-center" : "",
             )}
           >
-            <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
-              <SettingsIcon className="h-[18px] w-[18px]" />
+            <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+              {isCollapsed ? (
+                <>
+                  <SettingsIcon className="h-[18px] w-[18px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                  <SettingsIcon className="h-[18px] w-[18px] absolute top-[100%] left-0 block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                </>
+              ) : (
+                <SettingsIcon className="h-[18px] w-[18px]" />
+              )}
             </div>
             {!isCollapsed && (
               <>
-                <span className="text-sm font-medium whitespace-nowrap overflow-hidden flex-1 transition-opacity duration-200">
-                  Settings
+                <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
+                  <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    Settings
+                  </span>
+                  <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    Settings
+                  </span>
                 </span>
               </>
             )}
-            {/* Active indicator line */}
             {/* Active indicator line */}
             {isActive("/settings") && !isCollapsed && (
               <motion.div 
@@ -478,15 +529,11 @@ export function Sidebar({
                 animate={{ opacity: 1, scaleY: 1 }}
                 exit={{ opacity: 0, scaleY: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="ml-auto w-[2px] h-4 bg-foreground rounded-full" 
+                className={cn("ml-auto w-[2px] h-4 rounded-full", activeIndicatorClass)} 
               />
             )}
           </NavLink>
         </div>
-      </nav>
-
-      {/* User Profile & Collapse */}
-      <div className="p-3 border-t border-border/60 dark:border-border/20 space-y-2">
         {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

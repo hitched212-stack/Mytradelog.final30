@@ -74,15 +74,15 @@ export default function GoalsSettings() {
         {goalPeriods.map(({ key, label }) => (
           <div 
             key={key} 
-            className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/50 hover:border-border transition-colors"
+            className="flex items-center gap-3 p-3 rounded-[1.75rem] bg-card/85 border border-white/10 backdrop-blur-2xl transition-colors relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
           >
             {/* Label */}
-            <div className="flex-1">
+            <div className="relative flex-1">
               <span className="text-sm font-medium text-foreground">{label}</span>
             </div>
 
             {/* Value with Border */}
-            <div className="flex items-center gap-2 flex-shrink-0 px-4 py-2 rounded-lg border border-border/60 bg-muted/50">
+            <div className="relative flex items-center gap-2 flex-shrink-0 px-4 py-2 rounded-xl border border-white/10 bg-black/20 backdrop-blur-sm">
               <span className="text-sm text-muted-foreground font-medium">{currencySymbol}</span>
               <input
                 type="number"
@@ -103,7 +103,7 @@ export default function GoalsSettings() {
         <div className="sticky bottom-20 md:bottom-6 pt-6">
           <Button
             onClick={handleSave}
-            className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-lg font-semibold"
+            className="w-full h-12 bg-white text-black hover:bg-white/90 rounded-2xl shadow-lg font-semibold"
           >
             Save Goals
           </Button>

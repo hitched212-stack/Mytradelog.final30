@@ -328,25 +328,21 @@ export function BalanceCard({
 
   return (
     <div className={cn(
-      "rounded-2xl border p-4 md:p-6 relative overflow-hidden",
+      "rounded-[1.9rem] border p-4 md:p-6 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
       isGlassEnabled
-        ? "border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl"
-        : "border-border/50 bg-card"
+        ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+        : "border-border/60 bg-card"
     )}>
       {/* Dot pattern overlay - matching nav bar style */}
       {isGlassEnabled && (
         <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="balance-card-dots" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="0.75" className="fill-foreground/[0.08] dark:fill-foreground/[0.05]" />
+              <circle cx="1" cy="1" r="0.75" className="fill-white/[0.09] dark:fill-white/[0.05]" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#balance-card-dots)" />
         </svg>
-      )}
-      {/* Glass highlight effect - only show when glass is enabled */}
-      {isGlassEnabled && (
-        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent pointer-events-none" />
       )}
       <div className="relative">
         {/* Header with Balance and Period Selector */}
@@ -354,10 +350,10 @@ export function BalanceCard({
           {/* Balance Header */}
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Balance</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground">Total Balance</p>
               <button
                 onClick={onToggleBalanceHidden}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground/90 hover:text-foreground transition-colors"
                 aria-label={isBalanceHidden ? 'Show balance' : 'Hide balance'}
               >
                 {isBalanceHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -391,7 +387,7 @@ export function BalanceCard({
 
           {/* Period Selector and Chart Type Toggle - Top Right */}
           <div className="flex items-center gap-2 flex-shrink-0 -mt-1 md:mt-0">
-            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg bg-muted/50">
+            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg border border-white/[0.03] bg-black/15 backdrop-blur-sm">
               {periods.map(period => (
                 <button
                   key={period}
@@ -399,7 +395,7 @@ export function BalanceCard({
                   className={cn(
                     'px-2 md:px-2.5 py-1.5 md:py-1 rounded-md text-xs font-medium transition-all duration-200',
                     selectedPeriod === period
-                      ? 'bg-foreground text-background shadow-sm'
+                      ? 'bg-white text-black shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
@@ -408,13 +404,13 @@ export function BalanceCard({
               ))}
             </div>
             
-            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg bg-muted/50">
+            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg border border-white/[0.03] bg-black/15 backdrop-blur-sm">
               <button
                 onClick={() => setChartType('bar')}
                 className={cn(
                   'p-1.5 md:p-1 rounded-md transition-all duration-200 w-[28px] h-[28px] md:w-[26px] md:h-[26px] flex items-center justify-center',
                   chartType === 'bar'
-                    ? 'bg-foreground text-background'
+                    ? 'bg-white text-black'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label="Bar chart"
@@ -429,7 +425,7 @@ export function BalanceCard({
                 className={cn(
                   'p-1.5 md:p-1 rounded-md transition-all duration-200 w-[28px] h-[28px] md:w-[26px] md:h-[26px] flex items-center justify-center',
                   chartType === 'line'
-                    ? 'bg-foreground text-background'
+                    ? 'bg-white text-black'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label="Line chart"
