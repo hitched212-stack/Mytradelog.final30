@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "app-icon.svg", "app-icon.png"],
+      includeAssets: ["favicon.svg", "favicon.png", "app-icon.svg", "app-icon.png"],
       manifest: {
         name: "Trade Log",
         short_name: "TradeLog",
