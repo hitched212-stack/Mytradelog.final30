@@ -318,22 +318,20 @@ export default function Summary() {
             </div>
             
             {/* Timeframe Selector */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               {(['1D', '1W', '1M', '1Y'] as const).map((frame) => (
-                <Button
+                <button
                   key={frame}
-                  variant={timeFrame === frame ? 'default' : 'secondary'}
-                  size="sm"
                   onClick={() => setTimeFrame(frame)}
                   className={cn(
-                    "h-9 text-sm rounded-lg px-3",
-                    timeFrame === frame 
-                      ? "bg-indigo-600 border border-indigo-500 hover:bg-indigo-700" 
-                      : "bg-foreground/[0.08] dark:bg-white/5 border border-foreground/[0.12] dark:border-white/10 hover:bg-foreground/[0.12] dark:hover:bg-muted/60 transition-colors"
+                    'px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap',
+                    timeFrame === frame
+                      ? 'bg-foreground text-background shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   )}
                 >
                   {frame}
-                </Button>
+                </button>
               ))}
             </div>
           </div>

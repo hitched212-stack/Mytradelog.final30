@@ -56,19 +56,15 @@ export function DashboardAccountSelector() {
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'group inline-flex items-center gap-2.5 px-3.5 py-2 h-10 rounded-2xl transition-all duration-300',
-            'bg-card/80 dark:bg-card/70 hover:bg-card',
-            'border border-border/60 dark:border-white/10 hover:border-border/80',
-            'text-sm font-medium text-white group-hover:text-primary',
-            'hover:scale-[1.02]',
+            'group inline-flex items-center gap-2 px-3 py-1.5 h-9 rounded-xl transition-all duration-200',
+            'hover:bg-muted/50',
+            'text-sm font-medium text-foreground',
             'focus:outline-none'
           )}
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-foreground">
-            <User className="h-4 w-4" strokeWidth={1.5} />
-          </span>
-          <span className="truncate max-w-[120px]">{activeAccount.name}</span>
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors duration-300" strokeWidth={2} />
+          <User className="h-4 w-4" strokeWidth={1.5} />
+          <span className="truncate max-w-[120px] font-display font-bold tabular-nums">{activeAccount.name}</span>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-colors duration-200" strokeWidth={2} />
         </button>
       </DropdownMenuTrigger>
 

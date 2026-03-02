@@ -132,6 +132,18 @@ export default function CalendarPage() {
     });
   }, [accountTrades, dateRange]);
 
+  const filteredDailyPnlMap = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredTrades
+      .filter(t => !t.isPaperTrade && !t.noTradeTaken)
+      .forEach((trade) => {
+        map.set(trade.date, (map.get(trade.date) || 0) + trade.pnlAmount);
+      });
+    return map;
+  }, [filteredTrades]);
+
+  const getFilteredDailyPnl = (dateStr: string) => filteredDailyPnlMap.get(dateStr) || 0;
+
   const profitColor = preferences.customColors.winColor;
   const lossColor = preferences.customColors.lossColor;
 
@@ -327,13 +339,13 @@ export default function CalendarPage() {
     return startingBalance + dashboardStats.totalPnl;
   }, [activeAccount?.starting_balance, dashboardStats.totalPnl]);
 
-  const todayPnl = useMemo(() => getDailyPnl(format(new Date(), 'yyyy-MM-dd')), [getDailyPnl]);
+  const todayPnl = useMemo(() => getFilteredDailyPnl(format(new Date(), 'yyyy-MM-dd')), [filteredDailyPnlMap]);
 
   const recentTrades = useMemo(() => {
-    return [...accountTrades]
+    return [...filteredTrades]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 6);
-  }, [accountTrades]);
+  }, [filteredTrades]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -353,12 +365,12 @@ export default function CalendarPage() {
   const monthlyTrades = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    return trades.filter(trade => {
+    return filteredTrades.filter(trade => {
       if (trade.isPaperTrade || trade.noTradeTaken) return false;
       const tradeDate = new Date(trade.date);
       return tradeDate.getFullYear() === year && tradeDate.getMonth() === month;
     });
-  }, [trades, currentMonth]);
+  }, [filteredTrades, currentMonth]);
 
   // Calculate wins and losses
   const {
@@ -553,7 +565,7 @@ export default function CalendarPage() {
     }
   }, [goalPeriod, currentMonth, getDailyPnl, getWeeklyPnl, getMonthlyPnl, getYearlyPnl, settings.goals]);
   const goalProgress = currentGoal > 0 ? Math.min(currentPnl / currentGoal * 100, 100) : 0;
-  const monthlyPnl = getMonthlyPnl(currentMonth.getFullYear(), currentMonth.getMonth());
+  const monthlyPnl = useMemo(() => monthlyTrades.reduce((sum, t) => sum + t.pnlAmount, 0), [monthlyTrades]);
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);
     const end = endOfMonth(currentMonth);
@@ -584,23 +596,23 @@ export default function CalendarPage() {
   };
   const selectedDayTrades = useMemo(() => {
     if (!selectedDate) return [];
-    return trades.filter(t => t.date === selectedDate);
-  }, [trades, selectedDate]);
+    return filteredTrades.filter(t => t.date === selectedDate);
+  }, [filteredTrades, selectedDate]);
   const getTradeCountForDay = (dateStr: string) => {
-    return trades.filter(t => t.date === dateStr).length;
+    return filteredTrades.filter(t => t.date === dateStr).length;
   };
 
   // Count trading days - exclude paper trades
   const tradingDays = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const uniqueDates = new Set(trades.filter(trade => {
+    const uniqueDates = new Set(filteredTrades.filter(trade => {
       if (trade.isPaperTrade || trade.noTradeTaken) return false;
       const tradeDate = new Date(trade.date);
       return tradeDate.getFullYear() === year && tradeDate.getMonth() === month;
     }).map(t => t.date));
     return uniqueDates.size;
-  }, [trades, currentMonth]);
+  }, [filteredTrades, currentMonth]);
 
   // Year view data - monthly P&L for all 12 months - exclude paper trades
   const yearMonthsData = useMemo(() => {
@@ -612,7 +624,7 @@ export default function CalendarPage() {
     return months.map(month => {
       const monthStart = startOfMonth(month);
       const monthEnd = endOfMonth(month);
-      const monthTrades = trades.filter(trade => {
+      const monthTrades = filteredTrades.filter(trade => {
         if (trade.isPaperTrade || trade.noTradeTaken) return false;
         const tradeDate = new Date(trade.date);
         return tradeDate >= monthStart && tradeDate <= monthEnd;
@@ -626,7 +638,7 @@ export default function CalendarPage() {
         tradeCount: monthTrades.length
       };
     });
-  }, [trades, currentMonth]);
+  }, [filteredTrades, currentMonth]);
 
   // Calculate weekly P&L for the current month - exclude paper trades
   const weeklyPnlData = useMemo(() => {
@@ -644,7 +656,7 @@ export default function CalendarPage() {
       });
 
       // Filter trades within this week that are also in the current month - exclude paper trades
-      const weekTrades = trades.filter(trade => {
+      const weekTrades = filteredTrades.filter(trade => {
         if (trade.isPaperTrade || trade.noTradeTaken) return false;
         const tradeDate = new Date(trade.date);
         return tradeDate >= weekStart && tradeDate <= weekEnd && isSameMonth(tradeDate, currentMonth);
@@ -658,7 +670,7 @@ export default function CalendarPage() {
         tradeCount: weekTrades.length
       };
     });
-  }, [trades, currentMonth]);
+  }, [filteredTrades, currentMonth]);
 
   // Day of week performance for current month (weekdays only)
   const dayOfWeekStats = useMemo(() => {
@@ -693,7 +705,7 @@ export default function CalendarPage() {
     const yearStart = startOfYear(currentMonth);
     const yearEnd = endOfYear(currentMonth);
     
-    const yearTrades = trades.filter(trade => {
+    const yearTrades = filteredTrades.filter(trade => {
       if (trade.isPaperTrade || trade.noTradeTaken) return false;
       const tradeDate = new Date(trade.date);
       return tradeDate >= yearStart && tradeDate <= yearEnd;
@@ -726,7 +738,7 @@ export default function CalendarPage() {
     });
     
     return dayStats;
-  }, [trades, currentMonth]);
+  }, [filteredTrades, currentMonth]);
 
   // Find best and worst days
   const bestDay = useMemo(() => {
@@ -745,48 +757,46 @@ export default function CalendarPage() {
                 <h1 className="text-2xl font-semibold text-foreground">
                   Hey{settings.username ? `, ${settings.username}` : ''}
                 </h1>
-                <p className="text-muted-foreground text-sm mt-1">
+                <p className="text-muted-foreground text-sm mt-1 font-display font-bold tabular-nums">
                   <TypewriterDate date={currentTime} />
                 </p>
               </div>
 
-              {/* Date Range Picker and Account Switcher */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Action Buttons Bar */}
+              <div className="flex items-center gap-2 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   className={cn(
-                    "group h-10 rounded-2xl border transition-all duration-300 flex-shrink-0 text-sm flex items-center justify-center",
-                    "bg-card/80 dark:bg-card/70 border-border/60 dark:border-white/10",
-                    "hover:bg-card hover:border-border/80",
-                    "text-white group-hover:text-primary",
-                    isMobile ? "w-10 p-0" : "px-3.5 gap-2.5"
+                    "group h-9 transition-all duration-200 flex-shrink-0 text-sm flex items-center justify-center",
+                    "hover:bg-muted/50",
+                    isMobile ? "w-9 p-0 rounded-xl" : "px-3 gap-2 rounded-xl"
                   )}
                   onClick={() => navigate('/summary')}
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-foreground">
+                  <span className="flex h-5 w-5 items-center justify-center text-foreground">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor" style={{opacity:1}}>
                       <path d="m58 362.09l-6.51-14.59A224 224 0 0 1 256 32h16v234.37Z"/>
                       <path d="M304 66.46v220.65L94.62 380.78A208.31 208.31 0 0 0 272 480c114.69 0 208-93.31 208-208c0-103.81-76.45-190.1-176-205.54"/>
                     </svg>
                   </span>
-                  {!isMobile && <span className="font-semibold">Summary</span>}
+                  {!isMobile && <span className="font-display font-bold tabular-nums text-foreground">Summary</span>}
                 </Button>
+                <div className="w-px h-6 bg-border/50" />
                 <DashboardAccountSelector />
+                <div className="w-px h-6 bg-border/50" />
                 
                 {dayDialogOpen ? (
                   <Button
                     key="disabled-btn"
-                    variant="outline"
+                    variant="ghost"
                     className={cn(
-                      "h-10 rounded-2xl border bg-card/80 dark:bg-card/70 border-border/60 dark:border-white/10 px-3.5 gap-2.5 flex-shrink-0 text-sm",
+                      "h-9 rounded-xl px-3 gap-2 flex-shrink-0 text-sm",
                       "opacity-50 cursor-not-allowed"
                     )}
                     disabled
                   >
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-foreground">
-                      <CalendarIcon className="h-4 w-4" />
-                    </span>
-                    <span className="hidden md:inline">Date Range</span>
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="hidden md:inline text-muted-foreground font-display font-bold tabular-nums">Date Range</span>
                     <ChevronDown className="hidden md:inline-flex h-3.5 w-3.5 text-muted-foreground" />
                   </Button>
                 ) : (
@@ -799,18 +809,14 @@ export default function CalendarPage() {
                   }}>
                     <PopoverTrigger asChild>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         className={cn(
-                          "group h-10 rounded-2xl border transition-all duration-300 px-3.5 gap-2.5 flex-shrink-0 text-sm",
-                          "bg-card/80 dark:bg-card/70 border-border/60 dark:border-white/10",
-                          "hover:bg-card hover:border-border/80",
-                          "text-white group-hover:text-primary"
+                          "group h-9 transition-all duration-200 px-3 gap-2 flex-shrink-0 text-sm rounded-xl",
+                          "hover:bg-muted/50"
                         )}
                       >
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-foreground">
-                          <CalendarIcon className="h-4 w-4" />
-                        </span>
-                        <span className="hidden md:inline">
+                        <CalendarIcon className="h-4 w-4 text-foreground" />
+                        <span className="hidden md:inline text-foreground font-display font-bold tabular-nums">
                           {displayRange.from ? (
                             displayRange.to ? (
                               `${format(displayRange.from, 'MMM dd')} - ${format(displayRange.to, 'MMM dd')}`
@@ -980,6 +986,9 @@ export default function CalendarPage() {
                               selected={dateRange}
                               onSelect={(range) => {
                                 setDateRange(range || { from: undefined, to: undefined } as any);
+                                if (range?.from) {
+                                  setCurrentMonth(range.from);
+                                }
                               }}
                               month={currentMonth}
                               onMonthChange={setCurrentMonth}
@@ -1200,11 +1209,11 @@ export default function CalendarPage() {
                 <div className="relative flex-1 min-h-0 flex flex-col">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-foreground">Recent Trades</h3>
+                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Recent Trades</h3>
                     </div>
                     <button
                       onClick={() => navigate('/history')}
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 bg-white/90 text-black shadow-sm hover:bg-white hover:scale-[1.02] active:scale-[0.98]"
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 bg-foreground text-background hover:scale-[1.02] active:scale-[0.98]"
                     >
                       View All
                     </button>
@@ -1330,8 +1339,8 @@ export default function CalendarPage() {
                     </h3>
                     <p className="text-[10px] text-muted-foreground font-display font-semibold">{goalLabel}</p>
                   </div>
-                  <div className="flex gap-0.5 p-0.5 rounded-xl border border-white/10 bg-black/20 backdrop-blur-sm">
-                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-200', goalPeriod === period ? 'bg-white text-black shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+                  <div className="flex gap-1 p-1 rounded-xl border border-border/50 bg-muted/50 dark:bg-black/20">
+                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-200', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                         {period}
                       </button>)}
                   </div>
@@ -1375,7 +1384,7 @@ export default function CalendarPage() {
                 >
                   <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
                 </button>
-                <span className="text-base font-semibold text-foreground text-center whitespace-nowrap min-w-[140px]">
+                <span className="text-base font-semibold text-foreground text-center whitespace-nowrap min-w-[140px] font-display">
                   {viewMode === 'year' ? format(currentMonth, 'yyyy') : (
                     <>
                       <span className="sm:hidden">{format(currentMonth, 'MMM')}</span>
@@ -1392,7 +1401,7 @@ export default function CalendarPage() {
                 <button 
                   onClick={handleToday} 
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0 ml-2',
+                    'px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0 ml-2',
                     viewMode === 'month' ? '' : 'hidden',
                     'bg-foreground text-background'
                   )}
@@ -1400,13 +1409,13 @@ export default function CalendarPage() {
                   Today
                 </button>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                 {viewMode === 'month' && (
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="text-muted-foreground whitespace-nowrap">
+                  <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm">
+                    <span className="text-muted-foreground whitespace-nowrap font-display font-bold tabular-nums">
                       PnL: <span className={cn('font-display font-bold tabular-nums', monthlyPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>{formatPnlWithK(monthlyPnl)}</span>
                     </span>
-                    <span className="text-muted-foreground whitespace-nowrap hidden sm:inline">Days: <span className="text-foreground font-medium">{tradingDays}</span></span>
+                    <span className="text-muted-foreground whitespace-nowrap hidden sm:inline font-display font-bold tabular-nums">Days: <span className="text-foreground font-display font-bold tabular-nums">{tradingDays}</span></span>
                   </div>
                 )}
                 {/* Mobile View Mode Toggle - Minimal M/Y switch */}
@@ -1438,7 +1447,7 @@ export default function CalendarPage() {
                   <button
                     onClick={() => setViewMode('month')}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                      'px-3 py-1.5 rounded-xl text-xs font-medium transition-all',
                       viewMode === 'month' 
                         ? 'bg-foreground text-background' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -1449,7 +1458,7 @@ export default function CalendarPage() {
                   <button
                     onClick={() => setViewMode('year')}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                      'px-3 py-1.5 rounded-xl text-xs font-medium transition-all',
                       viewMode === 'year' 
                         ? 'bg-foreground text-background' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -1463,8 +1472,9 @@ export default function CalendarPage() {
 
             {viewMode === 'year' ? (
               /* Year View - 12 Month Grid */
-              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-                {yearMonthsData.map((monthData, index) => {
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                  {yearMonthsData.map((monthData, index) => {
                   const isCurrentMonth = monthData.month.getMonth() === new Date().getMonth() && 
                                          monthData.month.getFullYear() === new Date().getFullYear();
                   const hasTrades = monthData.tradeCount > 0;
@@ -1476,63 +1486,87 @@ export default function CalendarPage() {
                       key={index}
                       onClick={() => handleMonthClick(monthData.month)}
                       className={cn(
-                        'group p-3 sm:p-4 rounded-xl transition-all text-left relative overflow-hidden',
+                        'group p-4 sm:p-5 rounded-2xl transition-all text-left relative overflow-hidden border',
+                        'hover:scale-[1.02] active:scale-[0.98]',
                         preferences.liquidGlassEnabled
-                          ? 'border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl hover:bg-card'
-                          : 'bg-card border border-border/50 hover:border-border hover:bg-muted/30',
-                        isCurrentMonth && 'border-primary/40 bg-primary/5'
+                          ? 'border-border/40 bg-card/95 dark:bg-card/80 backdrop-blur-xl hover:bg-card hover:border-border/60'
+                          : 'bg-card border-border/50 hover:border-border hover:bg-muted/20',
+                        isCurrentMonth && 'ring-2 ring-primary/40 border-primary/40'
                       )}
                     >
-                      {/* Dot pattern - only show when glass is enabled */}
-                      {preferences.liquidGlassEnabled && (
-                        <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <pattern id={`month-dots-${index}`} x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-                              <circle cx="1" cy="1" r="0.75" className="fill-foreground/[0.08] dark:fill-foreground/[0.05]" />
-                            </pattern>
-                          </defs>
-                          <rect width="100%" height="100%" fill={`url(#month-dots-${index})`} />
-                        </svg>
+                      {/* Gradient overlay for months with trades */}
+                      {hasTrades && (
+                        <div 
+                          className={cn(
+                            'absolute inset-0 opacity-[0.03] pointer-events-none',
+                            isWin ? 'bg-gradient-to-br from-pnl-positive/20 to-transparent' : 'bg-gradient-to-br from-pnl-negative/20 to-transparent'
+                          )} 
+                        />
                       )}
-                      <div className="relative flex flex-col justify-between min-h-[80px] sm:min-h-[100px]">
-                        {/* Month Header - Short name on mobile */}
-                        <span className={cn(
-                          'text-sm font-semibold',
-                          isCurrentMonth ? 'text-primary' : 'text-foreground'
-                        )}>
-                          <span className="sm:hidden">{format(monthData.month, 'MMM')}</span>
-                          <span className="hidden sm:inline">{format(monthData.month, 'MMMM')}</span>
-                        </span>
+                      
+                      <div className="relative flex flex-col gap-3">
+                        {/* Month Header */}
+                        <div className="flex items-center justify-between">
+                          <span className={cn(
+                            'text-sm sm:text-base font-semibold',
+                            isCurrentMonth ? 'text-primary' : 'text-foreground'
+                          )}>
+                            {format(monthData.month, 'MMMM')}
+                          </span>
+                        </div>
                         
                         {/* P&L Display */}
-                        <div className="my-2">
+                        <div>
                           <span className={cn(
-                            'text-base sm:text-2xl font-bold font-display tracking-tight',
+                            'text-2xl sm:text-3xl font-bold font-display tracking-tight block',
                             hasTrades 
                               ? isWin ? 'text-pnl-positive' : isLoss ? 'text-pnl-negative' : 'text-foreground'
-                              : 'text-muted-foreground/50'
+                              : 'text-muted-foreground/30'
                           )}>
                             {hasTrades ? formatPnlWithK(monthData.pnl) : '—'}
                           </span>
                         </div>
                         
-                        {/* Stats Row - Compact on mobile */}
-                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-foreground/20" />
-                            <span className="sm:hidden">{monthData.tradeCount}t</span>
-                            <span className="hidden sm:inline">{monthData.tradeCount} trades</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-foreground/20" />
-                            <span className="sm:hidden">{monthData.tradingDays}d</span>
-                            <span className="hidden sm:inline">{monthData.tradingDays} days</span>
-                          </span>
+                        {/* Stats Row */}
+                        <div className="flex items-center gap-3 text-xs">
+                          <div className={cn(
+                            "flex items-center gap-1.5",
+                            hasTrades ? "text-muted-foreground" : "text-muted-foreground"
+                          )}>
+                            <div className={cn(
+                              'w-2 h-2 rounded-full',
+                              hasTrades ? 'bg-foreground/30' : 'bg-foreground/10'
+                            )} />
+                            <span className={cn(
+                              "font-display tabular-nums",
+                              hasTrades ? "font-medium" : "font-bold"
+                            )}>{monthData.tradeCount} {monthData.tradeCount === 1 ? 'trade' : 'trades'}</span>
+                          </div>
+                          <div className={cn(
+                            "flex items-center gap-1.5",
+                            hasTrades ? "text-muted-foreground" : "text-muted-foreground"
+                          )}>
+                            <div className={cn(
+                              'w-2 h-2 rounded-full',
+                              hasTrades ? 'bg-foreground/30' : 'bg-foreground/10'
+                            )} />
+                            <span className={cn(
+                              "font-display tabular-nums",
+                              hasTrades ? "font-medium" : "font-bold"
+                            )}>{monthData.tradingDays} {monthData.tradingDays === 1 ? 'day' : 'days'}</span>
+                          </div>
                         </div>
                       </div>
                     </button>
                   );
                 })}
+                </div>
+                <div className="flex items-center justify-center pt-1">
+                  <div className="inline-flex items-center gap-2">
+                    <span className="h-5 w-5 rounded-md border-2 border-primary/50 bg-transparent" />
+                    <span className="text-sm text-muted-foreground font-display font-bold tabular-nums">Current Month</span>
+                  </div>
+                </div>
               </div>
             ) : (
               /* Month View - Original Calendar */
@@ -1555,7 +1589,7 @@ export default function CalendarPage() {
                       ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                       : "border-border/50 bg-card"
                   )}>
-                    <span className="font-bold">{trades.filter(t => {
+                    <span className="font-bold">{filteredTrades.filter(t => {
                       const tradeDate = new Date(t.date);
                       return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
                     }).length}</span>
@@ -1579,7 +1613,7 @@ export default function CalendarPage() {
                       ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                       : "border-border/50 bg-card"
                   )}>
-                    <span className="font-bold">{trades.filter(t => {
+                    <span className="font-bold">{filteredTrades.filter(t => {
                       const tradeDate = new Date(t.date);
                       return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
                     }).length}</span>
@@ -1615,9 +1649,9 @@ export default function CalendarPage() {
                         <div key={weekIndex} className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1">
                           {week.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
-                            const dayPnl = getDailyPnl(dateStr);
-                            const dayTrades = trades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
-                            const noTradeTakenCount = trades.filter(t => t.date === dateStr && t.noTradeTaken).length;
+                            const dayPnl = getFilteredDailyPnl(dateStr);
+                            const dayTrades = filteredTrades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
+                            const noTradeTakenCount = filteredTrades.filter(t => t.date === dateStr && t.noTradeTaken).length;
                             const tradeCount = dayTrades.length;
                             const wins = dayTrades.filter(t => t.pnlAmount > 0).length;
                             const winRate = tradeCount > 0 ? Math.round((wins / tradeCount) * 100) : 0;
@@ -1698,9 +1732,9 @@ export default function CalendarPage() {
                         <div key={`${weekIndex}-mobile`} className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 auto-rows-[4rem] items-stretch">
                           {weekdaysOnly.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
-                            const dayPnl = getDailyPnl(dateStr);
-                            const dayTrades = trades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
-                            const noTradeTakenCount = trades.filter(t => t.date === dateStr && t.noTradeTaken).length;
+                            const dayPnl = getFilteredDailyPnl(dateStr);
+                            const dayTrades = filteredTrades.filter(t => t.date === dateStr && !t.isPaperTrade && !t.noTradeTaken);
+                            const noTradeTakenCount = filteredTrades.filter(t => t.date === dateStr && t.noTradeTaken).length;
                             const tradeCount = dayTrades.length;
                             const isTodayDate = isToday(day);
                             const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -1779,15 +1813,15 @@ export default function CalendarPage() {
                 <div className="flex items-center justify-center gap-6 py-4">
                   <div className="flex items-center gap-2">
                     <div className="h-5 w-5 rounded-md bg-pnl-positive/20 border-2 border-pnl-positive/60" />
-                    <span className="text-sm text-muted-foreground">Profitable</span>
+                    <span className="text-sm text-muted-foreground font-display font-bold tabular-nums">Profitable</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-5 w-5 rounded-md bg-pnl-negative/20 border-2 border-pnl-negative/60" />
-                    <span className="text-sm text-muted-foreground">Loss</span>
+                    <span className="text-sm text-muted-foreground font-display font-bold tabular-nums">Loss</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-5 w-5 rounded-md bg-muted/30 ring-2 ring-foreground/40" />
-                    <span className="text-sm text-muted-foreground">Today</span>
+                    <span className="text-sm text-muted-foreground font-display font-bold tabular-nums">Today</span>
                   </div>
                 </div>
               </>

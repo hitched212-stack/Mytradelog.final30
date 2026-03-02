@@ -325,7 +325,7 @@ export function Sidebar({
         <NavLink
           to="/add"
           className={cn(
-            "flex items-center justify-center gap-2 rounded-lg bg-foreground text-background py-2 transition-all duration-200 hover:opacity-90 hover:scale-[1.02] font-medium text-sm",
+            "flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white py-2.5 transition-all duration-200 hover:bg-violet-500 hover:scale-[1.02] active:scale-[0.98] font-semibold text-sm",
             isCollapsed ? "w-10 h-10 mx-auto p-0" : "w-full px-3",
           )}
         >

@@ -4,14 +4,13 @@ import { useSettings } from '@/hooks/useSettings';
 import { useAccount } from '@/hooks/useAccount';
 import { usePreferences } from '@/hooks/usePreferences';
 import { cn } from '@/lib/utils';
-import { format, startOfWeek, subDays, getWeek } from 'date-fns';
+import { format, startOfWeek, subDays, getWeek, startOfMonth, startOfYear, endOfMonth } from 'date-fns';
 import { getCurrencySymbol, Currency } from '@/types/trade';
-import { Target, BarChart3, Scale, Crosshair, Clock, Trophy, ArrowUpRight, ArrowDownRight, XCircle, Shield, LineChart, CalendarIcon, TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { Target, BarChart3, Scale, Crosshair, Clock, Trophy, ArrowUpRight, ArrowDownRight, XCircle, Shield, LineChart, CalendarIcon, TrendingUp, TrendingDown, Info, ChevronDown } from 'lucide-react';
 import { SegmentedBarChart } from '@/components/ui/SegmentedBarChart';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartTooltip, BarChart, Bar, Cell, RadarChart, PolarGrid, PolarAngleAxis, Radar, ReferenceLine, CartesianGrid, PieChart, Pie, LabelList } from 'recharts';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
 import { Meh, Frown, Smile } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -863,40 +862,197 @@ export default function Analytics() {
   return <TooltipProvider>
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
         <div className="px-4 py-5 md:px-6">
-          <div className="flex flex-col gap-4">
-            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Analytics</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground font-display">Analytics</h1>
             
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* Unified Bar with Controls */}
+            <div className="flex items-center gap-2 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               {/* Date Range Picker */}
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="secondary" className={cn("h-9 text-sm gap-2 rounded-lg bg-muted/40 border border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors px-3", dateRange.from ? "text-foreground" : "text-muted-foreground")}>
-                    <CalendarIcon className="h-4 w-4" />
-                    {dateRange.from ? (
-                      dateRange.to ? (
-                        `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd, yyyy')}`
-                      ) : (
-                        format(dateRange.from, 'MMM dd, yyyy')
-                      )
-                    ) : 'Pick date range'}
+                  <Button 
+                    variant="ghost" 
+                    className={cn(
+                      "h-9 text-sm gap-2 rounded-xl px-3 transition-all duration-200",
+                      "hover:bg-muted/50 text-white"
+                    )}
+                  >
+                    <CalendarIcon className="h-4 w-4 text-white" />
+                    <span className="font-display font-bold tabular-nums">
+                      {`${format(startOfMonth(new Date()), 'MMM dd')} - ${format(endOfMonth(new Date()), 'MMM dd')}`}
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 text-white/70" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar 
-                    mode="range" 
-                    selected={dateRange}
-                    onSelect={(range) => {
-                      setDateRange(range || { from: undefined, to: undefined });
-                      if (range?.from) {
-                        setTimeFrame('Daily');
-                      }
-                    }} 
-                    numberOfMonths={2}
-                    initialFocus 
-                    className="p-3 pointer-events-auto" 
-                  />
+                  <div className="flex">
+                    {/* Left side - Preset buttons */}
+                    <div className="flex flex-col gap-2 p-3 border-r border-border min-w-[160px]">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const today = new Date();
+                          setDateRange({ from: today, to: today });
+                          setTimeFrame('Daily');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          dateRange.from && dateRange.to && 
+                          format(dateRange.from, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                          format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                          "bg-muted font-medium"
+                        )}
+                      >
+                        Today
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const yesterday = subDays(new Date(), 1);
+                          setDateRange({ from: yesterday, to: yesterday });
+                          setTimeFrame('Daily');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          dateRange.from && dateRange.to &&
+                          format(dateRange.from, 'yyyy-MM-dd') === format(subDays(new Date(), 1), 'yyyy-MM-dd') &&
+                          format(dateRange.to, 'yyyy-MM-dd') === format(subDays(new Date(), 1), 'yyyy-MM-dd') &&
+                          "bg-muted font-medium"
+                        )}
+                      >
+                        Yesterday
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const today = new Date();
+                          const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+                          setDateRange({ from: weekStart, to: today });
+                          setTimeFrame('Week');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          dateRange.from && dateRange.to &&
+                          format(dateRange.from, 'yyyy-MM-dd') === format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd') &&
+                          format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                          "bg-muted font-medium"
+                        )}
+                      >
+                        This week
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const today = new Date();
+                          const sevenDaysAgo = subDays(today, 6);
+                          setDateRange({ from: sevenDaysAgo, to: today });
+                          setTimeFrame('Week');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          dateRange.from && dateRange.to &&
+                          format(dateRange.from, 'yyyy-MM-dd') === format(subDays(new Date(), 6), 'yyyy-MM-dd') &&
+                          format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                          "bg-muted font-medium"
+                        )}
+                      >
+                        Last 7 days
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const today = new Date();
+                          const thirtyDaysAgo = subDays(today, 29);
+                          setDateRange({ from: thirtyDaysAgo, to: today });
+                          setTimeFrame('Month');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          dateRange.from && dateRange.to &&
+                          format(dateRange.from, 'yyyy-MM-dd') === format(subDays(new Date(), 29), 'yyyy-MM-dd') &&
+                          format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                          "bg-muted font-medium"
+                        )}
+                      >
+                        Last 30 days
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const today = new Date();
+                          const monthStart = startOfMonth(today);
+                          setDateRange({ from: monthStart, to: today });
+                          setTimeFrame('Month');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          dateRange.from && dateRange.to &&
+                          format(dateRange.from, 'yyyy-MM-dd') === format(startOfMonth(new Date()), 'yyyy-MM-dd') &&
+                          format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                          "bg-muted font-medium"
+                        )}
+                      >
+                        This month
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const today = new Date();
+                          const yearStart = startOfYear(today);
+                          setDateRange({ from: yearStart, to: today });
+                          setTimeFrame('Year');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          dateRange.from && dateRange.to &&
+                          format(dateRange.from, 'yyyy-MM-dd') === format(startOfYear(new Date()), 'yyyy-MM-dd') &&
+                          format(dateRange.to, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+                          "bg-muted font-medium"
+                        )}
+                      >
+                        This year
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setDateRange({ from: undefined, to: undefined });
+                          setTimeFrame('All Time');
+                        }}
+                        className={cn(
+                          "justify-start hover:bg-muted",
+                          !dateRange.from && !dateRange.to && "bg-muted font-medium"
+                        )}
+                      >
+                        All time
+                      </Button>
+                    </div>
+                    {/* Right side - Calendar */}
+                    <div>
+                      <Calendar 
+                        mode="range" 
+                        selected={dateRange}
+                        onSelect={(range) => {
+                          setDateRange(range || { from: undefined, to: undefined });
+                          if (range?.from) {
+                            setTimeFrame('Daily');
+                          }
+                        }} 
+                        numberOfMonths={2}
+                        initialFocus 
+                        className="pointer-events-auto" 
+                      />
+                    </div>
+                  </div>
                   {dateRange.from && <div className="p-3 border-t border-border">
                       <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setDateRange({ from: undefined, to: undefined })}>
                         Clear date filter
@@ -904,22 +1060,6 @@ export default function Analytics() {
                     </div>}
                 </PopoverContent>
               </Popover>
-              
-              <Select value={timeFrame} onValueChange={(v: TimeFrame) => {
-              setTimeFrame(v);
-              setDateRange({ from: undefined, to: undefined });
-            }}>
-                <SelectTrigger className="w-[110px] h-9 text-sm bg-muted/40 border-border/60 dark:bg-white/5 dark:border-white/10 hover:bg-muted/60 transition-colors rounded-lg">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Daily">Daily</SelectItem>
-                  <SelectItem value="Week">Week</SelectItem>
-                  <SelectItem value="Month">Month</SelectItem>
-                  <SelectItem value="Year">Year</SelectItem>
-                  <SelectItem value="All Time">All Time</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>

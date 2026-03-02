@@ -350,7 +350,7 @@ export function BalanceCard({
           {/* Balance Header */}
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground">Total Balance</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Total Balance</p>
               <button
                 onClick={onToggleBalanceHidden}
                 className="text-muted-foreground/90 hover:text-foreground transition-colors"
@@ -387,7 +387,7 @@ export function BalanceCard({
 
           {/* Period Selector and Chart Type Toggle - Top Right */}
           <div className="flex items-center gap-2 flex-shrink-0 -mt-1 md:mt-0">
-            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg border border-white/[0.03] bg-black/15 backdrop-blur-sm">
+            <div className="flex items-center gap-1 p-1 rounded-xl border border-border/50 bg-muted/50 dark:bg-black/20">
               {periods.map(period => (
                 <button
                   key={period}
@@ -395,7 +395,7 @@ export function BalanceCard({
                   className={cn(
                     'px-2 md:px-2.5 py-1.5 md:py-1 rounded-md text-xs font-medium transition-all duration-200',
                     selectedPeriod === period
-                      ? 'bg-white text-black shadow-sm'
+                      ? 'bg-foreground text-background shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
@@ -404,13 +404,13 @@ export function BalanceCard({
               ))}
             </div>
             
-            <div className="flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg border border-white/[0.03] bg-black/15 backdrop-blur-sm">
+            <div className="flex items-center gap-1 p-1 rounded-xl border border-border/50 bg-muted/50 dark:bg-black/20">
               <button
                 onClick={() => setChartType('bar')}
                 className={cn(
                   'p-1.5 md:p-1 rounded-md transition-all duration-200 w-[28px] h-[28px] md:w-[26px] md:h-[26px] flex items-center justify-center',
                   chartType === 'bar'
-                    ? 'bg-white text-black'
+                    ? 'bg-foreground text-background shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label="Bar chart"
@@ -425,7 +425,7 @@ export function BalanceCard({
                 className={cn(
                   'p-1.5 md:p-1 rounded-md transition-all duration-200 w-[28px] h-[28px] md:w-[26px] md:h-[26px] flex items-center justify-center',
                   chartType === 'line'
-                    ? 'bg-white text-black'
+                    ? 'bg-foreground text-background shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label="Line chart"

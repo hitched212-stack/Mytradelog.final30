@@ -109,9 +109,13 @@ export function MobileSidebar() {
 
               {/* Add Trade Button */}
               <div className="px-3 py-3">
-                <NavLink to="/add" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-2.5 w-full transition-colors hover:bg-primary/90">
+                <NavLink
+                  to="/add"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center gap-2.5 rounded-2xl bg-violet-600 text-white py-3 w-full transition-all duration-200 hover:bg-violet-500 active:scale-[0.98]"
+                >
                   <Plus className="h-5 w-5" />
-                  <span className="font-medium">Add Trade</span>
+                  <span className="font-semibold tracking-wide">Add Trade</span>
                 </NavLink>
               </div>
 
