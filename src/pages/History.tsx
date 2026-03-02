@@ -261,8 +261,8 @@ export default function History() {
         {/* Top row: Title and Search */}
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
-            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">{filteredTrades.length} total trades</p>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Trade History</h3>
+            <p className="text-xs text-muted-foreground mt-1">{filteredTrades.length} total trades</p>
           </div>
           
           {/* Search Bar */}
@@ -522,8 +522,8 @@ export default function History() {
         {/* Title and Stats */}
         <div className="relative flex items-center gap-4 flex-shrink-0">
           <div>
-            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trade History</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">{filteredTrades.length} total trades</p>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Trade History</h3>
+            <p className="text-xs text-muted-foreground mt-1">{filteredTrades.length} total trades</p>
           </div>
           <div className="w-px h-8 bg-border/50" />
           <div className="flex items-center gap-3">

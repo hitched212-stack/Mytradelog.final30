@@ -863,12 +863,12 @@ export default function Analytics() {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
-        <div className="px-4 py-5 md:px-6">
-          <div className="flex items-center justify-between gap-4">
+        <div className="px-4 pt-5 pb-2 md:px-6">
+          <div className="flex items-center justify-between gap-4 mb-3">
             <h1 className="text-sm font-bold uppercase tracking-widest text-foreground font-display">Analytics</h1>
             
             {/* Unified Bar with Controls */}
-            <div className="flex items-center gap-2 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div className="flex items-center gap-2 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] pb-3">
               {/* Date Range Picker */}
               <Popover>
                 <PopoverTrigger asChild>
@@ -1069,13 +1069,13 @@ export default function Analytics() {
         
         {/* Equity Curve with Net P&L - Premium Dark Fintech Style */}
         <div className={cn(
-          "rounded-[1.75rem] p-4 md:p-6 pb-4 relative overflow-hidden border shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+          "rounded-[1.75rem] px-4 md:px-6 pb-4 relative overflow-hidden border shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
           preferences.liquidGlassEnabled
             ? "border-white/10 bg-card/85 backdrop-blur-2xl"
             : "border-border/60 bg-card"
         )}>
           {/* Header with Net P&L and Chart Toggle */}
-          <div className="relative flex items-start justify-between mb-6 md:mb-8">
+          <div className="relative flex items-start justify-between mb-6 md:mb-8 pt-4 md:pt-6 -mt-3 md:-mt-2">
             {/* Left: Income info */}
             <div>
               <div className="flex items-start justify-between gap-4">
